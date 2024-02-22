@@ -8,16 +8,12 @@ import net.dankito.k8s.domain.model.Verb
 class HomePageData(
     val allResources: List<KubernetesResource>,
     resourceItems: List<ResourceItem> = emptyList()
-) {
+) : ResourceItemsViewData(resourceItems) {
 
     companion object {
         private val highlightedResourcesNames = hashSetOf("pods", "services", "ingresses")
-
-        fun sort(items: List<ResourceItem>): List<ResourceItem> =
-            items.sortedWith(compareBy( { it.namespace }, { it.name } ))
     }
 
-    val resourceItems: List<ResourceItem> = sort(resourceItems)
 
     private val listableResources = allResources
         .filter { it.verbs.contains(Verb.list) }

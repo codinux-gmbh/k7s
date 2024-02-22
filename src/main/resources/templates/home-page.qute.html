@@ -29,7 +29,7 @@
       <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border">
         <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500">
             <tr>
-                <th class="w-[12rem] text-left">Namespace</th>
+                <th class="w-[12rem] text-left {#if !isNamespacedResource}hidden{/if}">Namespace</th>
                 <th>Name</th>
             </tr>
         </thead>
@@ -37,7 +37,7 @@
       <tbody>
       {#for item in resourceItems}
         <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200">
-          <td class="truncate">{item.namespace}</td>
+          <td class="truncate {#if !isNamespacedResource}hidden{/if}">{item.namespace}</td>
           <td class="truncate">{item.name}</td>
         </tr>
       {/for}

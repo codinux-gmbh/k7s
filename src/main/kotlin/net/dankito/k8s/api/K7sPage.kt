@@ -9,6 +9,7 @@ import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.MediaType
 import net.dankito.k8s.api.dto.HomePageData
+import net.dankito.k8s.api.dto.ResourceItemsViewData
 import net.dankito.k8s.domain.service.KubernetesService
 import org.jboss.resteasy.reactive.RestPath
 
@@ -35,7 +36,7 @@ class K7sPage(
         val resourceItems = service.getResourceItems(group.takeUnless { it.isBlank() || it == "null" }, name, version)
 
         return homePage.getFragment("resourceItems")
-            .data("resourceItems", HomePageData.sort(resourceItems))
+            .data(ResourceItemsViewData(resourceItems))
     }
 
 }
