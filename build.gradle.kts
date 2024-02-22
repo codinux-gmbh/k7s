@@ -26,7 +26,7 @@ val kmpLogVersion: String by project
 val lokiLogAppenderVersion: String by project
 
 dependencies {
-    implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusVersion"))
+    implementation(enforcedPlatform("io.quarkus:quarkus-bom:$quarkusVersion"))
 
     implementation("io.quarkus:quarkus-kotlin")
     implementation("io.quarkus:quarkus-resteasy-reactive")
