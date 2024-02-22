@@ -82,7 +82,7 @@ class KubernetesService(
 
     fun map(group: String?, version: String, apiResource: APIResource, crds: Map<String, KubernetesResource>): KubernetesResource {
         val name = apiResource.name
-        val identifier = KubernetesResource.createIdentifier(group, version, name)
+        val identifier = KubernetesResource.createIdentifier(group, name, version)
 
         // here the group is null for a lot of resources (Kubernetes standard resources), for two singular is null and verbs are always set
         return KubernetesResource(
