@@ -12,7 +12,7 @@ class K7sResource(
     private val service: KubernetesService
 ) {
 
-    @GET
+    @GET // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
     fun getAllAvailableResourceTypes() =
         service.getAllAvailableResourceTypes()
 

@@ -1,0 +1,60 @@
+<aside class="container max-w-[350px] m-2 p-2 bg-white text-zinc-500 shadow-md">
+    <style>
+        .resource-cell {
+            padding: 0.125rem;
+            padding-left: 0.5rem;
+            padding-right: 0;
+
+            line-height: 1.25rem;
+        }
+        @media screen and (min-width: 640px) {
+            .resource-cell  {
+                padding: 0.2rem;
+                padding-left: 0.75rem;
+                padding-right: 0;
+
+                line-height: 1.5rem;
+            }
+        }
+    </style>
+
+    <table class="table-fixed w-full text-xs sm:text-[1rem]">
+        <tbody>
+            {#for resource in highlightedResources}
+              <tr class="lg:hover:bg-zinc-200">
+                  <td class="resource-cell">
+                      {resource.kind}
+                  </td>
+              </tr>
+            {/for}
+        </tbody>
+    </table>
+
+    <h2 class="mt-6 mb-2 text-zinc-400 font-semibold">Standard resources</h2>
+
+    <table class="table-fixed w-full text-xs sm:text-[1rem]">
+        <tbody>
+            {#for resource in standardResources}
+                <tr class="lg:hover:bg-zinc-200">
+                    <td class="resource-cell">
+                        {resource.kind}
+                    </td>
+                </tr>
+            {/for}
+        </tbody>
+    </table>
+
+    <h2 class="mt-4 mb-1 text-zinc-400 font-semibold">CRDs</h2>
+
+    <table class="table-fixed w-full text-xs sm:text-[1rem]">
+        <tbody>
+            {#for resource in customResourceDefinitions}
+                <tr class="lg:hover:bg-zinc-200">
+                    <td class="resource-cell">
+                        {resource.kind} {resource.group}.{resource.version}
+                    </td>
+                </tr>
+            {/for}
+        </tbody>
+    </table>
+</aside>
