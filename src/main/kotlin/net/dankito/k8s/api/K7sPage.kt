@@ -22,7 +22,7 @@ class K7sPage(
     @GET
     @Blocking // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
     fun homePage(): TemplateInstance =
-        homePage.data(HomePageData(service.getAllAvailableResourceTypes(), service.getPods().sortedBy { it.metadata.name }))
+        homePage.data(HomePageData(service.getAllAvailableResourceTypes(), service.getPods()))
 
     @Path("page/resources/{group}/{name}/{version}") // TODO: don't know why, but if i use only "/resources/..." Quarkus cannot resolve the method anymore and i only get 404 Not Found
     @GET

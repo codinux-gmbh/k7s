@@ -1,10 +1,8 @@
 package net.dankito.k8s.domain.service
 
 import io.fabric8.kubernetes.api.model.APIResource
-import io.fabric8.kubernetes.api.model.GenericKubernetesResource
 import io.fabric8.kubernetes.api.model.HasMetadata
 import io.fabric8.kubernetes.api.model.KubernetesResourceList
-import io.fabric8.kubernetes.api.model.networking.v1beta1.Ingress
 import io.fabric8.kubernetes.client.ApiVisitor
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.dsl.AnyNamespaceOperation
@@ -13,6 +11,7 @@ import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext
 import jakarta.inject.Singleton
 import net.codinux.log.logger
 import net.dankito.k8s.domain.model.KubernetesResource
+import net.dankito.k8s.domain.model.ResourceItem
 import net.dankito.k8s.domain.model.Verb
 
 @Singleton
@@ -33,17 +32,7 @@ class KubernetesService(
 
     fun getServices(namespace: String? = null) = listItems(client.services(), namespace)
 
-    fun getIngresses(namespace: String? = null): List<Ingress> = listItems(client.network().ingresses(), namespace)
-
-    private fun <T : HasMetadata, L : KubernetesResourceList<T>, R> listItems(operation: AnyNamespaceOperation<T, L, R>, namespace: String? = null): List<T> =
-        operation.let {
-            if (namespace != null && operation is MixedOperation<T, L, *>) {
-                operation.inNamespace(namespace)
-            } else {
-                operation
-            }
-        }
-            .list().items as List<T>
+    fun getIngresses(namespace: String? = null) = listItems(client.network().ingresses(), namespace)
 
 
     fun getCustomResourceDefinitions(): List<KubernetesResource> {
@@ -99,7 +88,8 @@ class KubernetesService(
         )
     }
 
-    fun getResourceItems(group: String?, name: String, version: String): List<GenericKubernetesResource> {
+
+    fun getResourceItems(group: String?, name: String, version: String): List<ResourceItem> {
         val context = ResourceDefinitionContext.Builder()
             .withGroup(group)
             .withPlural(name)
@@ -109,7 +99,7 @@ class KubernetesService(
         return listItems(client.genericKubernetesResources(context))
     }
 
-    fun getResourceItems(resource: KubernetesResource): List<GenericKubernetesResource> {
+    fun getResourceItems(resource: KubernetesResource): List<ResourceItem> {
         val context = ResourceDefinitionContext.Builder()
             .withGroup(resource.group)
             .withVersion(resource.version)
@@ -144,5 +134,17 @@ class KubernetesService(
             }
         }
     }
+
+    private fun <T : HasMetadata, L : KubernetesResourceList<T>, R> listItems(operation: AnyNamespaceOperation<T, L, R>, namespace: String? = null): List<ResourceItem> =
+        operation.let {
+            if (namespace != null && operation is MixedOperation<T, L, *>) {
+                operation.inNamespace(namespace)
+            } else {
+                operation
+            }
+        }
+            .list().items.let { it as List<T> }.map { item ->
+                ResourceItem(item.metadata.name, item.metadata.namespace?.takeUnless { it.isBlank() })
+            }
 
 }

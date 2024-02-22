@@ -1,23 +1,23 @@
 package net.dankito.k8s.api.dto
 
-import io.fabric8.kubernetes.api.model.HasMetadata
 import net.dankito.k8s.domain.model.KubernetesResource
+import net.dankito.k8s.domain.model.ResourceItem
 import net.dankito.k8s.domain.model.Verb
 
 @Suppress("MemberVisibilityCanBePrivate")
 class HomePageData(
     val allResources: List<KubernetesResource>,
-    resourceItems: List<HasMetadata> = emptyList()
+    resourceItems: List<ResourceItem> = emptyList()
 ) {
 
     companion object {
         private val highlightedResourcesNames = hashSetOf("pods", "services", "ingresses")
 
-        fun sort(items: List<HasMetadata>): List<HasMetadata> =
-            items.sortedWith(compareBy( { it.metadata.namespace }, { it.metadata.name } ))
+        fun sort(items: List<ResourceItem>): List<ResourceItem> =
+            items.sortedWith(compareBy( { it.namespace }, { it.name } ))
     }
 
-    val resourceItems: List<HasMetadata> = sort(resourceItems)
+    val resourceItems: List<ResourceItem> = sort(resourceItems)
 
     private val listableResources = allResources
         .filter { it.verbs.contains(Verb.list) }
