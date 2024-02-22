@@ -13,12 +13,12 @@
 
     <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
 </head>
-<body class="bg-zinc-100 flex flex-col min-h-screen">
+<body class="bg-zinc-100 flex flex-row min-h-screen">
 
-    {#include resources-view} {/include}
+    {#include resources-view /}
 
-    <main class="flex-[1_0_auto]">
-        <div class="max-w-[1140px] w-[100%] lg:w-[85%] lg:mx-auto">
+    <main class="flex-[1_0_auto] mt-2">
+        <div class="w-full">
           {#insert} {/}
         </div>
     </main>

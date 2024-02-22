@@ -99,6 +99,16 @@ class KubernetesService(
         )
     }
 
+    fun getResourceItems(group: String?, name: String, version: String): List<GenericKubernetesResource> {
+        val context = ResourceDefinitionContext.Builder()
+            .withGroup(group)
+            .withPlural(name)
+            .withVersion(version)
+            .build()
+
+        return listItems(client.genericKubernetesResources(context))
+    }
+
     fun getResourceItems(resource: KubernetesResource): List<GenericKubernetesResource> {
         val context = ResourceDefinitionContext.Builder()
             .withGroup(resource.group)
@@ -108,7 +118,7 @@ class KubernetesService(
             .withNamespaced(resource.isNamespaced)
             .build()
 
-        return client.genericKubernetesResources(context).list().items
+        return listItems(client.genericKubernetesResources(context))
     }
 
     fun getResourceItemsResponse(resource: KubernetesResource): String? {
@@ -119,6 +129,10 @@ class KubernetesService(
                 // the logic for the URL is:
                 // - no group -> /api/<version>/<pluralName>
                 // - has group -> /apis/<group>/<version>/<pluralName>
+
+                // namespaced:
+                // - without group: /api/v1/namespaces/collab/pods
+                // - with group: /apis/apps/v1/namespaces/collab/deployments
                 if (resource.group.isNullOrBlank()) {
                     client.raw("/api/${resource.version}/${resource.name}")
                 } else {
