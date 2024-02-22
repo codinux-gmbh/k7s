@@ -1,8 +1,10 @@
 package net.dankito.k8s.api.dto
 
+import net.dankito.k8s.domain.model.KubernetesResource
 import net.dankito.k8s.domain.model.ResourceItem
 
 open class ResourceItemsViewData(
+    resource: KubernetesResource,
     resourceItems: List<ResourceItem> = emptyList()
 ) {
 
@@ -16,6 +18,6 @@ open class ResourceItemsViewData(
 
     val resourceItems: List<ResourceItem> = sort(resourceItems)
 
-    val isNamespacedResource: Boolean = isNamespacedResource(resourceItems)
+    val isNamespacedResource: Boolean = resource.isNamespaced
 
 }

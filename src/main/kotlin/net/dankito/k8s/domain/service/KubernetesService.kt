@@ -19,23 +19,35 @@ class KubernetesService(
     private val client: KubernetesClient
 ) {
 
+    private lateinit var customResourceDefinitions: List<KubernetesResource>
+
+    private lateinit var allAvailableResourceTypes: List<KubernetesResource>
+
     private val log by logger()
 
 
-    fun getNodes() = listItems(client.nodes())
+    fun getNamespaces() = listItems(namespaceResource, client.namespaces())
 
-    fun getNamespaces() = listItems(client.namespaces())
+    fun getPods(namespace: String? = null) = listItems(podResource, client.pods(), namespace)
 
-    fun getPods(namespace: String? = null) = listItems(client.pods(), namespace)
+    fun getServices(namespace: String? = null) = listItems(serviceResource, client.services(), namespace)
 
-    fun getDeployments(namespace: String? = null) = listItems(client.apps().deployments(), namespace)
+    fun getIngresses(namespace: String? = null) = listItems(ingressResource, client.network().ingresses(), namespace)
 
-    fun getServices(namespace: String? = null) = listItems(client.services(), namespace)
+    val namespaceResource by lazy { getResource(null, "namespaces", "v1")!! }
 
-    fun getIngresses(namespace: String? = null) = listItems(client.network().ingresses(), namespace)
+    val podResource by lazy { getResource(null, "pods", "v1")!! }
+
+    val serviceResource by lazy { getResource(null, "services", "v1")!! }
+
+    val ingressResource by lazy { getResource("networking.k8s.io", "ingresses", "v1")!! }
 
 
     fun getCustomResourceDefinitions(): List<KubernetesResource> {
+        if (this::customResourceDefinitions.isInitialized) {
+            customResourceDefinitions
+        }
+
         val crds = client.apiextensions().v1().customResourceDefinitions().list().items
 
         return crds.flatMap { crd ->
@@ -52,10 +64,16 @@ class KubernetesService(
                     shortNames = crd.spec.names.shortNames.takeIf { it.isNotEmpty() }
                 )
             }
+        }.also {
+            this.customResourceDefinitions = it
         }
     }
 
     fun getAllAvailableResourceTypes(): List<KubernetesResource> {
+        if (this::allAvailableResourceTypes.isInitialized) {
+            allAvailableResourceTypes
+        }
+
         val resources = mutableListOf<KubernetesResource>()
         val crds = getCustomResourceDefinitions().associateBy { it.identifier }
 
@@ -89,14 +107,14 @@ class KubernetesService(
     }
 
 
-    fun getResourceItems(group: String?, name: String, version: String): List<ResourceItem> {
-        val context = ResourceDefinitionContext.Builder()
-            .withGroup(group)
-            .withPlural(name)
-            .withVersion(version)
-            .build()
+    fun getResource(group: String?, name: String, version: String): KubernetesResource? {
+        val resource = getAllAvailableResourceTypes().firstOrNull { it.group == group && it.name == name && it.version == version }
 
-        return listItems(client.genericKubernetesResources(context))
+        if (resource == null) {
+            log.error { "Could not find resource for group = $group, name = $name and version = $version. Should never happen." }
+        }
+
+        return resource
     }
 
     fun getResourceItems(resource: KubernetesResource): List<ResourceItem> {
@@ -108,7 +126,7 @@ class KubernetesService(
             .withNamespaced(resource.isNamespaced)
             .build()
 
-        return listItems(client.genericKubernetesResources(context))
+        return listItems(resource, client.genericKubernetesResources(context))
     }
 
     fun getResourceItemsResponse(resource: KubernetesResource): String? {
@@ -135,7 +153,11 @@ class KubernetesService(
         }
     }
 
-    private fun <T : HasMetadata, L : KubernetesResourceList<T>, R> listItems(operation: AnyNamespaceOperation<T, L, R>, namespace: String? = null): List<ResourceItem> =
+    private fun <T : HasMetadata, L : KubernetesResourceList<T>, R> listItems(
+        resource: KubernetesResource,
+        operation: AnyNamespaceOperation<T, L, R>,
+        namespace: String? = null
+    ): List<ResourceItem> =
         operation.let {
             if (namespace != null && operation is MixedOperation<T, L, *>) {
                 operation.inNamespace(namespace)
@@ -144,7 +166,7 @@ class KubernetesService(
             }
         }
             .list().items.let { it as List<T> }.map { item ->
-                ResourceItem(item.metadata.name, item.metadata.namespace?.takeUnless { it.isBlank() })
+                ResourceItem(resource, item.metadata.name, item.metadata.namespace?.takeUnless { it.isBlank() })
             }
 
 }

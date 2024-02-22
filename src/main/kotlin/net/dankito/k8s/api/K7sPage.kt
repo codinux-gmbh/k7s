@@ -5,6 +5,7 @@ import io.quarkus.qute.Template
 import io.quarkus.qute.TemplateInstance
 import io.smallrye.common.annotation.Blocking
 import jakarta.ws.rs.GET
+import jakarta.ws.rs.NotFoundException
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.MediaType
@@ -23,7 +24,7 @@ class K7sPage(
     @GET
     @Blocking // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
     fun homePage(): TemplateInstance =
-        homePage.data(HomePageData(service.getAllAvailableResourceTypes(), service.getPods()))
+        homePage.data(HomePageData(service.getAllAvailableResourceTypes(), service.podResource, service.getPods()))
 
     @Path("page/resources/{group}/{name}/{version}") // TODO: don't know why, but if i use only "/resources/..." Quarkus cannot resolve the method anymore and i only get 404 Not Found
     @GET
@@ -33,10 +34,15 @@ class K7sPage(
         @RestPath("name") name: String,
         @RestPath("version") version: String
     ): TemplateInstance {
-        val resourceItems = service.getResourceItems(group.takeUnless { it.isBlank() || it == "null" }, name, version)
+        val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name, version)
+        if (resource == null) {
+            throw NotFoundException("Resource for group '$group', name '$name' and version '$version' not found in Kubernetes cluster")
+        }
+
+        val resourceItems = service.getResourceItems(resource)
 
         return homePage.getFragment("resourceItems")
-            .data(ResourceItemsViewData(resourceItems))
+            .data(ResourceItemsViewData(resource, resourceItems))
     }
 
 }

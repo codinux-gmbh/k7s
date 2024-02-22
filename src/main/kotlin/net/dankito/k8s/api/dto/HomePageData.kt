@@ -7,8 +7,9 @@ import net.dankito.k8s.domain.model.Verb
 @Suppress("MemberVisibilityCanBePrivate")
 class HomePageData(
     val allResources: List<KubernetesResource>,
+    resource: KubernetesResource,
     resourceItems: List<ResourceItem> = emptyList()
-) : ResourceItemsViewData(resourceItems) {
+) : ResourceItemsViewData(resource, resourceItems) {
 
     companion object {
         private val highlightedResourcesNames = hashSetOf("pods", "services", "ingresses")
