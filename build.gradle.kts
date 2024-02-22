@@ -6,7 +6,7 @@ plugins {
 }
 
 
-group = "net.dankito.web"
+group = "net.dankito.kubernetes"
 version = "1.0.0-SNAPSHOT"
 
 
@@ -31,6 +31,9 @@ dependencies {
     implementation("io.quarkus:quarkus-kotlin")
     implementation("io.quarkus:quarkus-resteasy-reactive")
     implementation("io.quarkus:quarkus-resteasy-reactive-jackson")
+
+    implementation("io.quarkus:quarkus-kubernetes-client")
+    implementation("org.bouncycastle:bcpkix-jdk18on")
 
     implementation("io.quarkus:quarkus-smallrye-health")
     implementation("io.quarkus:quarkus-micrometer-registry-prometheus")
