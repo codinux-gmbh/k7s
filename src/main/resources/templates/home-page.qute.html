@@ -1,51 +1,55 @@
 {#include base}
-  <div class="container w-full mb-4 px-2 sm:mx-0 flex max-md:flex-col md:items-center text-zinc-700 overflow-x-hidden">
-    <style>
-      td, th {
-        padding: 0.5rem;
-        padding-right: 0;
+  <div class="flex flex-row">
+      {#include resources-view /}
 
-        line-height: 1.25rem;
-        text-align: left;
-      }
-      @media screen and (min-width: 640px) {
-        td, th {
-          padding: 0.75rem;
-          padding-right: 0;
+      <div class="w-full m-2 px-2 sm:mx-0 flex max-md:flex-col md:items-start text-zinc-700 overflow-x-hidden">
+        <style>
+          td, th {
+            padding: 0.5rem;
+            padding-right: 0;
 
-          line-height: 1.5rem;
-        }
-      }
+            line-height: 1.25rem;
+            text-align: left;
+          }
+          @media screen and (min-width: 640px) {
+            td, th {
+              padding: 0.75rem;
+              padding-right: 0;
 
-      .truncate {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-    </style>
+              line-height: 1.5rem;
+            }
+          }
 
-  <div id="resourceItemsContainer" class="flex flex-col">
-  {#fragment id=resourceItems}
-      <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border">
-        <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500">
-            <tr>
-                <th class="w-[12rem] text-left {#if !isNamespacedResource}hidden{/if}">Namespace</th>
-                <th>Name</th>
-            </tr>
-        </thead>
+          .truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        </style>
 
-      <tbody>
-      {#for item in resourceItems}
-        <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200">
-          <td class="truncate {#if !isNamespacedResource}hidden{/if}">{item.namespace}</td>
-          <td class="truncate">{item.name}</td>
-        </tr>
-      {/for}
-      </tbody>
-      </table>
+        <div id="resourceItemsContainer" class="flex flex-col">
+          {#fragment id=resourceItems}
+              <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border">
+                <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500">
+                    <tr>
+                        <th class="w-[12rem] text-left {#if !isNamespacedResource}hidden{/if}">Namespace</th>
+                        <th>Name</th>
+                    </tr>
+                </thead>
 
-  {/fragment}
+              <tbody>
+                {#for item in resourceItems}
+                  <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200">
+                    <td class="truncate {#if !isNamespacedResource}hidden{/if}">{item.namespace}</td>
+                    <td class="truncate">{item.name}</td>
+                  </tr>
+                {/for}
+              </tbody>
+              </table>
 
+          {/fragment}
+
+        </div>
+      </div>
   </div>
-    </div>
 {/include}
