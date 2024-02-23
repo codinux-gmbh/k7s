@@ -8,18 +8,23 @@ import jakarta.ws.rs.GET
 import jakarta.ws.rs.NotFoundException
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
+import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.MediaType
+import jakarta.ws.rs.sse.Sse
+import jakarta.ws.rs.sse.SseEventSink
 import net.dankito.k8s.api.dto.HomePageData
 import net.dankito.k8s.api.dto.ResourceItemsViewData
 import net.dankito.k8s.domain.service.KubernetesService
 import org.jboss.resteasy.reactive.RestPath
+import org.jboss.resteasy.reactive.RestStreamElementType
 
 @Path("")
 @Produces(MediaType.TEXT_HTML)
 class K7sPage(
     private val service: KubernetesService,
     @Location("home-page") private val homePage: Template,
-    @Location("logs-view") private val logsView: Template
+    @Location("logs-view") private val logsView: Template,
+    private val sse: Sse
 ) {
 
     @GET
@@ -65,6 +70,44 @@ class K7sPage(
         val logs = service.getLogs(podName, podNamespace, containerName)
 
         return logsView.data("logs", logs)
+    }
+
+    @Path("watchLogs/{podNamespace}/{podName}")
+    @GET
+    @Blocking
+    @Produces(MediaType.SERVER_SENT_EVENTS)
+    @RestStreamElementType(MediaType.TEXT_HTML)
+    fun watchLogs(
+        @RestPath("podNamespace") podNamespace: String,
+        @RestPath("podName") podName: String,
+        @Context sseEventSink: SseEventSink
+    ) {
+        watchLogs(podNamespace, podName, null, sseEventSink)
+    }
+
+    @Path("watchLogs/{podNamespace}/{podName}/{containerName}")
+    @GET
+    @Blocking
+    @Produces(MediaType.SERVER_SENT_EVENTS)
+    @RestStreamElementType(MediaType.TEXT_HTML)
+    fun watchLogs(
+        @RestPath("podNamespace") podNamespace: String,
+        @RestPath("podName") podName: String,
+        @RestPath("containerName") containerName: String? = null,
+        @Context sseEventSink: SseEventSink
+    ) {
+        val inputStream = service.watchLogs(podName, podNamespace, containerName)
+        val template = logsView.getFragment("logEntryRow")
+
+        inputStream.bufferedReader().use { logReader ->
+            logReader.forEachLine { line ->
+                if (sseEventSink.isClosed) {
+                    return@forEachLine
+                } else {
+                    sseEventSink.send(sse.newEvent(template.data("entry", line).render()))
+                }
+            }
+        }
     }
 
 }

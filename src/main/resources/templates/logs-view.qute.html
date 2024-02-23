@@ -4,14 +4,30 @@
     <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border">
       <tbody>
         {#for entry in logs}
-          <tr class="inline-block min-h-[4.5rem] max-h-[6rem] border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200">
-            <td class="p-2 sm:p-3 leading-5 sm:leading-6">
-              {entry}
-            </td>
-          </tr>
+          {#fragment id=logEntryRow}
+            <tr class="block min-h-[4.5rem] max-h-[6rem] border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200">
+              <td class="p-2 sm:p-3 leading-5 sm:leading-6">
+                {entry}
+              </td>
+            </tr>
+          {/fragment}
         {/for}
       </tbody>
     </table>
 
   </div>
+
+  <script type="text/javascript">
+    const tableBody = document.getElementsByTagName("tbody")[0]
+    const eventSource = new EventSource(window.location.href.replace("logs/", "watchLogs/"))
+
+    eventSource.onmessage = (event) => {
+      if (event.data) {
+        tableBody.innerHTML += event.data
+
+        // scroll to end
+        window.scrollTo(0, document.body.scrollHeight)
+      }
+    }
+  </script>
 {/include}

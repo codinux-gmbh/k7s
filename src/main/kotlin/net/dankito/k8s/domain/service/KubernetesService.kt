@@ -6,14 +6,15 @@ import io.fabric8.kubernetes.api.model.KubernetesResourceList
 import io.fabric8.kubernetes.client.ApiVisitor
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.dsl.AnyNamespaceOperation
-import io.fabric8.kubernetes.client.dsl.Loggable
 import io.fabric8.kubernetes.client.dsl.MixedOperation
+import io.fabric8.kubernetes.client.dsl.TimeTailPrettyLoggable
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext
 import jakarta.inject.Singleton
 import net.codinux.log.logger
 import net.dankito.k8s.domain.model.KubernetesResource
 import net.dankito.k8s.domain.model.ResourceItem
 import net.dankito.k8s.domain.model.Verb
+import java.io.InputStream
 
 @Singleton
 class KubernetesService(
@@ -184,6 +185,9 @@ class KubernetesService(
                     logs
                 }
             }
+
+    fun watchLogs(podName: String, podNamespace: String, containerName: String? = null): InputStream =
+        getLoggable(podNamespace, podName, containerName).sinceSeconds(1).watchLog().output
 
     private fun getLoggable(podNamespace: String, podName: String, containerName: String?): TimeTailPrettyLoggable =
         client.pods().inNamespace(podNamespace).withName(podName).let {
