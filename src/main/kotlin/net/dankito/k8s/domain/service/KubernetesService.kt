@@ -6,6 +6,7 @@ import io.fabric8.kubernetes.api.model.KubernetesResourceList
 import io.fabric8.kubernetes.client.ApiVisitor
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.dsl.AnyNamespaceOperation
+import io.fabric8.kubernetes.client.dsl.Loggable
 import io.fabric8.kubernetes.client.dsl.MixedOperation
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext
 import jakarta.inject.Singleton
@@ -83,6 +84,8 @@ class KubernetesService(
 
             ApiVisitor.ApiVisitResult.CONTINUE
         }
+
+        this.allAvailableResourceTypes = resources
 
         return resources
     }
@@ -168,5 +171,18 @@ class KubernetesService(
             .list().items.let { it as List<T> }.map { item ->
                 ResourceItem(resource, item.metadata.name, item.metadata.namespace?.takeUnless { it.isBlank() })
             }
+
+
+    fun getLogs(podName: String, podNamespace: String, containerName: String? = null): List<String> {
+        val loggable: Loggable = client.pods().inNamespace(podNamespace).withName(podName).let {
+            if (containerName != null) {
+                it.inContainer(containerName)
+            } else {
+                it
+            }
+        }
+
+        return loggable.getLog(true).split('\n')
+    }
 
 }

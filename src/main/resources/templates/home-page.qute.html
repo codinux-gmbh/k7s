@@ -39,7 +39,8 @@
 
               <tbody>
                 {#for item in resourceItems}
-                  <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200">
+                  <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200 {#if item.isPod}cursor-pointer{/if}"
+                        {#if item.isPod}onclick="window.open('/k7s/logs/{item.namespace}/{item.name}', null, 'popup=true')"{/if}>
                     <td class="truncate {#if !isNamespacedResource}hidden{/if}">{item.namespace}</td>
                     <td class="truncate">{item.name}</td>
                   </tr>

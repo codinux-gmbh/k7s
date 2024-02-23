@@ -18,7 +18,8 @@ import org.jboss.resteasy.reactive.RestPath
 @Produces(MediaType.TEXT_HTML)
 class K7sPage(
     private val service: KubernetesService,
-    @Location("home-page") private val homePage: Template
+    @Location("home-page") private val homePage: Template,
+    @Location("logs-view") private val logsView: Template
 ) {
 
     @GET
@@ -43,6 +44,27 @@ class K7sPage(
 
         return homePage.getFragment("resourceItems")
             .data(ResourceItemsViewData(resource, resourceItems))
+    }
+
+    @Path("logs/{podNamespace}/{podName}") // TODO: there are also other resources that have logs like Deployments, ReplicaSets, ...
+    @GET
+    @Blocking
+    fun getLogs(
+        @RestPath("podNamespace") podNamespace: String,
+        @RestPath("podName") podName: String
+    ) = getLogs(podNamespace, podName, null)
+
+    @Path("logs/{podNamespace}/{podName}/{containerName}")
+    @GET
+    @Blocking
+    fun getLogs(
+        @RestPath("podNamespace") podNamespace: String,
+        @RestPath("podName") podName: String,
+        @RestPath("containerName") containerName: String? = null
+    ): TemplateInstance {
+        val logs = service.getLogs(podName, podNamespace, containerName)
+
+        return logsView.data("logs", logs)
     }
 
 }
