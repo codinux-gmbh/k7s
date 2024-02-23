@@ -173,16 +173,25 @@ class KubernetesService(
             }
 
 
-    fun getLogs(podName: String, podNamespace: String, containerName: String? = null): List<String> {
-        val loggable: Loggable = client.pods().inNamespace(podNamespace).withName(podName).let {
+    fun getLogs(podName: String, podNamespace: String, containerName: String? = null): List<String> =
+        getLoggable(podNamespace, podName, containerName)
+            .getLog(true)
+            .split('\n')
+            .let { logs ->
+                if (logs.lastOrNull()?.isBlank() == true) { // the last message is in most cases an empty string, remove it
+                    logs.dropLast(1)
+                } else {
+                    logs
+                }
+            }
+
+    private fun getLoggable(podNamespace: String, podName: String, containerName: String?): TimeTailPrettyLoggable =
+        client.pods().inNamespace(podNamespace).withName(podName).let {
             if (containerName != null) {
                 it.inContainer(containerName)
             } else {
                 it
             }
         }
-
-        return loggable.getLog(true).split('\n')
-    }
 
 }
