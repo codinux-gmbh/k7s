@@ -22,10 +22,14 @@
     const eventSource = new EventSource(window.location.href.replace("logs/", "watchLogs/") + "?since={startWatchingAt}")
 
     eventSource.onmessage = (event) => {
+      const hasScrolledToBottom = (window.innerHeight + Math.round(window.scrollY)) >= document.body.offsetHeight
+
       if (event.data) {
         tableBody.innerHTML += event.data
 
-        scrollToBottom()
+        if (hasScrolledToBottom) {
+          scrollToBottom()
+        }
       }
     }
 
