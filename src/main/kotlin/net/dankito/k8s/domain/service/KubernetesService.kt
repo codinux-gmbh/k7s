@@ -177,8 +177,9 @@ class KubernetesService(
             }
 
 
-    fun getLogs(podName: String, podNamespace: String, containerName: String? = null): List<String> =
+    fun getLogs(podName: String, podNamespace: String, containerName: String? = null, sinceTimeUtc: ZonedDateTime? = null): List<String> =
         getLoggable(podNamespace, podName, containerName)
+            .sinceTime((sinceTimeUtc ?: Instant.now().atOffset(ZoneOffset.UTC).minusMinutes(10)).toString())
             .getLog(true)
             .split('\n')
             .let { logs ->

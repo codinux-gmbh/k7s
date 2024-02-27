@@ -60,8 +60,9 @@ class K7sPage(
     @Blocking
     fun getLogs(
         @RestPath("podNamespace") podNamespace: String,
-        @RestPath("podName") podName: String
-    ) = getLogs(podNamespace, podName, null)
+        @RestPath("podName") podName: String,
+        @RestQuery("since") since: String? = null
+    ) = getLogs(podNamespace, podName, null, since)
 
     @Path("logs/{podNamespace}/{podName}/{containerName}")
     @GET
@@ -69,14 +70,17 @@ class K7sPage(
     fun getLogs(
         @RestPath("podNamespace") podNamespace: String,
         @RestPath("podName") podName: String,
-        @RestPath("containerName") containerName: String? = null
+        @RestPath("containerName") containerName: String? = null,
+        @RestQuery("since") since: String? = null
     ): TemplateInstance {
-        val since = Instant.now().atZone(ZoneOffset.UTC)
-        val logs = service.getLogs(podName, podNamespace, containerName)
+        val sinceTimeUtc = since?.let { ZonedDateTime.parse(it) }
+        val startWatchingAt = Instant.now().atZone(ZoneOffset.UTC)
+
+        val logs = service.getLogs(podName, podNamespace, containerName, sinceTimeUtc)
 
         return logsView
             .data("logs", logs)
-            .data("since", since)
+            .data("startWatchingAt", startWatchingAt)
     }
 
     @Path("watchLogs/{podNamespace}/{podName}")
