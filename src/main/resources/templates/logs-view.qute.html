@@ -25,9 +25,14 @@
       if (event.data) {
         tableBody.innerHTML += event.data
 
-        // scroll to end
-        window.scrollTo(0, document.body.scrollHeight)
+        scrollToBottom()
       }
+    }
+
+    scrollToBottom() // so that initially latest messages get displayed
+
+    function scrollToBottom() {
+      window.scrollTo(0, document.body.scrollHeight)
     }
   </script>
 {/include}
