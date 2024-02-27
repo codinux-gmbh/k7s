@@ -27,7 +27,9 @@
           }
         </style>
 
-        <div id="resourceItemsContainer" class="flex flex-col">
+        <script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
+
+        <div id="resourceItemsContainer" class="flex flex-col" hx-ext="sse" sse-connect="{resourcesWatchUrl}" sse-swap="resourceItemsUpdated">
           {#fragment id=resourceItems}
               <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border">
                 <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500">

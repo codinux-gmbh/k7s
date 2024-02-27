@@ -34,7 +34,7 @@ class K7sPage(
     @GET
     @Blocking // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
     fun homePage(): TemplateInstance =
-        homePage.data(HomePageData(service.getAllAvailableResourceTypes(), service.podResource, service.getPods()))
+        homePage.data(HomePageData(service.getAllAvailableResourceTypes(), service.podResource, service.getPods(), "watch/resources/ /pods/v1"))
 
     @Path("page/resources/{group}/{name}/{version}") // TODO: don't know why, but if i use only "/resources/..." Quarkus cannot resolve the method anymore and i only get 404 Not Found
     @GET
@@ -52,8 +52,37 @@ class K7sPage(
         val resourceItems = service.getResourceItems(resource)
 
         return homePage.getFragment("resourceItems")
-            .data(ResourceItemsViewData(resource, resourceItems))
+            .data(ResourceItemsViewData(resource, resourceItems, "watch/resources/$group/$name/$version"))
     }
+
+    @Path("watch/resources/{group}/{name}/{version}")
+    @GET
+    @Blocking
+    @Produces(MediaType.SERVER_SENT_EVENTS)
+    @RestStreamElementType(MediaType.TEXT_HTML)
+    fun watchResources(
+        @RestPath("group") group: String,
+        @RestPath("name") name: String,
+        @RestPath("version") version: String,
+        @Context sseEventSink: SseEventSink
+    ) {
+        val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name, version)
+        if (resource == null) {
+            throw NotFoundException("Resource for group '$group', name '$name' and version '$version' not found in Kubernetes cluster")
+        }
+
+        val fragment = homePage.getFragment("resourceItems")
+
+        service.watchResourceItems(resource) { resourceItems ->
+            if (sseEventSink.isClosed) {
+                return@watchResourceItems // TODO: stop watcher
+            } else {
+                val html = fragment.data(ResourceItemsViewData(resource, resourceItems)).render()
+                sseEventSink.send(sse.newEvent("resourceItemsUpdated", html))
+            }
+        }
+    }
+
 
     @Path("logs/{podNamespace}/{podName}") // TODO: there are also other resources that have logs like Deployments, ReplicaSets, ...
     @GET
@@ -83,7 +112,7 @@ class K7sPage(
             .data("startWatchingAt", startWatchingAt)
     }
 
-    @Path("watchLogs/{podNamespace}/{podName}")
+    @Path("watch/logs/{podNamespace}/{podName}")
     @GET
     @Blocking
     @Produces(MediaType.SERVER_SENT_EVENTS)
@@ -97,11 +126,11 @@ class K7sPage(
         watchLogs(podNamespace, podName, null, since, sseEventSink)
     }
 
-    @Path("watchLogs/{podNamespace}/{podName}/{containerName}")
+    @Path("watch/logs/{podNamespace}/{podName}/{containerName}")
     @GET
     @Blocking
     @Produces(MediaType.SERVER_SENT_EVENTS)
-    @RestStreamElementType(MediaType.TEXT_HTML)
+    @RestStreamElementType(MediaType.TEXT_PLAIN)
     fun watchLogs(
         @RestPath("podNamespace") podNamespace: String,
         @RestPath("podName") podName: String,

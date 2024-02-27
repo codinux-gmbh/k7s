@@ -5,7 +5,8 @@ import net.dankito.k8s.domain.model.ResourceItem
 
 open class ResourceItemsViewData(
     resource: KubernetesResource,
-    resourceItems: List<ResourceItem> = emptyList()
+    resourceItems: List<ResourceItem> = emptyList(),
+    val resourcesWatchUrl: String? = null
 ) {
 
     companion object {

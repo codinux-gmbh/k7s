@@ -17,7 +17,7 @@
 
   <script type="text/javascript">
     const tableBody = document.getElementsByTagName("tbody")[0]
-    const eventSource = new EventSource(window.location.href.replace("logs/", "watchLogs/") + "?since={startWatchingAt}")
+    const eventSource = new EventSource(window.location.href.replace("logs/", "watch/logs/") + "?since={startWatchingAt}")
 
     eventSource.onmessage = (event) => {
       const hasScrolledToBottom = (window.innerHeight + Math.round(window.scrollY)) >= document.body.offsetHeight
