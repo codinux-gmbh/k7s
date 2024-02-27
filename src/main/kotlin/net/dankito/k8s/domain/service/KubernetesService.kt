@@ -15,6 +15,9 @@ import net.dankito.k8s.domain.model.KubernetesResource
 import net.dankito.k8s.domain.model.ResourceItem
 import net.dankito.k8s.domain.model.Verb
 import java.io.InputStream
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 @Singleton
 class KubernetesService(
@@ -186,8 +189,8 @@ class KubernetesService(
                 }
             }
 
-    fun watchLogs(podName: String, podNamespace: String, containerName: String? = null): InputStream =
-        getLoggable(podNamespace, podName, containerName).sinceSeconds(1).watchLog().output
+    fun watchLogs(podName: String, podNamespace: String, containerName: String? = null, sinceTimeUtc: ZonedDateTime? = null): InputStream =
+        getLoggable(podNamespace, podName, containerName).sinceTime((sinceTimeUtc ?: Instant.now().atOffset(ZoneOffset.UTC)).toString()).watchLog().output
 
     private fun getLoggable(podNamespace: String, podName: String, containerName: String?): TimeTailPrettyLoggable =
         client.pods().inNamespace(podNamespace).withName(podName).let {

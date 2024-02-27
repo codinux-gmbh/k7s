@@ -16,7 +16,11 @@ import net.dankito.k8s.api.dto.HomePageData
 import net.dankito.k8s.api.dto.ResourceItemsViewData
 import net.dankito.k8s.domain.service.KubernetesService
 import org.jboss.resteasy.reactive.RestPath
+import org.jboss.resteasy.reactive.RestQuery
 import org.jboss.resteasy.reactive.RestStreamElementType
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 @Path("")
 @Produces(MediaType.TEXT_HTML)
@@ -67,9 +71,12 @@ class K7sPage(
         @RestPath("podName") podName: String,
         @RestPath("containerName") containerName: String? = null
     ): TemplateInstance {
+        val since = Instant.now().atZone(ZoneOffset.UTC)
         val logs = service.getLogs(podName, podNamespace, containerName)
 
-        return logsView.data("logs", logs)
+        return logsView
+            .data("logs", logs)
+            .data("since", since)
     }
 
     @Path("watchLogs/{podNamespace}/{podName}")
@@ -80,9 +87,10 @@ class K7sPage(
     fun watchLogs(
         @RestPath("podNamespace") podNamespace: String,
         @RestPath("podName") podName: String,
+        @RestQuery("since") since: String? = null,
         @Context sseEventSink: SseEventSink
     ) {
-        watchLogs(podNamespace, podName, null, sseEventSink)
+        watchLogs(podNamespace, podName, null, since, sseEventSink)
     }
 
     @Path("watchLogs/{podNamespace}/{podName}/{containerName}")
@@ -94,9 +102,12 @@ class K7sPage(
         @RestPath("podNamespace") podNamespace: String,
         @RestPath("podName") podName: String,
         @RestPath("containerName") containerName: String? = null,
+        @RestQuery("since") since: String? = null,
         @Context sseEventSink: SseEventSink
     ) {
-        val inputStream = service.watchLogs(podName, podNamespace, containerName)
+        val sinceTimeUtc = since?.let { ZonedDateTime.parse(it) }
+
+        val inputStream = service.watchLogs(podName, podNamespace, containerName, sinceTimeUtc)
         val template = logsView.getFragment("logEntryRow")
 
         inputStream.bufferedReader().use { logReader ->
