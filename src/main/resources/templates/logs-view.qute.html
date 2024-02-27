@@ -4,13 +4,11 @@
     <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border">
       <tbody>
         {#for entry in logs}
-          {#fragment id=logEntryRow}
-            <tr class="block min-h-[4.5rem] max-h-[6rem] border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200">
-              <td class="p-2 sm:p-3 leading-5 sm:leading-6">
-                {entry}
-              </td>
-            </tr>
-          {/fragment}
+          <tr class="block min-h-[4.5rem] max-h-[6rem] border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200">
+            <td class="p-2 sm:p-3 leading-5 sm:leading-6">
+              {entry}
+            </td>
+          </tr>
         {/for}
       </tbody>
     </table>
@@ -25,9 +23,15 @@
       const hasScrolledToBottom = (window.innerHeight + Math.round(window.scrollY)) >= document.body.offsetHeight
 
       if (event.data) {
-        tableBody.innerHTML += event.data
+        // add table row for log line dynamically
+        tableBody.innerHTML += `
+            <tr class="block min-h-[4.5rem] max-h-[6rem] border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200">
+              <td class="p-2 sm:p-3 leading-5 sm:leading-6">
+                $\{event.data}
+              </td>
+            </tr>`
 
-        if (hasScrolledToBottom) {
+        if (hasScrolledToBottom) { // if user has scrolled to bottom before, scroll now to bottom to show new arrived log message
           scrollToBottom()
         }
       }

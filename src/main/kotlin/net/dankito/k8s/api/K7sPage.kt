@@ -112,14 +112,13 @@ class K7sPage(
         val sinceTimeUtc = since?.let { ZonedDateTime.parse(it) }
 
         val inputStream = service.watchLogs(podName, podNamespace, containerName, sinceTimeUtc)
-        val template = logsView.getFragment("logEntryRow")
 
         inputStream.bufferedReader().use { logReader ->
             logReader.forEachLine { line ->
                 if (sseEventSink.isClosed) {
                     return@forEachLine
                 } else {
-                    sseEventSink.send(sse.newEvent(template.data("entry", line).render()))
+                    sseEventSink.send(sse.newEvent(line))
                 }
             }
         }
