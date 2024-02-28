@@ -41,8 +41,8 @@
 
               <tbody>
                 {#for item in resourceItems}
-                  <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200 {#if item.isPod}cursor-pointer{/if}"
-                        {#if item.isPod}onclick="window.open('/k7s/logs/{item.namespace}/{item.name}', '_blank', 'popup=true,toolbar=true')"{/if}>
+                  <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200 {#if item.isPod}cursor-pointer{/if}" tabindex="{item_count}"
+                      data-is-pod="{item.isPod}" data-logs-url="/k7s/logs/{item.namespace}/{item.name}">
                     <td class="truncate {#if !isNamespacedResource}hidden{/if}">{item.namespace}</td>
                     <td class="truncate">{item.name}</td>
                   </tr>
@@ -54,5 +54,44 @@
 
         </div>
       </div>
+
+      <script type="text/javascript">
+        const tableBody = document.querySelector("#resourceItemsContainer tbody")
+        const tableRows = tableBody.querySelectorAll("tr")
+        var selectedItem = null
+
+        tableBody.onkeydown = (event) => {
+          if (noModifierKeyPressed(event)) {
+            if (event.code == "ArrowDown") {
+              setFocusTo(event, selectedItem.nextElementSibling)
+            }
+            else if (event.code == "ArrowUp") {
+              setFocusTo(event, selectedItem.previousElementSibling)
+            }
+            else if (event.code == "KeyL") {
+              if (selectedItem == event.srcElement && selectedItem.dataset.isPod) {
+                window.open(selectedItem.dataset.logsUrl, "_blank", "popup=true,toolbar=true")
+                event.preventDefault()
+              }
+            }
+          }
+        }
+
+        if (tableRows.length) { // there are items in the table
+          selectedItem = tableRows[0]
+          selectedItem.focus()
+        }
+
+        function setFocusTo(event, item) {
+          if (item) {
+            selectedItem = item
+            item.focus()
+            event.preventDefault()
+          }
+        }
+        function noModifierKeyPressed(event) {
+          return !event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey
+        }
+      </script>
   </div>
 {/include}
