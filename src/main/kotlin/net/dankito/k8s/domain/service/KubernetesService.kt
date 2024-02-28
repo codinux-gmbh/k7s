@@ -82,7 +82,7 @@ class KubernetesService(
 
         client.visitResources { group, version, apiResource, _ ->
             // here the group is null for a lot of resources (Kubernetes standard resources), for two singular is null and verbs are always set
-            resources.add(map(group, version, apiResource, crds))
+            resources.add(map(group.takeUnless { it.isNullOrBlank() }, version, apiResource, crds))
 
             ApiVisitor.ApiVisitResult.CONTINUE
         }
