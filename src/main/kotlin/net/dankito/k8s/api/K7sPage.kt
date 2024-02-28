@@ -34,28 +34,27 @@ class K7sPage(
     @GET
     @Blocking // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
     fun homePage(): TemplateInstance =
-        homePage.data(HomePageData(service.getAllAvailableResourceTypes(), service.podResource, service.getPods(), "watch/resources/ /pods/v1"))
+        homePage.data(HomePageData(service.getAllAvailableResourceTypes(), service.podResource, service.getPods(), "watch/resources/ /pods"))
 
-    @Path("page/resources/{group}/{name}/{version}") // TODO: don't know why, but if i use only "/resources/..." Quarkus cannot resolve the method anymore and i only get 404 Not Found
+    @Path("page/resources/{group}/{name}") // TODO: don't know why, but if i use only "/resources/..." Quarkus cannot resolve the method anymore and i only get 404 Not Found
     @GET
     @Blocking
     fun getResourcesView(
         @RestPath("group") group: String,
         @RestPath("name") name: String,
-        @RestPath("version") version: String
     ): TemplateInstance {
         val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name, version)
         if (resource == null) {
-            throw NotFoundException("Resource for group '$group', name '$name' and version '$version' not found in Kubernetes cluster")
+            throw NotFoundException("Resource for group '$group' and name '$name' not found in Kubernetes cluster")
         }
 
         val resourceItems = service.getResourceItems(resource)
 
         return homePage.getFragment("resourceItems")
-            .data(ResourceItemsViewData(resource, resourceItems, "watch/resources/$group/$name/$version"))
+            .data(ResourceItemsViewData(resource, resourceItems, "watch/resources/$group/$name"))
     }
 
-    @Path("watch/resources/{group}/{name}/{version}")
+    @Path("watch/resources/{group}/{name}")
     @GET
     @Blocking
     @Produces(MediaType.SERVER_SENT_EVENTS)
@@ -63,12 +62,11 @@ class K7sPage(
     fun watchResources(
         @RestPath("group") group: String,
         @RestPath("name") name: String,
-        @RestPath("version") version: String,
         @Context sseEventSink: SseEventSink
     ) {
-        val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name, version)
+        val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name)
         if (resource == null) {
-            throw NotFoundException("Resource for group '$group', name '$name' and version '$version' not found in Kubernetes cluster")
+            throw NotFoundException("Resource for group '$group' and name '$name' not found in Kubernetes cluster")
         }
 
         val fragment = homePage.getFragment("resourceItems")

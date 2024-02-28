@@ -32,7 +32,7 @@
         <div id="commandInputContainer" class="fixed flex items-center w-[20rem] h-[3.5rem] p-2 top-1 right-1 z-[999] bg-teal-900 hidden">
           <input type="search" class="w-full h-full p-2 px-1 rounded-full focus:outline-none"
                  onkeydown="commandInputKeyDown(event)" onblur="commandInputLostFocus(event)"
-                 hx-trigger="keydown[code=='Enter']" hx-get="page/resources/<group>/<name>/<version>" hx-target="#resourceItemsContainer" />
+                 hx-trigger="keydown[code=='Enter']" hx-get="page/resources/<group>/<name>" hx-target="#resourceItemsContainer" />
         </div>
 
         <div id="resourceItemsContainer" class="flex flex-col" hx-ext="sse" sse-connect="{resourcesWatchUrl}" sse-swap="resourceItemsUpdated">
@@ -146,8 +146,8 @@
         }
 
         document.body.addEventListener('htmx:configRequest', function(event) {
-          if (event.detail.path == "page/resources/<group>/<name>/<version>") { // fill path template with values of selected resources and hide commandInput
-            event.detail.path = event.detail.path.replace("<group>", "null").replace("<name>", event.detail.elt.value).replace("<version>", "v1")
+          if (event.detail.path == "page/resources/<group>/<name>") { // fill path template with values of selected resources and hide commandInput
+            event.detail.path = event.detail.path.replace("<group>", "null").replace("<name>", event.detail.elt.value)
             commandInput.blur()
           }
         })

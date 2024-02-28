@@ -37,13 +37,13 @@ class KubernetesService(
 
     fun getIngresses(namespace: String? = null) = listItems(ingressResource, client.network().ingresses(), namespace)
 
-    val namespaceResource by lazy { getResource(null, "namespaces", "v1")!! }
+    val namespaceResource by lazy { getResource(null, "namespaces")!! }
 
-    val podResource by lazy { getResource(null, "pods", "v1")!! }
+    val podResource by lazy { getResource(null, "pods")!! }
 
-    val serviceResource by lazy { getResource(null, "services", "v1")!! }
+    val serviceResource by lazy { getResource(null, "services")!! }
 
-    val ingressResource by lazy { getResource("networking.k8s.io", "ingresses", "v1")!! }
+    val ingressResource by lazy { getResource("networking.k8s.io", "ingresses")!! }
 
 
     fun getCustomResourceDefinitions(): List<KubernetesResource> {
@@ -132,11 +132,11 @@ class KubernetesService(
     }
 
 
-    fun getResource(group: String?, name: String, version: String): KubernetesResource? {
-        val resource = getAllAvailableResourceTypes().firstOrNull { it.group == group && it.name == name && it.version == version }
+    fun getResource(group: String?, name: String): KubernetesResource? {
+        val resource = getAllAvailableResourceTypes().firstOrNull { it.group == group && it.name == name }
 
         if (resource == null) {
-            log.error { "Could not find resource for group = $group, name = $name and version = $version. Should never happen." }
+            log.error { "Could not find resource for group = $group and name = $name. Should never happen." }
         }
 
         return resource
