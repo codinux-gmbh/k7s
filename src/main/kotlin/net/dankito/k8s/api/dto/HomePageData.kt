@@ -8,9 +8,8 @@ import net.dankito.k8s.domain.model.Verb
 class HomePageData(
     val allResources: List<KubernetesResource>,
     resource: KubernetesResource,
-    resourceItems: List<ResourceItem> = emptyList(),
-    resourcesWatchUrl: String? = null
-) : ResourceItemsViewData(resource, resourceItems, resourcesWatchUrl) {
+    resourceItems: List<ResourceItem> = emptyList()
+) : ResourceItemsViewData(resource, resourceItems) {
 
     companion object {
         private val highlightedResourcesNames = hashSetOf("pods", "services", "ingresses")

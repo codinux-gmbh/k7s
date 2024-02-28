@@ -35,7 +35,7 @@
                  hx-trigger="keydown[code=='Enter']" hx-get="page/resources/<group>/<name>" hx-target="#resourceItemsContainer" />
         </div>
 
-        <div id="resourceItemsContainer" class="flex flex-col" hx-ext="sse" sse-connect="{resourcesWatchUrl}" sse-swap="resourceItemsUpdated">
+        <div id="resourceItemsContainer" class="flex flex-col" hx-ext="sse" sse-connect="watch/resources/{resource.group ?: "null"}/{resource.name}" sse-swap="resourceItemsUpdated">
           {#fragment id=resourceItems}
               <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border">
                 <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500">
@@ -48,7 +48,7 @@
               <tbody>
                 {#for item in resourceItems}
                   <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200" tabindex="0"
-                      data-is-loggable="{item.isLoggable}" data-logs-url="/k7s/logs/{item.namespace}/{item.name}"
+                      data-logs-url="/k7s/logs/{item.namespace}/{item.name}"
                       onmousedown="onTableRowMouseDown(event)" onkeydown="onTableRowKeyDown(event)"
                   >
                     <td class="truncate {#if !isNamespacedResource}hidden{/if}">{item.namespace}</td>
@@ -112,7 +112,7 @@
               setFocusTo(event, selectedItem?.previousElementSibling)
             }
             else if (event.code == "KeyL") {
-              if (selectedItem == event.srcElement && selectedItem.dataset.hasLogs) {
+              if (selectedItem == event.srcElement && {resource.isLoggable}) {
                 window.open(selectedItem.dataset.logsUrl, "_blank", "popup=true,toolbar=true")
                 event.preventDefault()
               }

@@ -6,8 +6,6 @@ open class ResourceItem(
     val namespace: String? = null
 ) {
 
-    val isLoggable by lazy { resource.kind == "Pod" && resource.group == null }
-
     override fun toString() = "${resource.kind} ${namespace?.let { "$it " }}$name"
 
 }

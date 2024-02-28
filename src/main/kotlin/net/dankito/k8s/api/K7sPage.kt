@@ -34,7 +34,7 @@ class K7sPage(
     @GET
     @Blocking // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
     fun homePage(): TemplateInstance =
-        homePage.data(HomePageData(service.getAllAvailableResourceTypes(), service.podResource, service.getPods(), "watch/resources/ /pods"))
+        homePage.data(HomePageData(service.getAllAvailableResourceTypes(), service.podResource, service.getPods()))
 
     @Path("page/resources/{group}/{name}") // TODO: don't know why, but if i use only "/resources/..." Quarkus cannot resolve the method anymore and i only get 404 Not Found
     @GET
@@ -43,7 +43,7 @@ class K7sPage(
         @RestPath("group") group: String,
         @RestPath("name") name: String,
     ): TemplateInstance {
-        val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name, version)
+        val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name)
         if (resource == null) {
             throw NotFoundException("Resource for group '$group' and name '$name' not found in Kubernetes cluster")
         }
@@ -51,7 +51,7 @@ class K7sPage(
         val resourceItems = service.getResourceItems(resource)
 
         return homePage.getFragment("resourceItems")
-            .data(ResourceItemsViewData(resource, resourceItems, "watch/resources/$group/$name"))
+            .data(ResourceItemsViewData(resource, resourceItems))
     }
 
     @Path("watch/resources/{group}/{name}")

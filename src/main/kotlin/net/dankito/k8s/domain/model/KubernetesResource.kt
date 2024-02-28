@@ -42,6 +42,8 @@ data class KubernetesResource(
     @get:JsonIgnore
     val version: String = storageVersion // to be better readable
 
+    val isLoggable by lazy { kind == "Pod" && group == null }
+
     fun containsVerb(verb: Verb) = verbs.contains(verb)
 
     override fun toString() = "$kind (${group?.let { "${it}." } ?: ""}${name} $version)"
