@@ -60,6 +60,15 @@
         const tableRows = tableBody.querySelectorAll("tr")
         var selectedItem = null
 
+        tableBody.onmousedown = (event) => {
+          const parentRowElement = event.srcElement.closest("tr")
+          if (parentRowElement) {
+            setFocusTo(null, parentRowElement) // do not prevent default -> null for event
+          } else if (event.srcElement.tagName == "TR") {
+            setFocusTo(null, event.srcElement)
+          }
+        }
+
         tableBody.onkeydown = (event) => {
           if (noModifierKeyPressed(event)) {
             if (event.code == "ArrowDown") {
