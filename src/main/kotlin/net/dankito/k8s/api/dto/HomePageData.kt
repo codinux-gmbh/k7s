@@ -30,4 +30,13 @@ class HomePageData(
         .filter { highlightedResources.contains(it) == false }
         .sortedBy { it.identifier }
 
+    val commandNamesToUrlPath: Map<String, String> by lazy {
+        allResources.flatMap { resource ->
+            val resourcePath = "${resource.group ?: "null"}/${resource.name}"
+            (listOf(resource.singularName ?: resource.kind) + resource.shortNames.orEmpty()).map {
+                it to resourcePath
+            }
+        }.toMap()
+    }
+
 }
