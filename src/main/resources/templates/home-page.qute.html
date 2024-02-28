@@ -78,9 +78,9 @@
         observer.observe(resourceItemsContainer, { childList: true })
 
         function initializeTable() {
-          const tableRows = document.querySelectorAll("#resourceItemsContainer tbody tr")
-          if (tableRows.length) { // there are items in the table
-            selectedItem = tableRows[0]
+          const firstTableRow = resourceItemsContainer.querySelector("tbody tr")
+          if (firstTableRow) { // there are items in the table
+            selectedItem = firstTableRow
             selectedItem.focus()
           }
         }
