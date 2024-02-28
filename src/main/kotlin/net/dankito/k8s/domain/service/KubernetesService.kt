@@ -155,7 +155,7 @@ class KubernetesService(
             .build()
 
     fun getResourceItemsResponse(resource: KubernetesResource): String? {
-        return if (resource.verbs.contains(Verb.list) == false) {
+        return if (resource.containsVerb(Verb.list) == false) {
             null
         } else {
             try {

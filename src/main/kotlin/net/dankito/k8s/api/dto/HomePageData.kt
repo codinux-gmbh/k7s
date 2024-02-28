@@ -18,7 +18,7 @@ class HomePageData(
 
 
     private val listableResources = allResources
-        .filter { it.verbs.contains(Verb.list) }
+        .filter { it.containsVerb(Verb.list) }
 
     val highlightedResources = listableResources
         .filter { highlightedResourcesNames.contains(it.name) && it.kind != "PodMetrics" }

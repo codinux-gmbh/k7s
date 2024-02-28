@@ -29,6 +29,8 @@ data class KubernetesResource(
     @get:JsonIgnore
     val identifier by lazy { createIdentifier(this) }
 
+    fun containsVerb(verb: Verb) = verbs.contains(verb)
+
     override fun toString() = "$kind (${group?.let { "${it}." } ?: ""}${name} $version)"
 
 }
