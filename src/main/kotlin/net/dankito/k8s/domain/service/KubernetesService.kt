@@ -53,20 +53,21 @@ class KubernetesService(
 
         val crds = client.apiextensions().v1().customResourceDefinitions().list().items
 
-        return crds.flatMap { crd ->
-            crd.spec.versions.map { version ->
-                // TODO: here verbs are always null / not set and group and singular are always set
-                KubernetesResource(
-                    group = crd.spec.group,
-                    version = version.name,
-                    name = crd.spec.names.plural,
-                    kind = crd.spec.names.kind,
-                    isNamespaced = crd.spec.scope == "Namespaced",
-                    isCustomResourceDefinition = true,
-                    singularName = crd.spec.names.singular,
-                    shortNames = crd.spec.names.shortNames.takeIf { it.isNotEmpty() }
-                )
-            }
+        return crds.map { crd ->
+            val storageVersion = crd.spec.versions.first { it.storage }
+
+            // TODO: here verbs are always null / not set and group and singular are always set
+            KubernetesResource(
+                group = crd.spec.group,
+                storageVersion = storageVersion.name,
+                name = crd.spec.names.plural,
+                kind = crd.spec.names.kind,
+                isNamespaced = crd.spec.scope == "Namespaced",
+                isCustomResourceDefinition = true,
+                singularName = crd.spec.names.singular,
+                shortNames = crd.spec.names.shortNames.takeIf { it.isNotEmpty() },
+                servedVersions = crd.spec.versions.map { it.name }
+            )
         }.also {
             this.customResourceDefinitions = it
         }
@@ -77,14 +78,20 @@ class KubernetesService(
             allAvailableResourceTypes
         }
 
-        val resources = mutableListOf<KubernetesResource>()
-        val crds = getCustomResourceDefinitions().associateBy { it.identifier }
-
+        val apiResourceByIdentifier = mutableMapOf<String, MutableList<Triple<String, String, APIResource>>>()
         client.visitResources { group, version, apiResource, _ ->
-            // here the group is null for a lot of resources (Kubernetes standard resources), for two singular is null and verbs are always set
-            resources.add(map(group.takeUnless { it.isNullOrBlank() }, version, apiResource, crds))
+            apiResourceByIdentifier.getOrPut(KubernetesResource.createIdentifier(group, apiResource.name), { mutableListOf() })
+                .add(Triple(group, version, apiResource))
 
             ApiVisitor.ApiVisitResult.CONTINUE
+        }
+
+        val crds = getCustomResourceDefinitions().associateBy { it.identifier }
+        // here the group is null for a lot of resources (Kubernetes standard resources), for two singular is null and verbs are always set
+        val resources = apiResourceByIdentifier.map { (identifier, apiResources) ->
+            val group = apiResources.firstNotNullOf { it.first }
+            val versions = apiResources.map { it.second }
+            map(group.takeUnless { it.isNullOrBlank() }, versions, apiResources.firstNotNullOf { it.third }, crds)
         }
 
         this.allAvailableResourceTypes = resources
@@ -92,23 +99,36 @@ class KubernetesService(
         return resources
     }
 
-    fun map(group: String?, version: String, apiResource: APIResource, crds: Map<String, KubernetesResource>): KubernetesResource {
+    fun map(group: String?, versions: List<String>, apiResource: APIResource, crds: Map<String, KubernetesResource>): KubernetesResource {
         val name = apiResource.name
-        val identifier = KubernetesResource.createIdentifier(group, name, version)
+        val identifier = KubernetesResource.createIdentifier(group, name)
+        val matchingCrd = crds[identifier]
 
-        // here the group is null for a lot of resources (Kubernetes standard resources), for two singular is null and verbs are always set
         return KubernetesResource(
             group = group,
-            version = version,
+            // we can only know for sure for CustomResourceDefinitions which the storageVersion is, for the standard k8s resources we just say it's the latest one
+            storageVersion = matchingCrd?.storageVersion ?: findLatestVersion(versions),
             name = name,
             kind = apiResource.kind,
             isNamespaced = apiResource.namespaced,
-            isCustomResourceDefinition = crds[identifier] != null,
+            isCustomResourceDefinition = matchingCrd != null,
             singularName = apiResource.singularName.takeUnless { it.isNullOrBlank() },
             shortNames = apiResource.shortNames.takeUnless { it.isEmpty() },
             verbs = apiResource.verbs.orEmpty().mapNotNull { Verb.getByName(it) }
-                .sorted()
+                .sorted(),
+            servedVersions = versions
         )
+    }
+
+    private fun findLatestVersion(versions: List<String>): String {
+        if (versions.size == 1) {
+            return versions.first()
+        }
+
+        val versionNamesByLength = versions.groupBy { it.length }.toSortedMap()
+        val shortestVersionNames = versionNamesByLength[versionNamesByLength.firstKey()]!!
+
+        return shortestVersionNames.maxOf { it }
     }
 
 
@@ -148,7 +168,7 @@ class KubernetesService(
     private fun getResourceContext(resource: KubernetesResource): ResourceDefinitionContext =
         ResourceDefinitionContext.Builder()
             .withGroup(resource.group)
-            .withVersion(resource.version)
+            .withVersion(resource.storageVersion)
             .withPlural(resource.name)
             .withKind(resource.kind)
             .withNamespaced(resource.isNamespaced)
@@ -167,9 +187,9 @@ class KubernetesService(
                 // - without group: /api/v1/namespaces/collab/pods
                 // - with group: /apis/apps/v1/namespaces/collab/deployments
                 if (resource.group.isNullOrBlank()) {
-                    client.raw("/api/${resource.version}/${resource.name}")
+                    client.raw("/api/${resource.storageVersion}/${resource.name}")
                 } else {
-                    client.raw("/apis/${resource.group}/${resource.version}/${resource.name}")
+                    client.raw("/apis/${resource.group}/${resource.storageVersion}/${resource.name}")
                 }
             } catch (e: Exception) {
                 log.error(e) { "Could not request all items of resource $resource" }
