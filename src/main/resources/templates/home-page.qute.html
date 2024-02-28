@@ -66,10 +66,16 @@
       <script type="text/javascript">
         const commandInputContainer = document.getElementById("commandInputContainer")
         const commandInput = commandInputContainer.querySelector("input")
+        const resourceItemsContainer = document.getElementById("resourceItemsContainer")
         var selectedItem = null
         var previousFocusedElement = null
 
         initializeTable()
+
+        const observer = new MutationObserver((mutationList) => {
+          initializeTable() // table data has changed, so re-initialize table
+        })
+        observer.observe(resourceItemsContainer, { childList: true })
 
         function initializeTable() {
           const tableRows = document.querySelectorAll("#resourceItemsContainer tbody tr")
@@ -88,7 +94,7 @@
           }
         }
 
-        tableBody.onmousedown = (event) => {
+        function onTableRowMouseDown(event) {
           const parentRowElement = event.srcElement.closest("tr")
           if (parentRowElement) {
             setFocusTo(null, parentRowElement) // do not prevent default -> null for event
@@ -97,13 +103,13 @@
           }
         }
 
-        tableBody.onkeydown = (event) => {
+        function onTableRowKeyDown(event) {
           if (noModifierKeyPressed(event)) {
             if (event.code == "ArrowDown") {
-              setFocusTo(event, selectedItem.nextElementSibling)
+              setFocusTo(event, selectedItem?.nextElementSibling)
             }
             else if (event.code == "ArrowUp") {
-              setFocusTo(event, selectedItem.previousElementSibling)
+              setFocusTo(event, selectedItem?.previousElementSibling)
             }
             else if (event.code == "KeyL") {
               if (selectedItem == event.srcElement && selectedItem.dataset.isPod) {
