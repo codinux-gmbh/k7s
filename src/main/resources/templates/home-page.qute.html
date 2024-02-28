@@ -66,10 +66,18 @@
       <script type="text/javascript">
         const commandInputContainer = document.getElementById("commandInputContainer")
         const commandInput = commandInputContainer.querySelector("input")
-        const tableBody = document.querySelector("#resourceItemsContainer tbody")
-        const tableRows = tableBody.querySelectorAll("tr")
         var selectedItem = null
         var previousFocusedElement = null
+
+        initializeTable()
+
+        function initializeTable() {
+          const tableRows = document.querySelectorAll("#resourceItemsContainer tbody tr")
+          if (tableRows.length) { // there are items in the table
+            selectedItem = tableRows[0]
+            selectedItem.focus()
+          }
+        }
 
         window.onkeydown = (event) => {
           if (event.code == "Period") { // show and focus commandInput on ':'
@@ -104,11 +112,6 @@
               }
             }
           }
-        }
-
-        if (tableRows.length) { // there are items in the table
-          selectedItem = tableRows[0]
-          selectedItem.focus()
         }
 
         function setFocusTo(event, item) {
