@@ -29,4 +29,6 @@ data class KubernetesResource(
     @get:JsonIgnore
     val identifier by lazy { createIdentifier(this) }
 
+    override fun toString() = "$kind (${group?.let { "${it}." } ?: ""}${name} $version)"
+
 }

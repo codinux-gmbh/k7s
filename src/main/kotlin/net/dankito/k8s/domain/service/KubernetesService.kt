@@ -1,8 +1,6 @@
 package net.dankito.k8s.domain.service
 
-import io.fabric8.kubernetes.api.model.APIResource
-import io.fabric8.kubernetes.api.model.HasMetadata
-import io.fabric8.kubernetes.api.model.KubernetesResourceList
+import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.client.ApiVisitor
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.dsl.AnyNamespaceOperation
@@ -185,16 +183,21 @@ class KubernetesService(
         operation: AnyNamespaceOperation<T, L, R>,
         namespace: String? = null
     ): List<ResourceItem> =
-        operation.let {
-            if (namespace != null && operation is MixedOperation<T, L, *>) {
-                operation.inNamespace(namespace)
-            } else {
-                operation
+        try {
+            operation.let {
+                if (namespace != null && operation is MixedOperation<T, L, *>) {
+                    operation.inNamespace(namespace)
+                } else {
+                    operation
+                }
             }
+                .list().items.let { it as List<T> }.map { item ->
+                    ResourceItem(resource, item.metadata.name, item.metadata.namespace?.takeUnless { it.isBlank() })
+                }
+        } catch (e: Exception) {
+            log.error(e) { "Could not get items for resource '$resource'" }
+            emptyList()
         }
-            .list().items.let { it as List<T> }.map { item ->
-                ResourceItem(resource, item.metadata.name, item.metadata.namespace?.takeUnless { it.isBlank() })
-            }
 
 
     fun getLogs(podName: String, podNamespace: String, containerName: String? = null, sinceTimeUtc: ZonedDateTime? = null): List<String> =
