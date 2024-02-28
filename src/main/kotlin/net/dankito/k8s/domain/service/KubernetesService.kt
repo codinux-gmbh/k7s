@@ -43,7 +43,8 @@ class KubernetesService(
 
     val serviceResource by lazy { getResource(null, "services")!! }
 
-    val ingressResource by lazy { getResource("networking.k8s.io", "ingresses")!! }
+    // for deprecated API groups see https://kubernetes.io/docs/reference/using-api/deprecation-guide/
+    val ingressResource by lazy { getResource("networking.k8s.io", "ingresses") ?: getResource("extensions", "ingresses")!! }
 
 
     fun getCustomResourceDefinitions(): List<KubernetesResource> {
