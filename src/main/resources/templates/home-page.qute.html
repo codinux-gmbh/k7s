@@ -29,6 +29,12 @@
 
         <script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
 
+        <div id="commandInputContainer" class="fixed flex items-center w-[20rem] h-[3.5rem] p-2 top-1 right-1 z-[999] bg-teal-900 hidden">
+          <input type="search" class="w-full h-full p-2 px-1 rounded-full focus:outline-none"
+                 onkeydown="commandInputKeyDown(event)" onblur="commandInputLostFocus(event)"
+                 hx-trigger="keydown[code=='Enter']" hx-get="page/resources/<group>/<name>/<version>" hx-target="#resourceItemsContainer" />
+        </div>
+
         <div id="resourceItemsContainer" class="flex flex-col" hx-ext="sse" sse-connect="{resourcesWatchUrl}" sse-swap="resourceItemsUpdated">
           {#fragment id=resourceItems}
               <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border">
@@ -41,8 +47,10 @@
 
               <tbody>
                 {#for item in resourceItems}
-                  <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200 {#if item.isPod}cursor-pointer{/if}" tabindex="{item_count}"
-                      data-is-pod="{item.isPod}" data-logs-url="/k7s/logs/{item.namespace}/{item.name}">
+                  <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200 {#if item.isPod}cursor-pointer{/if}" tabindex="0"
+                      data-is-pod="{item.isPod}" data-logs-url="/k7s/logs/{item.namespace}/{item.name}"
+                      onmousedown="onTableRowMouseDown(event)" onkeydown="onTableRowKeyDown(event)"
+                  >
                     <td class="truncate {#if !isNamespacedResource}hidden{/if}">{item.namespace}</td>
                     <td class="truncate">{item.name}</td>
                   </tr>
@@ -56,9 +64,21 @@
       </div>
 
       <script type="text/javascript">
+        const commandInputContainer = document.getElementById("commandInputContainer")
+        const commandInput = commandInputContainer.querySelector("input")
         const tableBody = document.querySelector("#resourceItemsContainer tbody")
         const tableRows = tableBody.querySelectorAll("tr")
         var selectedItem = null
+        var previousFocusedElement = null
+
+        window.onkeydown = (event) => {
+          if (event.code == "Period") { // show and focus commandInput on ':'
+            previousFocusedElement = document.activeElement // store current focused element to restore focus when hiding commandInput
+            commandInputContainer.classList.remove("hidden")
+            commandInput.focus()
+            event.preventDefault()
+          }
+        }
 
         tableBody.onmousedown = (event) => {
           const parentRowElement = event.srcElement.closest("tr")
@@ -95,12 +115,33 @@
           if (item) {
             selectedItem = item
             item.focus()
-            event.preventDefault()
+            event?.preventDefault()
           }
         }
+
         function noModifierKeyPressed(event) {
           return !event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey
         }
+
+        function commandInputKeyDown(event) {
+          if (event.code == "Escape") { // hide commandInput on Escape
+            commandInput.blur()
+            event.preventDefault()
+          }
+        }
+
+        function commandInputLostFocus(event) {
+          commandInputContainer.classList.add("hidden")
+          commandInput.value = ""
+          previousFocusedElement?.focus()
+        }
+
+        document.body.addEventListener('htmx:configRequest', function(event) {
+          if (event.detail.path == "page/resources/<group>/<name>/<version>") { // fill path template with values of selected resources and hide commandInput
+            event.detail.path = event.detail.path.replace("<group>", "null").replace("<name>", event.detail.elt.value).replace("<version>", "v1")
+            commandInput.blur()
+          }
+        })
       </script>
   </div>
 {/include}
