@@ -48,7 +48,7 @@
               <tbody>
                 {#for item in resourceItems}
                   <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200" tabindex="0"
-                      data-logs-url="/k7s/logs/{item.namespace}/{item.name}"
+                      {#if resource.isLoggable}data-logs-url="/k7s/logs/{item.namespace}/{item.name}"{/if}
                       onmousedown="onTableRowMouseDown(event)" onkeydown="onTableRowKeyDown(event)"
                   >
                     <td class="truncate {#if !isNamespacedResource}hidden{/if}">{item.namespace}</td>
