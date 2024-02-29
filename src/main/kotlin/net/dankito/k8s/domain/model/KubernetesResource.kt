@@ -45,6 +45,9 @@ data class KubernetesResource(
 
     val isLoggable by lazy { KubernetesService.LoggableResourceNames.contains(name) }
 
+    @get:JsonIgnore
+    val isDeletable by lazy { containsVerb(Verb.delete) }
+
     fun containsVerb(verb: Verb) = verbs.contains(verb)
 
     override fun toString() = "$kind (${group?.let { "${it}." } ?: ""}${name} $version)"

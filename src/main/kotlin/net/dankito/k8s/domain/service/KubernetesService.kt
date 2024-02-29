@@ -148,6 +148,16 @@ class KubernetesService(
         return resource
     }
 
+    fun getResourceByName(resourceName: String): KubernetesResource? {
+        val resource = getAllAvailableResourceTypes().firstOrNull { it.name == resourceName }
+
+        if (resource == null) {
+            log.error { "Could not find resource with name '$resourceName'. Are you sure that it exists?." }
+        }
+
+        return resource
+    }
+
     fun getResourceItems(resource: KubernetesResource, namespace: String? = null): List<ResourceItem> {
         return listItems(resource, getGenericResources(resource, namespace))
     }
@@ -222,6 +232,17 @@ class KubernetesService(
             log.error(e) { "Could not get items for resource '$resource'" }
             emptyList()
         }
+
+    fun deleteResourceItem(resourceName: String, namespace: String?, itemName: String): Boolean {
+        val resource = getResourceByName(resourceName)
+        if (resource != null) {
+            val statuses = getGenericResources(resource, namespace).withName(itemName).delete()
+
+            return statuses.all { it.causes.isNullOrEmpty() }
+        }
+
+        return false
+    }
 
 
     fun getLogs(resourceKind: String, namespace: String, itemName: String, containerName: String? = null, sinceTimeUtc: ZonedDateTime? = null): List<String> =
