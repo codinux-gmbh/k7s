@@ -52,7 +52,7 @@
                     hx-ext="sse" sse-connect="watch/resources/{resource.group ?: "null"}/{resource.name}" sse-swap="resourceItemsUpdated">
               <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500">
                   <tr>
-                      <th class="w-[7.25rem] sm:w-[12rem] text-left {#if !isNamespacedResource}hidden{/if}">Namespace</th>
+                      <th class="w-[7.25rem] sm:w-[12rem] text-left {#if !resource.isNamespaced}hidden{/if}">Namespace</th>
                       <th>Name</th>
                   </tr>
               </thead>
@@ -63,7 +63,7 @@
                       {#if resource.isLoggable}data-logs-url="logs/{resource.name}/{item.namespace}/{item.name}"{/if}
                       onmousedown="onTableRowMouseDown(event)" onkeydown="onTableRowKeyDown(event)"
                   >
-                    <td class="truncate {#if !isNamespacedResource}hidden{/if}">{item.namespace}</td>
+                    <td class="truncate {#if !resource.isNamespaced}hidden{/if}">{item.namespace}</td>
                     <td class="truncate">{item.name}</td>
                   </tr>
                 {/for}
