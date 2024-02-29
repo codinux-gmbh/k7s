@@ -38,7 +38,7 @@
         <div id="commandInputContainer" class="fixed flex items-center w-[20rem] h-[3.5rem] p-2 top-1 right-1 z-[999] bg-teal-900 hidden">
           <input type="search" list="availableCommands" class="w-full h-full p-2 px-1 rounded-full focus:outline-none"
                  onkeydown="commandInputKeyDown(event)" onblur="commandInputLostFocus(event)"
-                 hx-trigger="change" hx-get="page/resources/<resourcePath>" hx-target="#resourceItemsContainer" />
+                 hx-trigger="change" hx-get="page/resources/<resourcePath>?namespace={selectedNamespace}" hx-target="#resourceItemsContainer" />
           <datalist id="availableCommands">
             {#for entry in commandNamesToUrlPath}
               <option value="{entry.key}"></option>
@@ -49,7 +49,7 @@
         <div id="resourceItemsContainer" class="flex flex-col">
           {#fragment id=resourceItems}
             <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border"
-                    hx-ext="sse" sse-connect="watch/resources/{resource.group ?: "null"}/{resource.name}" sse-swap="resourceItemsUpdated">
+                    hx-ext="sse" sse-connect="watch/resources/{resource.group ?: "null"}/{resource.name}?namespace={selectedNamespace}" sse-swap="resourceItemsUpdated">
               <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500">
                   <tr>
                       <th class="w-[7.25rem] sm:w-[12rem] text-left {#if !resource.isNamespaced}hidden{/if}">Namespace</th>
@@ -102,7 +102,7 @@
         }
 
         window.onkeydown = (event) => {
-          if (event.code == "Period") { // show and focus commandInput on ':'
+          if (event.code == "Period" && document.activeElement != commandInput) { // show and focus commandInput on ':'
             previousFocusedElement = document.activeElement // store current focused element to restore focus when hiding commandInput
             commandInputContainer.classList.remove("hidden")
             commandInput.focus()
@@ -166,8 +166,13 @@
           if (hasFocus == false) { // this method also gets fired when commandInput just gets hidden, e.g. when pressing Escape ->
             event.preventDefault()
           }
-          else if (event.detail.path == "page/resources/<resourcePath>") { // fill path template with values of selected resources and hide commandInput
-            event.detail.path = event.detail.path.replace("<resourcePath>", commandNamesToUrlPath.get(event.detail.elt.value))
+          else if (event.detail.path.startsWith("page/resources/<resourcePath>")) { // fill path template with values of selected resources and hide commandInput
+            if (event.detail.path.endsWith("?namespace=")) {
+              event.detail.path = event.detail.path.replace("?namespace=", "")
+            }
+            event.detail.path = event.detail.path
+                .replace("?namespace=null", "")
+                .replace("<resourcePath>", commandNamesToUrlPath.get(event.detail.elt.value))
             commandInput.blur()
           }
         })

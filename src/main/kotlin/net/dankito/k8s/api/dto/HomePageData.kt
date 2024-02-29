@@ -7,9 +7,10 @@ import net.dankito.k8s.domain.model.Verb
 @Suppress("MemberVisibilityCanBePrivate")
 class HomePageData(
     val allResources: List<KubernetesResource>,
+    allNamespaces: List<ResourceItem>,
     resource: KubernetesResource,
     resourceItems: List<ResourceItem> = emptyList()
-) : ResourceItemsViewData(resource, resourceItems) {
+) : ResourceItemsViewData(resource, resourceItems, null) {
 
     companion object {
         private val highlightedResourcesNames = hashSetOf("pods", "services", "ingresses")
@@ -30,13 +31,14 @@ class HomePageData(
         .filter { highlightedResources.contains(it) == false }
         .sortedBy { it.identifier }
 
-    val commandNamesToUrlPath: Map<String, String> by lazy {
+    val commandNamesToUrlPath: Map<String, String> =
         allResources.flatMap { resource ->
             val resourcePath = "${resource.group ?: "null"}/${resource.name}"
             (listOf(resource.singularName ?: resource.kind) + resource.shortNames.orEmpty()).map {
                 it to resourcePath
             }
-        }.toMap()
-    }
+        }.toMap() +
+                mapOf("ns:all" to "null/pods") +
+                allNamespaces.map { "ns:${it.name}" to "null/pods?namespace=${it.name}" }
 
 }

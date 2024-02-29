@@ -21,7 +21,7 @@
     <table class="table-fixed w-full text-xs sm:text-[1rem]">
         <tbody>
             {#for resource in highlightedResources}
-              <tr class="cursor-pointer lg:hover:bg-zinc-200" hx-get="/k7s/page/resources/{resource.group ?: "null"}/{resource.name}" hx-target="#resourceItemsContainer">
+              <tr class="cursor-pointer lg:hover:bg-zinc-200" hx-get="/k7s/page/resources/{resource.group ?: "null"}/{resource.name}?namespace={selectedNamespace}" hx-target="#resourceItemsContainer">
                   <td class="resource-cell">
                       {resource.kind}
                   </td>
@@ -35,7 +35,7 @@
     <table class="table-fixed w-full text-xs sm:text-[1rem]">
         <tbody>
             {#for resource in standardResources}
-                <tr class="cursor-pointer lg:hover:bg-zinc-200" hx-get="/k7s/page/resources/{resource.group ?: "null"}/{resource.name}" hx-target="#resourceItemsContainer">
+                <tr class="cursor-pointer lg:hover:bg-zinc-200" hx-get="/k7s/page/resources/{resource.group ?: "null"}/{resource.name}?namespace={selectedNamespace}" hx-target="#resourceItemsContainer">
                     <td class="resource-cell">
                         {resource.kind}
                     </td>
@@ -49,7 +49,7 @@
     <table class="table-fixed w-full text-xs sm:text-[1rem]">
         <tbody>
             {#for resource in customResourceDefinitions}
-                <tr class="cursor-pointer lg:hover:bg-zinc-200" hx-get="/k7s/page/resources/{resource.group ?: "null"}/{resource.name}" hx-target="#resourceItemsContainer">
+                <tr class="cursor-pointer lg:hover:bg-zinc-200" hx-get="/k7s/page/resources/{resource.group ?: "null"}/{resource.name}?namespace={selectedNamespace}" hx-target="#resourceItemsContainer">
                     <td class="resource-cell">
                         {resource.kind} {resource.group}.{resource.version}
                     </td>

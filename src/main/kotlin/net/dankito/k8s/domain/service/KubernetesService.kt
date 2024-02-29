@@ -148,28 +148,26 @@ class KubernetesService(
         return resource
     }
 
-    fun getResourceItems(resource: KubernetesResource): List<ResourceItem> {
-        val context = getResourceContext(resource)
-
-        return listItems(resource, client.genericKubernetesResources(context))
+    fun getResourceItems(resource: KubernetesResource, namespace: String? = null): List<ResourceItem> {
+        return listItems(resource, getGenericResources(resource, namespace))
     }
 
     fun watchResourceItems(resource: KubernetesResource, namespace: String? = null, update: (List<ResourceItem>) -> Unit) {
-        val context = getResourceContext(resource)
-        val resources = client.genericKubernetesResources(context).let {
-            if (namespace !=  null) {
+        val resources = getGenericResources(resource, namespace)
+
+        resources.watch(KubernetesResourceWatcher<GenericKubernetesResource> { _, _ ->
+            update(getResourceItems(resource)) // TODO: make diff update instead of fetching all items again
+        })
+    }
+
+    private fun getGenericResources(resource: KubernetesResource, namespace: String?) =
+        client.genericKubernetesResources(getResourceContext(resource)).let {
+            if (namespace != null) {
                 it.inNamespace(namespace)
             } else {
                 it
             }
         }
-
-        resources.watch(KubernetesResourceWatcher<GenericKubernetesResource> { action, item ->
-            log.info { "Retrieved resource update: $action ${item.metadata.name}" }
-
-            update(getResourceItems(resource)) // TODO: make diff update instead of fetching all items again
-        })
-    }
 
     private fun getResourceContext(resource: KubernetesResource): ResourceDefinitionContext =
         ResourceDefinitionContext.Builder()

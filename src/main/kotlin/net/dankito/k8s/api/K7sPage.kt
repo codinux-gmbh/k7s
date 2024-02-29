@@ -34,7 +34,7 @@ class K7sPage(
     @GET
     @Blocking // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
     fun homePage(): TemplateInstance =
-        homePage.data(HomePageData(service.getAllAvailableResourceTypes(), service.podResource, service.getPods()))
+        homePage.data(HomePageData(service.getAllAvailableResourceTypes(), service.getNamespaces(), service.podResource, service.getPods()))
 
     @Path("page/resources/{group}/{name}") // TODO: don't know why, but if i use only "/resources/..." Quarkus cannot resolve the method anymore and i only get 404 Not Found
     @GET
@@ -42,16 +42,17 @@ class K7sPage(
     fun getResourcesView(
         @RestPath("group") group: String,
         @RestPath("name") name: String,
+        @RestQuery("namespace") namespace: String? = null,
     ): TemplateInstance {
         val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name)
         if (resource == null) {
             throw NotFoundException("Resource for group '$group' and name '$name' not found in Kubernetes cluster")
         }
 
-        val resourceItems = service.getResourceItems(resource)
+        val resourceItems = service.getResourceItems(resource, namespace)
 
         return homePage.getFragment("resourceItems")
-            .data(ResourceItemsViewData(resource, resourceItems))
+            .data(ResourceItemsViewData(resource, resourceItems, namespace))
     }
 
     @Path("watch/resources/{group}/{name}")
@@ -62,6 +63,7 @@ class K7sPage(
     fun watchResources(
         @RestPath("group") group: String,
         @RestPath("name") name: String,
+        @RestQuery("namespace") namespace: String? = null,
         @Context sseEventSink: SseEventSink
     ) {
         val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name)
@@ -71,11 +73,11 @@ class K7sPage(
 
         val fragment = homePage.getFragment("resourceItems")
 
-        service.watchResourceItems(resource) { resourceItems ->
+        service.watchResourceItems(resource, namespace) { resourceItems ->
             if (sseEventSink.isClosed) {
                 return@watchResourceItems // TODO: stop watcher
             } else {
-                val html = fragment.data(ResourceItemsViewData(resource, resourceItems)).render()
+                val html = fragment.data(ResourceItemsViewData(resource, resourceItems, namespace)).render()
                 sseEventSink.send(sse.newEvent("resourceItemsUpdated", html))
             }
         }
