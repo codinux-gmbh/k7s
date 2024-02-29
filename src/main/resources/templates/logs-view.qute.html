@@ -42,5 +42,12 @@
     function scrollToBottom() {
       window.scrollTo(0, document.body.scrollHeight)
     }
+
+    window.onkeydown = (event) => {
+      if (event.code == "Escape") { // Close window on Escape
+        window.close()
+        event.preventDefault()
+      }
+    }
   </script>
 {/include}
