@@ -3,9 +3,7 @@ package net.dankito.k8s.domain.service
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.client.ApiVisitor
 import io.fabric8.kubernetes.client.KubernetesClient
-import io.fabric8.kubernetes.client.dsl.AnyNamespaceOperation
-import io.fabric8.kubernetes.client.dsl.MixedOperation
-import io.fabric8.kubernetes.client.dsl.TimeTailPrettyLoggable
+import io.fabric8.kubernetes.client.dsl.*
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext
 import jakarta.inject.Singleton
 import net.codinux.log.logger
@@ -21,6 +19,13 @@ import java.time.ZonedDateTime
 class KubernetesService(
     private val client: KubernetesClient
 ) {
+
+    companion object {
+        val LoggableResourceNames = hashSetOf(
+            "pods", "deployments", "statefulsets", "daemonsets", "replicasets", "jobs"
+        )
+    }
+
 
     private lateinit var customResourceDefinitions: List<KubernetesResource>
 
@@ -221,8 +226,8 @@ class KubernetesService(
         }
 
 
-    fun getLogs(podName: String, podNamespace: String, containerName: String? = null, sinceTimeUtc: ZonedDateTime? = null): List<String> =
-        getLoggable(podNamespace, podName, containerName)
+    fun getLogs(resourceKind: String, namespace: String, itemName: String, containerName: String? = null, sinceTimeUtc: ZonedDateTime? = null): List<String> =
+        getLoggable(resourceKind, namespace, itemName, containerName)
             .sinceTime((sinceTimeUtc ?: Instant.now().atOffset(ZoneOffset.UTC).minusMinutes(10)).toString())
             .getLog(true)
             .split('\n')
@@ -234,16 +239,31 @@ class KubernetesService(
                 }
             }
 
-    fun watchLogs(podName: String, podNamespace: String, containerName: String? = null, sinceTimeUtc: ZonedDateTime? = null): InputStream =
-        getLoggable(podNamespace, podName, containerName).sinceTime((sinceTimeUtc ?: Instant.now().atOffset(ZoneOffset.UTC)).toString()).watchLog().output
+    fun watchLogs(resourceKind: String, namespace: String, itemName: String, containerName: String? = null, sinceTimeUtc: ZonedDateTime? = null): InputStream? =
+        getLoggable(resourceKind, namespace, itemName, containerName)
+            .sinceTime((sinceTimeUtc ?: Instant.now().atOffset(ZoneOffset.UTC)).toString())
+            // if the pods of an (old) RollableScalableResource like Deployment, ReplicaSet, ... don't exist anymore then watchLog() returns null
+            .watchLog()?.output
 
-    private fun getLoggable(podNamespace: String, podName: String, containerName: String?): TimeTailPrettyLoggable =
-        client.pods().inNamespace(podNamespace).withName(podName).let {
-            if (containerName != null) {
-                it.inContainer(containerName)
+    // oh boy is that ugly code!
+    private fun getLoggable(resourceKind: String, namespace: String, itemName: String, containerName: String?): TimeTailPrettyLoggable =
+        ((getLoggableForResource(resourceKind).inNamespace(namespace) as Nameable<*>).withName(itemName) as TimeTailPrettyLoggable).let {
+            if (containerName != null && it is PodResource) {
+                it.inContainer(containerName) as TimeTailPrettyLoggable
             } else {
                 it
             }
         }
+
+    //private fun <E, L : KubernetesResourceList<E>, T> getLoggableForResource(resourceKind: String): MixedOperation<out E, out L, out T> where T : Resource<E>, T : Loggable = when (resourceKind) {
+    private fun getLoggableForResource(resourceKind: String): Namespaceable<*> = when (resourceKind) {
+        "pods" -> client.pods()
+        "deployments" -> client.apps().deployments()
+        "statefulsets" -> client.apps().statefulSets()
+        "daemonsets" -> client.apps().daemonSets()
+        "replicasets" -> client.apps().replicaSets()
+        "jobs" -> client.batch().v1().jobs()
+        else -> throw IllegalArgumentException("Trying to get Loggable for resource '$resourceKind' which is not loggable")
+    } as Namespaceable<*>
 
 }

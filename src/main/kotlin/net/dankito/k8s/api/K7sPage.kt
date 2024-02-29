@@ -82,65 +82,69 @@ class K7sPage(
     }
 
 
-    @Path("logs/{podNamespace}/{podName}") // TODO: there are also other resources that have logs like Deployments, ReplicaSets, ...
+    @Path("logs/{resourceKind}/{namespace}/{itemName}")
     @GET
     @Blocking
     fun getLogs(
-        @RestPath("podNamespace") podNamespace: String,
-        @RestPath("podName") podName: String,
+        @RestPath("resourceKind") resourceKind: String,
+        @RestPath("namespace") namespace: String,
+        @RestPath("itemName") itemName: String,
         @RestQuery("since") since: String? = null
-    ) = getLogs(podNamespace, podName, null, since)
+    ) = getLogs(resourceKind, namespace, itemName, null, since)
 
-    @Path("logs/{podNamespace}/{podName}/{containerName}")
+    @Path("logs/{resourceKind}/{namespace}/{itemName}/{containerName}")
     @GET
     @Blocking
     fun getLogs(
-        @RestPath("podNamespace") podNamespace: String,
-        @RestPath("podName") podName: String,
+        @RestPath("resourceKind") resourceKind: String,
+        @RestPath("namespace") namespace: String,
+        @RestPath("itemName") itemName: String,
         @RestPath("containerName") containerName: String? = null,
         @RestQuery("since") since: String? = null
     ): TemplateInstance {
         val sinceTimeUtc = since?.let { ZonedDateTime.parse(it) }
         val startWatchingAt = Instant.now().atZone(ZoneOffset.UTC)
 
-        val logs = service.getLogs(podName, podNamespace, containerName, sinceTimeUtc)
+        val logs = service.getLogs(resourceKind, namespace, itemName, containerName, sinceTimeUtc)
 
         return logsView
             .data("logs", logs)
             .data("startWatchingAt", startWatchingAt)
     }
 
-    @Path("watch/logs/{podNamespace}/{podName}")
+    @Path("watch/logs/{resourceKind}/{namespace}/{itemName}")
     @GET
     @Blocking
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @RestStreamElementType(MediaType.TEXT_HTML)
     fun watchLogs(
-        @RestPath("podNamespace") podNamespace: String,
-        @RestPath("podName") podName: String,
+        @RestPath("resourceKind") resourceKind: String,
+        @RestPath("namespace") namespace: String,
+        @RestPath("itemName") itemName: String,
         @RestQuery("since") since: String? = null,
         @Context sseEventSink: SseEventSink
     ) {
-        watchLogs(podNamespace, podName, null, since, sseEventSink)
+        watchLogs(resourceKind, namespace, itemName, null, since, sseEventSink)
     }
 
-    @Path("watch/logs/{podNamespace}/{podName}/{containerName}")
+    @Path("watch/logs/{resourceKind}/{namespace}/{itemName}/{containerName}")
     @GET
     @Blocking
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @RestStreamElementType(MediaType.TEXT_PLAIN)
     fun watchLogs(
-        @RestPath("podNamespace") podNamespace: String,
-        @RestPath("podName") podName: String,
+        @RestPath("resourceKind") resourceKind: String,
+        @RestPath("namespace") namespace: String,
+        @RestPath("itemName") itemName: String,
         @RestPath("containerName") containerName: String? = null,
         @RestQuery("since") since: String? = null,
         @Context sseEventSink: SseEventSink
     ) {
         val sinceTimeUtc = since?.let { ZonedDateTime.parse(it) }
 
-        val inputStream = service.watchLogs(podName, podNamespace, containerName, sinceTimeUtc)
+        val inputStream = service.watchLogs(resourceKind, namespace, itemName, containerName, sinceTimeUtc)
 
-        inputStream.bufferedReader().use { logReader ->
+        inputStream?.bufferedReader()?.use { logReader ->
             logReader.forEachLine { line ->
                 if (sseEventSink.isClosed) {
                     return@forEachLine

@@ -2,6 +2,7 @@ package net.dankito.k8s.domain.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
+import net.dankito.k8s.domain.service.KubernetesService
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 data class KubernetesResource(
@@ -42,7 +43,7 @@ data class KubernetesResource(
     @get:JsonIgnore
     val version: String = storageVersion // to be better readable
 
-    val isLoggable by lazy { kind == "Pod" && group == null }
+    val isLoggable by lazy { KubernetesService.LoggableResourceNames.contains(name) }
 
     fun containsVerb(verb: Verb) = verbs.contains(verb)
 
