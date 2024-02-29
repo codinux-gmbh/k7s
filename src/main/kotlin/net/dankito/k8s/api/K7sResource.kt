@@ -4,6 +4,7 @@ import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import net.dankito.k8s.domain.service.KubernetesService
 import org.jboss.resteasy.reactive.RestPath
+import org.jboss.resteasy.reactive.RestQuery
 
 @Path("")
 @Produces(MediaType.APPLICATION_JSON)
@@ -20,6 +21,12 @@ class K7sResource(
     @DELETE
     fun deleteResourceItem(@RestPath("resourceName") resourceName: String, @RestPath("namespace") namespace: String?, @RestPath("itemName") itemName: String) {
         service.deleteResourceItem(resourceName, namespace?.takeUnless { it.isBlank() || it == "null" }, itemName)
+    }
+
+    @Path("resource/{resourceName}/{namespace}/{itemName}")
+    @PATCH
+    fun deleteResourceItem(@RestPath("resourceName") resourceName: String, @RestPath("namespace") namespace: String?, @RestPath("itemName") itemName: String, @RestQuery("scaleTo") scaleTo: Int? = null) {
+        service.patchResourceItem(resourceName, namespace?.takeUnless { it.isBlank() || it == "null" }, itemName, scaleTo)
     }
 
 }

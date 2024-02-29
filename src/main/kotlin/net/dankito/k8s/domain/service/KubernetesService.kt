@@ -1,6 +1,8 @@
 package net.dankito.k8s.domain.service
 
 import io.fabric8.kubernetes.api.model.*
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder
+import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder
 import io.fabric8.kubernetes.client.ApiVisitor
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.dsl.*
@@ -232,6 +234,30 @@ class KubernetesService(
             log.error(e) { "Could not get items for resource '$resource'" }
             emptyList()
         }
+
+    fun patchResourceItem(resourceName: String, namespace: String?, itemName: String, scaleTo: Int? = null): Boolean {
+        val resource = getResourceByName(resourceName)
+        if (resource != null) {
+            if (scaleTo != null && scaleTo > -1 && resource.isScalable) {
+                // TODO: check for older versions e.g. extensions/deployment
+                val result = if (resource.name == "deployments") {
+                    client.apps().deployments().inNamespace(namespace).withName(itemName).edit { item ->
+                        DeploymentBuilder(item).editSpec().withReplicas(scaleTo).endSpec().build()
+                    }
+                } else if (resource.name == "statefulsets") {
+                    client.apps().statefulSets().inNamespace(namespace).withName(itemName).edit { item ->
+                        StatefulSetBuilder(item).editSpec().withReplicas(scaleTo).endSpec().build()
+                    }
+                } else {
+                    null
+                }
+
+                return result != null
+            }
+        }
+
+        return false
+    }
 
     fun deleteResourceItem(resourceName: String, namespace: String?, itemName: String): Boolean {
         val resource = getResourceByName(resourceName)

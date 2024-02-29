@@ -46,6 +46,9 @@ data class KubernetesResource(
     val isLoggable by lazy { KubernetesService.LoggableResourceNames.contains(name) }
 
     @get:JsonIgnore
+    val isScalable by lazy { name == "deployments" || name == "statefulsets" }
+
+    @get:JsonIgnore
     val isDeletable by lazy { containsVerb(Verb.delete) }
 
     fun containsVerb(verb: Verb) = verbs.contains(verb)
