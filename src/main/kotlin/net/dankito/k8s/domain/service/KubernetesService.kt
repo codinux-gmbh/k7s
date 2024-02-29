@@ -218,7 +218,7 @@ class KubernetesService(
                 }
             }
                 .list().items.let { it as List<T> }.map { item ->
-                    ResourceItem(resource, item.metadata.name, item.metadata.namespace?.takeUnless { it.isBlank() })
+                    ResourceItem(item.metadata.name, item.metadata.namespace?.takeUnless { it.isBlank() })
                 }
         } catch (e: Exception) {
             log.error(e) { "Could not get items for resource '$resource'" }
