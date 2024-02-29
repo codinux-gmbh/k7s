@@ -46,15 +46,16 @@
           </datalist>
         </div>
 
-        <div id="resourceItemsContainer" class="flex flex-col" hx-ext="sse" sse-connect="watch/resources/{resource.group ?: "null"}/{resource.name}" sse-swap="resourceItemsUpdated">
+        <div id="resourceItemsContainer" class="flex flex-col">
           {#fragment id=resourceItems}
-              <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border">
-                <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500">
-                    <tr>
-                        <th class="w-[7.25rem] sm:w-[12rem] text-left {#if !isNamespacedResource}hidden{/if}">Namespace</th>
-                        <th>Name</th>
-                    </tr>
-                </thead>
+            <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border"
+                    hx-ext="sse" sse-connect="watch/resources/{resource.group ?: "null"}/{resource.name}" sse-swap="resourceItemsUpdated">
+              <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500">
+                  <tr>
+                      <th class="w-[7.25rem] sm:w-[12rem] text-left {#if !isNamespacedResource}hidden{/if}">Namespace</th>
+                      <th>Name</th>
+                  </tr>
+              </thead>
 
               <tbody>
                 {#for item in resourceItems}
@@ -127,7 +128,7 @@
               setFocusTo(event, selectedItem?.previousElementSibling)
             }
             else if (event.code == "KeyL") {
-              if (selectedItem == event.srcElement && {resource.isLoggable}) {
+              if (selectedItem == event.srcElement && selectedItem.dataset.logsUrl) {
                 window.open(selectedItem.dataset.logsUrl, "_blank", "popup=true,toolbar=true")
                 event.preventDefault()
               }
