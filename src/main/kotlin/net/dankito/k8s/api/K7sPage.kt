@@ -89,17 +89,7 @@ class K7sPage(
         @RestPath("resourceKind") resourceKind: String,
         @RestPath("namespace") namespace: String,
         @RestPath("itemName") itemName: String,
-        @RestQuery("since") since: String? = null
-    ) = getLogs(resourceKind, namespace, itemName, null, since)
-
-    @Path("logs/{resourceKind}/{namespace}/{itemName}/{containerName}")
-    @GET
-    @Blocking
-    fun getLogs(
-        @RestPath("resourceKind") resourceKind: String,
-        @RestPath("namespace") namespace: String,
-        @RestPath("itemName") itemName: String,
-        @RestPath("containerName") containerName: String? = null,
+        @RestQuery("containerName") containerName: String? = null,
         @RestQuery("since") since: String? = null
     ): TemplateInstance {
         val sinceTimeUtc = since?.let { ZonedDateTime.parse(it) }
@@ -116,27 +106,12 @@ class K7sPage(
     @GET
     @Blocking
     @Produces(MediaType.SERVER_SENT_EVENTS)
-    @RestStreamElementType(MediaType.TEXT_HTML)
-    fun watchLogs(
-        @RestPath("resourceKind") resourceKind: String,
-        @RestPath("namespace") namespace: String,
-        @RestPath("itemName") itemName: String,
-        @RestQuery("since") since: String? = null,
-        @Context sseEventSink: SseEventSink
-    ) {
-        watchLogs(resourceKind, namespace, itemName, null, since, sseEventSink)
-    }
-
-    @Path("watch/logs/{resourceKind}/{namespace}/{itemName}/{containerName}")
-    @GET
-    @Blocking
-    @Produces(MediaType.SERVER_SENT_EVENTS)
     @RestStreamElementType(MediaType.TEXT_PLAIN)
     fun watchLogs(
         @RestPath("resourceKind") resourceKind: String,
         @RestPath("namespace") namespace: String,
         @RestPath("itemName") itemName: String,
-        @RestPath("containerName") containerName: String? = null,
+        @RestQuery("containerName") containerName: String? = null,
         @RestQuery("since") since: String? = null,
         @Context sseEventSink: SseEventSink
     ) {
