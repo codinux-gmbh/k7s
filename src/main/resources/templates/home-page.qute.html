@@ -161,7 +161,11 @@
         }
 
         document.body.addEventListener('htmx:configRequest', function(event) {
-          if (event.detail.path == "page/resources/<resourcePath>") { // fill path template with values of selected resources and hide commandInput
+          const hasFocus = document.activeElement == commandInput
+          if (hasFocus == false) { // this method also gets fired when commandInput just gets hidden, e.g. when pressing Escape ->
+            event.preventDefault()
+          }
+          else if (event.detail.path == "page/resources/<resourcePath>") { // fill path template with values of selected resources and hide commandInput
             event.detail.path = event.detail.path.replace("<resourcePath>", commandNamesToUrlPath.get(event.detail.elt.value))
             commandInput.blur()
           }
