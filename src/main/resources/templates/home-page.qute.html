@@ -26,6 +26,28 @@
             text-overflow: ellipsis;
           }
 
+          .menu-item {
+            height: 2.75rem;
+            display: flex;
+            align-items: center;
+
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            border-bottom-width: 1px;
+            border-color: rgb(228 228 231);
+
+            cursor: pointer;
+            user-select: none; /* to now show select text cursor */
+          }
+          .menu-item:hover {
+            background-color: rgb(228 228 231);
+          }
+          .menu-item:last-child {
+              border-bottom: none;
+          }
+
           .mobile-command-item {
               flex-grow: 1;
               display: flex;
@@ -67,8 +89,9 @@
                     hx-ext="sse" sse-connect="watch/resources/{resource.group ?: "null"}/{resource.name}{#if selectedNamespace}?namespace={selectedNamespace}{/if}" sse-swap="resourceItemsUpdated">
               <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500">
                   <tr>
-                      <th class="w-[7.25rem] sm:w-[12rem] text-left {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">Namespace</th>
-                      <th>Name</th>
+                    <th class="w-[7.25rem] sm:w-[12rem] text-left {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">Namespace</th>
+                    <th>Name</th>
+                    <th class="w-12"></th>
                   </tr>
               </thead>
 
@@ -82,6 +105,16 @@
                   >
                     <td class="truncate {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">{item.namespace}</td>
                     <td class="truncate">{item.name}</td>
+                    <td>
+                      <div class="flex justify-center items-center w-full h-full text-zinc-500 text-3xl cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">&#xFE19;</div>
+                      <div class="menu fixed min-w-[9rem] right-2 bg-white text-xl shadow-xl z-10 hidden">
+                        <ul class="list-none">
+                          {#if resource.isLoggable}<li class="menu-item" onclick="showLogs(event)" data-logs-url="logs/{resource.name}/{item.namespace}/{item.name}">Logs</li>{/if}
+                          {#if resource.isScalable}<li class="menu-item" onclick="closeMenu(event)" hx-patch="resource/{resource.name}/{item.namespace}/{item.name}" hx-prompt="Scale {resource.kind} {item.namespace}/{item.name}? Replicas:">Scale</li>{/if}
+                          {#if resource.isDeletable}<li class="menu-item" onclick="closeMenu(event)" hx-delete="resource/{resource.name}/{item.namespace}/{item.name}" hx-confirm="Are you sure you want to delete {resource.kind} {item.name}?">Delete</li>{/if}
+                        </ul>
+                      </div>
+                    </td>
                   </tr>
                 {/for}
               </tbody>
@@ -227,12 +260,25 @@
               setFocusTo(event, selectedItem?.previousElementSibling)
             }
             else if (event.code == "KeyL") {
-              if (selectedItem == event.srcElement && selectedItem.dataset.logsUrl) {
-                window.open(selectedItem.dataset.logsUrl, "_blank", "popup=true,toolbar=true")
-                event.preventDefault()
+              if (selectedItem == event.srcElement) {
+                showLogs(event)
               }
             }
           }
+        }
+
+        function showLogs(event) {
+          if (event.srcElement.dataset.logsUrl) {
+            window.open(event.srcElement.dataset.logsUrl, "_blank", "popup=true,toolbar=true")
+
+            closeMenu() // in case a menu item has been clicked, close menu again
+            event.preventDefault()
+          }
+        }
+
+        function closeMenu(event) {
+          const menu = event.srcElement.closest(".menu")
+          menu?.classList?.add("hidden") // in case a menu item has been clicked, close menu again
         }
 
         function setFocusTo(event, item) {
