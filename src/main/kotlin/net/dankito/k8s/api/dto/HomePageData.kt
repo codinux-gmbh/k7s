@@ -33,12 +33,12 @@ class HomePageData(
 
     val commandNamesToUrlPath: Map<String, String> =
         allResources.flatMap { resource ->
-            val resourcePath = "${resource.group ?: "null"}/${resource.name}"
+            val commandToExecute = """{ "command": "displayResourceItems",${resource.group?.let { """"resourceGroup": "$it", """ } ?: ""} "resourceName": "${resource.name}" }"""
             (listOf(resource.singularName ?: resource.kind) + resource.shortNames.orEmpty()).map {
-                it to resourcePath
+                it to commandToExecute
             }
         }.toMap() +
-                mapOf("ns:all" to "null/pods") +
-                allNamespaces.map { "ns:${it.name}" to "null/pods?namespace=${it.name}" }
+                mapOf("ns:all" to """{ "command": "switchToNamespace", "namespace": null }""") +
+                allNamespaces.map { "ns:${it.name}" to """{ "command": "switchToNamespace", "namespace": "${it.name}" }""" }
 
 }

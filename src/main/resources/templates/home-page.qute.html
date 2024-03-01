@@ -52,8 +52,7 @@
 
         <div id="commandInputContainer" class="fixed flex items-center w-[20rem] h-[3.5rem] p-2 top-1 right-1 z-[999] bg-primary hidden">
           <input type="search" list="availableCommands" class="w-full h-full p-2 px-1 rounded-full focus:outline-none"
-                 onkeydown="commandInputKeyDown(event)" onblur="commandInputLostFocus(event)"
-                 hx-trigger="change" hx-get="page/resources/<resourcePath>?namespace={selectedNamespace}" hx-target="#resourceItemsContainer" />
+                 onchange="commandInputChanged(event)" onkeydown="commandInputKeyDown(event)" onblur="commandInputLostFocus(event)" />
           <datalist id="availableCommands">
             {#for entry in commandNamesToUrlPath}
               <option value="{entry.key}"></option>
@@ -64,7 +63,7 @@
         <div id="resourceItemsContainer" class="flex flex-col">
           {#fragment id=resourceItems}
             <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border"
-                    hx-ext="sse" sse-connect="watch/resources/{resource.group ?: "null"}/{resource.name}?namespace={selectedNamespace}" sse-swap="resourceItemsUpdated">
+                    hx-ext="sse" sse-connect="watch/resources/{resource.group ?: "null"}/{resource.name}{#if selectedNamespace}?namespace={selectedNamespace}{/if}" sse-swap="resourceItemsUpdated">
               <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500">
                   <tr>
                       <th class="w-[7.25rem] sm:w-[12rem] text-left {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">Namespace</th>
@@ -85,7 +84,12 @@
                   </tr>
                 {/for}
               </tbody>
-              </table>
+            </table>
+
+            <script type="text/javascript">
+              selectedNamespace = {#if selectedNamespace}"{selectedNamespace}"{#else}null{/if}
+              currentPath = "page/resources/{resource.group ?: "null"}/{resource.name}{#if selectedNamespace}?namespace={selectedNamespace}{/if}"
+            </script>
 
           {/fragment}
 
@@ -102,7 +106,7 @@
             <div class="flex items-center flex-[1_0_auto] w-[25vw] max-w-[15.5rem] h-16 p-2 bg-primary rounded-2xl">
               <label for="selectNamespace">ns</label>
               <select id="selectNamespace" class="w-full h-[2.75rem] ml-1 pl-1 bg-white text-primary rounded-lg" aria-label="Select namespace"
-                      hx-trigger="change" hx-get="page/resources/{resource.group ?: "null"}/{resource.name}" hx-target="#resourceItemsContainer">
+                      onchange="switchToNamespace(this.value, event)">
                 <option value=" " {#if selectedNamespace == null}selected{/if}>all</option>
                 {#for namespace in allNamespaces}
                   <option value="{namespace.name}" {#if namespace.name == selectedNamespace}selected{/if}>{namespace.name}</option>
@@ -112,33 +116,35 @@
           </div>
 
           <div class="flex flex-wrap py-[0.125rem]">
-            <div class="mobile-command-item" hx-get="page/resources/ /persistentvolumes" hx-target="#resourceItemsContainer">PV</div>
-            <div class="mobile-command-item" hx-get="page/resources/ /persistentvolumeclaims" hx-target="#resourceItemsContainer">PVC</div>
-            <div class="mobile-command-item" hx-get="page/resources/ /nodes" hx-target="#resourceItemsContainer">Nodes</div>
+            <div class="mobile-command-item" onclick="displayResourceItems(null, 'persistentvolumes', event)">PV</div>
+            <div class="mobile-command-item" onclick="displayResourceItems(null, 'persistentvolumeclaims', event)">PVC</div>
+            <div class="mobile-command-item" onclick="displayResourceItems(null, 'nodes', event)">Nodes</div>
 
-            <div class="mobile-command-item" hx-get="page/resources/rbac.authorization.k8s.io/rolebindings" hx-target="#resourceItemsContainer">RoleBindings</div>
-            <div class="mobile-command-item" hx-get="page/resources/rbac.authorization.k8s.io/clusterroles" hx-target="#resourceItemsContainer">ClusterRoles</div>
-            <div class="mobile-command-item" hx-get="page/resources/rbac.authorization.k8s.io/roles" hx-target="#resourceItemsContainer">Roles</div>
+            <div class="mobile-command-item" onclick="displayResourceItems('rbac.authorization.k8s.io', 'rolebindings', event)">RoleBindings</div>
+            <div class="mobile-command-item" onclick="displayResourceItems('rbac.authorization.k8s.io', 'clusterroles', event)">ClusterRoles</div>
+            <div class="mobile-command-item" onclick="displayResourceItems('rbac.authorization.k8s.io', 'roles', event)">Roles</div>
 
-            <div class="mobile-command-item" hx-get="page/resources/ /serviceaccounts" hx-target="#resourceItemsContainer">ServiceAccounts</div>
-            <div class="mobile-command-item" hx-get="page/resources/ /secrets" hx-target="#resourceItemsContainer">Secrets</div>
-            <div class="mobile-command-item" hx-get="page/resources/ /configmaps" hx-target="#resourceItemsContainer">ConfigMaps</div>
+            <div class="mobile-command-item" onclick="displayResourceItems(null, 'serviceaccounts', event)">ServiceAccounts</div>
+            <div class="mobile-command-item" onclick="displayResourceItems(null, 'secrets', event)">Secrets</div>
+            <div class="mobile-command-item" onclick="displayResourceItems(null, 'configmaps', event)">ConfigMaps</div>
 
-            <div class="mobile-command-item" hx-get="page/resources/apps/daemonsets" hx-target="#resourceItemsContainer">DaemonSets</div>
-            <div class="mobile-command-item" hx-get="page/resources/apps/statefulsets" hx-target="#resourceItemsContainer">StatefulSets</div>
-            <div class="mobile-command-item" hx-get="page/resources/apps/deployments" hx-target="#resourceItemsContainer">Deployments</div>
+            <div class="mobile-command-item" onclick="displayResourceItems('apps', 'daemonsets', event)">DaemonSets</div>
+            <div class="mobile-command-item" onclick="displayResourceItems('apps', 'statefulsets', event)">StatefulSets</div>
+            <div class="mobile-command-item" onclick="displayResourceItems('apps', 'deployments', event)">Deployments</div>
 
-            <div class="mobile-command-item" hx-get="page/resources/networking.k8s.io/ingresses" hx-target="#resourceItemsContainer">Ingresses</div>
-            <div class="mobile-command-item" hx-get="page/resources/ /services" hx-target="#resourceItemsContainer">Services</div>
-            <div class="mobile-command-item" hx-get="page/resources/ /pods" hx-target="#resourceItemsContainer">Pods</div>
+            <div class="mobile-command-item" onclick="displayResourceItems('networking.k8s.io', 'ingresses', event)">Ingresses</div>
+            <div class="mobile-command-item" onclick="displayResourceItems(null, 'services', event)">Services</div>
+            <div class="mobile-command-item" onclick="displayResourceItems(null, 'pods', event)">Pods</div>
           </div>
         </div>
       </div>
 
       <script type="text/javascript">
+        var selectedNamespace = null
+        var currentPath = "page/resources/{resource.group ?: "null"}/{resource.name}{#if selectedNamespace}?namespace={selectedNamespace}{/if}"
         const commandNamesToUrlPath = new Map() // copy commands so that we can access them from JavaScript
         {#for entry in commandNamesToUrlPath}
-          commandNamesToUrlPath.set("{entry.key}", "{entry.value}")
+          commandNamesToUrlPath.set("{entry.key}", {entry.value.raw})
         {/for}
         const commandInputContainer = document.getElementById("commandInputContainer")
         const commandInput = commandInputContainer.querySelector("input")
@@ -160,6 +166,37 @@
             selectedItem = firstTableRow
             selectedItem.focus()
           }
+        }
+
+        function displayResourceItems(resourceGroup, resourceName, event) {
+          let path = `page/resources/$\{resourceGroup || "null"}/$\{resourceName}`
+          if (selectedNamespace) {
+            path += `?namespace=$\{selectedNamespace}`
+          }
+
+          htmx.ajax("GET", path, "#resourceItemsContainer")
+
+          if (event.srcElement.classList.contains("mobile-command-item")) { // a mobile command item has been clicked ..
+            commandsContainer.classList.add("hidden") // .. -> hide commandsContainer again
+            event.preventDefault() // stop propagating so that it won't reach window.onclick listener which hides commandsContainer
+          }
+        }
+
+        function switchToNamespace(namespace, event) {
+          let path = currentPath
+          const indexOfNamespaceQueryParam = path.indexOf("namespace=")
+          if (indexOfNamespaceQueryParam > -1) {
+            path = path.substring(0, indexOfNamespaceQueryParam) // TODO: this assumes that there is no other query parameter after the namespace query param
+            if (namespace) {
+              path += "namespace=" + namespace
+            }
+          } else if (namespace) {
+            path += "?namespace=" + namespace // TODO: this assumes that namespace is the only query parameter
+          }
+
+          htmx.ajax("GET", path, "#resourceItemsContainer")
+
+          commandsContainer.classList.add("hidden")
         }
 
         window.onkeydown = (event) => {
@@ -209,6 +246,30 @@
           return !event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey
         }
 
+        function commandInputChanged(event) {
+            const hasFocus = document.activeElement == commandInput
+            if (hasFocus == false) { // this method also gets fired when commandInput just gets hidden, e.g. when pressing Escape ->
+              event.preventDefault()
+              return
+            }
+
+            const commandToExecute = commandNamesToUrlPath.get(event.srcElement.value)
+            if (commandToExecute) {
+              const commandName = commandToExecute.command
+              switch (commandName) {
+                case "displayResourceItems":
+                  displayResourceItems(commandToExecute.resourceGroup, commandToExecute.resourceName, event)
+                  break
+                case "switchToNamespace":
+                  switchToNamespace(commandToExecute.namespace, event)
+                  break
+                default:
+                  console.warn("Unknown command to execute encountered:", commandToExecute, "Known commands are: displayResourceItems, switchToNamespace")
+              }
+              eval(commandToExecute)
+            }
+        }
+
         function commandInputKeyDown(event) {
           if (event.code == "Escape") { // hide commandInput on Escape
             commandInput.blur()
@@ -223,36 +284,12 @@
         }
 
         document.body.addEventListener('htmx:configRequest', function(event) {
-          if (event.detail.path.startsWith("page/resources/<resourcePath>")) { // fill path template with values of selected resources and hide commandInput
-            const hasFocus = document.activeElement == commandInput
-            if (hasFocus == false) { // this method also gets fired when commandInput just gets hidden, e.g. when pressing Escape ->
-              event.preventDefault()
-              return
-            }
-
-            if (event.detail.path.endsWith("?namespace=")) {
-              event.detail.path = event.detail.path.replace("?namespace=", "")
-            }
-            event.detail.path = event.detail.path
-                .replace("?namespace=null", "")
-                .replace("<resourcePath>", commandNamesToUrlPath.get(event.detail.elt.value))
-            commandInput.blur()
-          } else if (event.detail.path.startsWith("resource/")) {
+          if (event.detail.path.startsWith("resource/")) {
             if (event.detail.verb == "delete") {
               event.detail.triggeringEvent.preventDefault() // prevent Ctrl+D and Ctrl+K from bubbling on
             } else if (event.detail.verb == "patch") {
-              event.detail.path = event.detail.path + "?scaleTo=" + event.detail.headers["HX-Prompt"]
+              event.detail.path += "?scaleTo=" + event.detail.headers["HX-Prompt"]
               event.detail.triggeringEvent.preventDefault() // prevent key 'S' from bubbling on
-            }
-          } else if (event.detail.path.startsWith("page/resources/")) {
-            if (event.srcElement.classList.contains("mobile-command-item")) { // a mobile command item has been clicked ..
-              commandsContainer.classList.add("hidden") // .. -> hide commandsContainer again
-              event.detail.triggeringEvent.preventDefault() // stop propagating so that it won't reach window.onclick listener which hides commandsContainer
-            } else if (event.srcElement.id == "selectNamespace") {
-              if (event.srcElement.value && event.srcElement.value != " ") {
-                event.detail.path = event.detail.path + "?namespace=" + event.srcElement.value
-              }
-              commandsContainer.classList.add("hidden")
             }
           }
         })
@@ -262,6 +299,7 @@
             commandsContainer.classList.add("hidden") // click outside commandsContainer -> hide commandsContainer again
           }
         })
+
       </script>
   </div>
 {/include}
