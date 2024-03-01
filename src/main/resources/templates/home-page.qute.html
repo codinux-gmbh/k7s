@@ -26,6 +26,20 @@
             text-overflow: ellipsis;
           }
 
+          .mobile-command-item {
+              flex-grow: 1;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+
+              width: 25vw;
+              height: 4rem;
+              margin: 0.15rem;
+
+              background-color: rgb(17 94 89);
+              border-radius: 1.0rem;
+          }
+
           /* remove black drop down arrow in WebKit based browsers */
           input[type="text"]::-webkit-calendar-picker-indicator,
           input[type="search"]::-webkit-calendar-picker-indicator {
@@ -75,6 +89,34 @@
           {/fragment}
 
         </div>
+
+        <div class="fixed w-12 h-12 right-1 bottom-1 bg-teal-800 text-[#FBBB21] text-2xl font-bold rounded-lg shadow-md select-none z-[999]"
+             onclick="document.getElementById('commandsContainer').classList.toggle('hidden')">
+          <div class="flex justify-center items-center w-full h-full p-[0.4rem]">+</div>
+        </div>
+        <div id="commandsContainer" class="fixed left-1 right-1 bottom-[3.5rem] bg-gray-300 text-white rounded-2xl shadow-md z-[998] hidden">
+          <div class="flex flex-wrap py-[0.125rem]">
+            <div class="mobile-command-item" hx-get="page/resources/ /persistentvolumes" hx-target="#resourceItemsContainer">PV</div>
+            <div class="mobile-command-item" hx-get="page/resources/ /persistentvolumeclaims" hx-target="#resourceItemsContainer">PVC</div>
+            <div class="mobile-command-item" hx-get="page/resources/ /nodes" hx-target="#resourceItemsContainer">Nodes</div>
+
+            <div class="mobile-command-item" hx-get="page/resources/rbac.authorization.k8s.io/rolebindings" hx-target="#resourceItemsContainer">RoleBindings</div>
+            <div class="mobile-command-item" hx-get="page/resources/rbac.authorization.k8s.io/clusterroles" hx-target="#resourceItemsContainer">ClusterRoles</div>
+            <div class="mobile-command-item" hx-get="page/resources/rbac.authorization.k8s.io/roles" hx-target="#resourceItemsContainer">Roles</div>
+
+            <div class="mobile-command-item" hx-get="page/resources/ /serviceaccounts" hx-target="#resourceItemsContainer">ServiceAccounts</div>
+            <div class="mobile-command-item" hx-get="page/resources/ /secrets" hx-target="#resourceItemsContainer">Secrets</div>
+            <div class="mobile-command-item" hx-get="page/resources/ /configmaps" hx-target="#resourceItemsContainer">ConfigMaps</div>
+
+            <div class="mobile-command-item" hx-get="page/resources/apps/daemonsets" hx-target="#resourceItemsContainer">DaemonSets</div>
+            <div class="mobile-command-item" hx-get="page/resources/apps/statefulsets" hx-target="#resourceItemsContainer">StatefulSets</div>
+            <div class="mobile-command-item" hx-get="page/resources/apps/deployments" hx-target="#resourceItemsContainer">Deployments</div>
+
+            <div class="mobile-command-item" hx-get="page/resources/networking.k8s.io/ingresses" hx-target="#resourceItemsContainer">Ingresses</div>
+            <div class="mobile-command-item" hx-get="page/resources/ /services" hx-target="#resourceItemsContainer">Services</div>
+            <div class="mobile-command-item" hx-get="page/resources/ /pods" hx-target="#resourceItemsContainer">Pods</div>
+          </div>
+        </div>
       </div>
 
       <script type="text/javascript">
@@ -84,6 +126,7 @@
         {/for}
         const commandInputContainer = document.getElementById("commandInputContainer")
         const commandInput = commandInputContainer.querySelector("input")
+        const commandsContainer = document.getElementById("commandsContainer")
         const resourceItemsContainer = document.getElementById("resourceItemsContainer")
         var selectedItem = null
         var previousFocusedElement = null
@@ -184,6 +227,11 @@
             } else if (event.detail.verb == "patch") {
               event.detail.path = event.detail.path + "?scaleTo=" + event.detail.headers["HX-Prompt"]
               event.detail.triggeringEvent.preventDefault() // prevent key 'S' from bubbling on
+            }
+          } else if (event.detail.path.startsWith("page/resources/")) {
+            console.log("Shortcut", event.srcElement.classList.contains("mobile-command-item"), event.detail, event)
+            if (event.srcElement.classList.contains("mobile-command-item")) { // a mobile command item has been clicked ..
+              commandsContainer.classList.add("hidden") // .. -> hide commandsContainer again
             }
           }
         })
