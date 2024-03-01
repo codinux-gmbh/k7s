@@ -2,7 +2,7 @@
     <style>
         .resource-cell {
             padding: 0.125rem;
-            padding-left: 0.5rem;
+            padding-left: 1.25rem;
             padding-right: 0;
 
             line-height: 1.25rem;
@@ -10,7 +10,7 @@
         @media screen and (min-width: 640px) {
             .resource-cell  {
                 padding: 0.2rem;
-                padding-left: 0.75rem;
+                padding-left: 1.5rem;
                 padding-right: 0;
 
                 line-height: 1.5rem;
@@ -30,9 +30,11 @@
         </tbody>
     </table>
 
-    <h2 class="mt-6 mb-2 text-zinc-400 font-semibold">Standard resources</h2>
+    <h2 class="flex items-center mt-6 text-zinc-400 font-semibold cursor-pointer" onclick="toggleResourceListVisibility(this)">
+      <span class="inline-block w-[0.85rem] mr-2 text-center text-2xl font-bold text-[#FBBB21]">+</span>Standard resources
+    </h2>
 
-    <table class="table-fixed w-full text-xs sm:text-[1rem]">
+    <table class="table-fixed w-full text-xs sm:text-[1rem] hidden">
         <tbody>
             {#for resource in standardResources}
                 <tr class="cursor-pointer lg:hover:bg-zinc-200" hx-get="/k7s/page/resources/{resource.group ?: "null"}/{resource.name}?namespace={selectedNamespace}" hx-target="#resourceItemsContainer">
@@ -44,9 +46,11 @@
         </tbody>
     </table>
 
-    <h2 class="mt-4 mb-1 text-zinc-400 font-semibold">CRDs</h2>
+    <h2 class="flex items-center mt-6 text-zinc-400 font-semibold cursor-pointer" onclick="toggleResourceListVisibility(this)">
+      <span class="inline-block w-[0.85rem] mr-2 text-center text-2xl font-bold text-[#FBBB21]">+</span>CRDs
+    </h2>
 
-    <table class="table-fixed w-full text-xs sm:text-[1rem]">
+    <table class="table-fixed w-full text-xs sm:text-[1rem] hidden">
         <tbody>
             {#for resource in customResourceDefinitions}
                 <tr class="cursor-pointer lg:hover:bg-zinc-200" hx-get="/k7s/page/resources/{resource.group ?: "null"}/{resource.name}?namespace={selectedNamespace}" hx-target="#resourceItemsContainer">
@@ -57,4 +61,20 @@
             {/for}
         </tbody>
     </table>
+
+
+  <script type="text/javascript">
+    function toggleResourceListVisibility(target) {
+        const resourceList = target.nextElementSibling
+        resourceList.classList.toggle("hidden")
+
+        const toggleElement = target.querySelector("span")
+        const isResourceListHidden = resourceList.classList.contains("hidden")
+        if (isResourceListHidden) {
+            toggleElement.textContent = "+"
+        } else {
+            toggleElement.textContent = "-"
+        }
+    }
+  </script>
 </aside>
