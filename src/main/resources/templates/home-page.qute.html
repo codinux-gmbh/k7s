@@ -200,7 +200,7 @@
         }
 
         window.onkeydown = (event) => {
-          if (event.code == "Period" && document.activeElement != commandInput) { // show and focus commandInput on ':'
+          if (event.key == ":" && document.activeElement != commandInput) { // show and focus commandInput on ':'
             previousFocusedElement = document.activeElement // store current focused element to restore focus when hiding commandInput
             commandInputContainer.classList.remove("hidden")
             commandInput.focus()
