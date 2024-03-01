@@ -96,7 +96,7 @@
         </div>
 
         <div class="fixed w-12 h-12 right-1 bottom-1 p-[0.2rem] bg-primary text-2xl font-bold rounded-lg shadow-md select-none z-[999]"
-             onclick="document.getElementById('commandsContainer').classList.toggle('hidden')">
+             onclick="document.getElementById('commandsContainer').classList.toggle('hidden'); return false;">
           <img alt="Kubernetes Logo" src="assets/images/kubernetes-icon-color.svg">
         </div>
         <div id="commandsContainer" class="fixed right-1 bottom-[3.5rem] max-md:left-1 md:max-w-[760px] bg-gray-300 text-white rounded-2xl shadow-md z-[998] hidden">
@@ -237,7 +237,14 @@
             console.log("Shortcut", event.srcElement.classList.contains("mobile-command-item"), event.detail, event)
             if (event.srcElement.classList.contains("mobile-command-item")) { // a mobile command item has been clicked ..
               commandsContainer.classList.add("hidden") // .. -> hide commandsContainer again
+              event.preventDefault() // stop propagating so that i won't reach window.onclick listener which hides commandsContainer
             }
+          }
+        })
+
+        document.addEventListener("click", (event) => {
+          if (event.defaultPrevented == false && commandsContainer.contains(event.srcElement) == false) {
+            commandsContainer.classList.add("hidden") // click outside commandsContainer -> hide commandsContainer again
           }
         })
       </script>
