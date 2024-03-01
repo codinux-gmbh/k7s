@@ -52,7 +52,7 @@
                     hx-ext="sse" sse-connect="watch/resources/{resource.group ?: "null"}/{resource.name}?namespace={selectedNamespace}" sse-swap="resourceItemsUpdated">
               <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500">
                   <tr>
-                      <th class="w-[7.25rem] sm:w-[12rem] text-left {#if !resource.isNamespaced}hidden{/if}">Namespace</th>
+                      <th class="w-[7.25rem] sm:w-[12rem] text-left {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">Namespace</th>
                       <th>Name</th>
                   </tr>
               </thead>
@@ -65,7 +65,7 @@
                       {#if resource.isScalable} hx-trigger="keydown[code=='KeyS']" hx-patch="resource/{resource.name}/{item.namespace}/{item.name}" hx-prompt="Scale {resource.kind} {item.namespace}/{item.name}? Replicas:"{/if}
                       {#if resource.isDeletable} hx-trigger="keydown[ctrlKey && code=='KeyD']" hx-delete="resource/{resource.name}/{item.namespace}/{item.name}" hx-confirm="Are you sure you want to delete {resource.kind} {item.name}?"{/if}
                   >
-                    <td class="truncate {#if !resource.isNamespaced}hidden{/if}">{item.namespace}</td>
+                    <td class="truncate {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">{item.namespace}</td>
                     <td class="truncate">{item.name}</td>
                   </tr>
                 {/for}
