@@ -39,6 +39,11 @@
               background-color: rgb(17 94 89);
               border-radius: 1.0rem;
           }
+          @media screen and (min-width: 768px) {
+              .mobile-command-item {
+                  width: 15.5rem;
+              }
+          }
 
           /* remove black drop down arrow in WebKit based browsers */
           input[type="text"]::-webkit-calendar-picker-indicator,
@@ -94,7 +99,7 @@
              onclick="document.getElementById('commandsContainer').classList.toggle('hidden')">
           <div class="flex justify-center items-center w-full h-full p-[0.4rem]">+</div>
         </div>
-        <div id="commandsContainer" class="fixed left-1 right-1 bottom-[3.5rem] bg-gray-300 text-white rounded-2xl shadow-md z-[998] hidden">
+        <div id="commandsContainer" class="fixed right-1 bottom-[3.5rem] max-md:left-1 md:max-w-[760px] bg-gray-300 text-white rounded-2xl shadow-md z-[998] hidden">
           <div class="flex flex-wrap py-[0.125rem]">
             <div class="mobile-command-item" hx-get="page/resources/ /persistentvolumes" hx-target="#resourceItemsContainer">PV</div>
             <div class="mobile-command-item" hx-get="page/resources/ /persistentvolumeclaims" hx-target="#resourceItemsContainer">PVC</div>
