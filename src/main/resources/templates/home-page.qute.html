@@ -36,7 +36,7 @@
               height: 4rem;
               margin: 0.15rem;
 
-              background-color: rgb(17 94 89);
+              background-color: #326CE5; /* = bg-primary */
               border-radius: 1.0rem;
           }
           @media screen and (min-width: 768px) {
@@ -54,7 +54,7 @@
 
         <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/sse.js"></script>
 
-        <div id="commandInputContainer" class="fixed flex items-center w-[20rem] h-[3.5rem] p-2 top-1 right-1 z-[999] bg-teal-900 hidden">
+        <div id="commandInputContainer" class="fixed flex items-center w-[20rem] h-[3.5rem] p-2 top-1 right-1 z-[999] bg-primary hidden">
           <input type="search" list="availableCommands" class="w-full h-full p-2 px-1 rounded-full focus:outline-none"
                  onkeydown="commandInputKeyDown(event)" onblur="commandInputLostFocus(event)"
                  hx-trigger="change" hx-get="page/resources/<resourcePath>?namespace={selectedNamespace}" hx-target="#resourceItemsContainer" />
@@ -95,9 +95,9 @@
 
         </div>
 
-        <div class="fixed w-12 h-12 right-1 bottom-1 bg-teal-800 text-[#FBBB21] text-2xl font-bold rounded-lg shadow-md select-none z-[999]"
+        <div class="fixed w-12 h-12 right-1 bottom-1 p-[0.2rem] bg-primary text-2xl font-bold rounded-lg shadow-md select-none z-[999]"
              onclick="document.getElementById('commandsContainer').classList.toggle('hidden')">
-          <div class="flex justify-center items-center w-full h-full p-[0.4rem]">+</div>
+          <img alt="Kubernetes Logo" src="assets/images/kubernetes-icon-color.svg">
         </div>
         <div id="commandsContainer" class="fixed right-1 bottom-[3.5rem] max-md:left-1 md:max-w-[760px] bg-gray-300 text-white rounded-2xl shadow-md z-[998] hidden">
           <div class="flex flex-wrap py-[0.125rem]">
