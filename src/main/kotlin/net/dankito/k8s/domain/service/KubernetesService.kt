@@ -168,7 +168,7 @@ class KubernetesService(
         val resources = getGenericResources(resource, namespace)
 
         resources.watch(KubernetesResourceWatcher<GenericKubernetesResource> { _, _ ->
-            update(getResourceItems(resource)) // TODO: make diff update instead of fetching all items again
+            update(getResourceItems(resource, namespace)) // TODO: make diff update instead of fetching all items again
         })
     }
 
