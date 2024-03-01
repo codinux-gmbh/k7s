@@ -96,8 +96,10 @@
           <img alt="Kubernetes Logo" src="assets/images/kubernetes-icon-color.svg">
         </div>
         <div id="commandsContainer" class="fixed right-1 bottom-[3.5rem] max-md:left-1 md:max-w-[760px] bg-gray-300 text-white rounded-2xl shadow-md z-[998] hidden">
-          <div class="flex justify-end mt-[0.15rem] mr-[0.15rem] p-[0.125rem]">
-            <div class="flex items-center w-[25vw] max-w-[15.5rem] h-16 p-2 bg-primary rounded-2xl">
+          <div class="flex justify-evenly content-stretch mt-[0.15rem] p-[0.125rem]">
+            <div class="flex-[1_0_auto] w-[25vw] max-w-[15.5rem] invisible"></div>
+            <div class="flex-[1_0_auto] w-[25vw] max-w-[15.5rem] invisible"></div>
+            <div class="flex items-center flex-[1_0_auto] w-[25vw] max-w-[15.5rem] h-16 p-2 bg-primary rounded-2xl">
               <label for="selectNamespace">ns</label>
               <select id="selectNamespace" class="w-full h-[2.75rem] ml-1 pl-1 bg-white text-primary rounded-lg" aria-label="Select namespace"
                       hx-trigger="change" hx-get="page/resources/{resource.group ?: "null"}/{resource.name}" hx-target="#resourceItemsContainer">
