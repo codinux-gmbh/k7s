@@ -245,7 +245,7 @@
           } else if (event.detail.path.startsWith("page/resources/")) {
             if (event.srcElement.classList.contains("mobile-command-item")) { // a mobile command item has been clicked ..
               commandsContainer.classList.add("hidden") // .. -> hide commandsContainer again
-              event.preventDefault() // stop propagating so that i won't reach window.onclick listener which hides commandsContainer
+              event.detail.triggeringEvent.preventDefault() // stop propagating so that it won't reach window.onclick listener which hides commandsContainer
             } else if (event.srcElement.id == "selectNamespace") {
               if (event.srcElement.value && event.srcElement.value != " ") {
                 event.detail.path = event.detail.path + "?namespace=" + event.srcElement.value
