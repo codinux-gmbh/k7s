@@ -99,10 +99,7 @@
                 {#for item in resourceItems}
                   <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200" tabindex="0"
                       {#if resource.isLoggable}data-logs-url="logs/{resource.name}/{item.namespace}/{item.name}"{/if}
-                      onmousedown="onTableRowMouseDown(event)" onkeydown="onTableRowKeyDown(event)"
-                      {#if resource.isScalable} hx-trigger="keydown[code=='KeyS']" hx-patch="resource/{resource.name}/{item.namespace}/{item.name}" hx-prompt="Scale {resource.kind} {item.namespace}/{item.name}? Replicas:"{/if}
-                      {#if resource.isDeletable} hx-trigger="keydown[ctrlKey && code=='KeyD']" hx-delete="resource/{resource.name}/{item.namespace}/{item.name}" hx-confirm="Are you sure you want to delete {resource.kind} {item.name}?"{/if}
-                  >
+                      onmousedown="onTableRowMouseDown(event)" onkeydown="onTableRowKeyDown(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}', {resource.isScalable}, {resource.isDeletable})" >
                     <td class="truncate {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">{item.namespace}</td>
                     <td class="truncate">{item.name}</td>
                     <td>
@@ -208,7 +205,7 @@
             path += `?namespace=$\{selectedNamespace}`
           }
 
-          htmx.ajax("GET", path, "#resourceItemsContainer")
+          executeHtmxRequest(path)
 
           if (event.srcElement.classList.contains("mobile-command-item")) { // a mobile command item has been clicked ..
             commandsContainer.classList.add("hidden") // .. -> hide commandsContainer again
@@ -228,9 +225,13 @@
             path += "?namespace=" + namespace // TODO: this assumes that namespace is the only query parameter
           }
 
-          htmx.ajax("GET", path, "#resourceItemsContainer")
+          executeHtmxRequest(path)
 
           commandsContainer.classList.add("hidden")
+        }
+
+        function executeHtmxRequest(path, verb) {
+          htmx.ajax(verb || "GET", path, "#resourceItemsContainer")
         }
 
         window.onkeydown = (event) => {
@@ -251,7 +252,9 @@
           }
         }
 
-        function onTableRowKeyDown(event) {
+        function onTableRowKeyDown(event, resourceName, resourceKind, namespace, itemName, isScalable, isDeletable) {
+          const itemPath = `resource/$\{resourceName}/$\{namespace}/$\{itemName}`
+
           if (noModifierKeyPressed(event)) {
             if (event.code == "ArrowDown") {
               setFocusTo(event, selectedItem?.nextElementSibling)
@@ -262,6 +265,20 @@
             else if (event.code == "KeyL") {
               if (selectedItem == event.srcElement) {
                 showLogs(event)
+              }
+            } else if (isScalable && event.code == "KeyS") {
+              const countReplica = window.prompt(`Scale $\{resourceKind} $\{namespace}/$\{itemName}? Replicas:`)
+              if (countReplica) {
+                executeHtmxRequest(itemPath + "?scaleTo=" + countReplica, "PATCH")
+                event.preventDefault() // prevent key 'S' from bubbling on
+              }
+            }
+          }
+          else if (ctrlIsTheOnlyPressedModifierKey(event)) {
+            if (isDeletable && event.code == "KeyD") {
+              if (window.confirm(`Are you sure you want to delete $\{resourceKind} $\{itemName}?`)) {
+                executeHtmxRequest(itemPath, "DELETE")
+                event.preventDefault() // prevent Ctrl+D from bubbling on
               }
             }
           }
@@ -291,6 +308,10 @@
 
         function noModifierKeyPressed(event) {
           return !event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey
+        }
+
+        function ctrlIsTheOnlyPressedModifierKey(event) {
+          return event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey
         }
 
         function commandInputChanged(event) {
@@ -329,17 +350,6 @@
           commandInput.value = ""
           previousFocusedElement?.focus()
         }
-
-        document.body.addEventListener('htmx:configRequest', function(event) {
-          if (event.detail.path.startsWith("resource/")) {
-            if (event.detail.verb == "delete") {
-              event.detail.triggeringEvent.preventDefault() // prevent Ctrl+D and Ctrl+K from bubbling on
-            } else if (event.detail.verb == "patch") {
-              event.detail.path += "?scaleTo=" + event.detail.headers["HX-Prompt"]
-              event.detail.triggeringEvent.preventDefault() // prevent key 'S' from bubbling on
-            }
-          }
-        })
 
         document.addEventListener("click", (event) => {
           if (event.defaultPrevented == false && commandsContainer.contains(event.srcElement) == false) {
