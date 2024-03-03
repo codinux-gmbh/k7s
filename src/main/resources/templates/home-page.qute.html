@@ -318,7 +318,7 @@
           if (event.srcElement.dataset.logsUrl) {
             window.open(event.srcElement.dataset.logsUrl, "_blank", "popup=true,toolbar=true")
 
-            closeMenu() // in case a menu item has been clicked, close menu again
+            closeMenu(event) // in case a menu item has been clicked, close menu again
             event.preventDefault()
           }
         }
