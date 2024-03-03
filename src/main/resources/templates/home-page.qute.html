@@ -103,7 +103,7 @@
                     <td class="truncate {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">{item.namespace}</td>
                     <td class="truncate">{item.name}</td>
                     <td>
-                      <div class="flex justify-center items-center w-full h-full text-zinc-500 text-3xl cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">&#xFE19;</div>
+                      <div class="menu-toggler flex justify-center items-center w-full h-full text-zinc-500 text-3xl cursor-pointer" onclick="closeAllMenus(); this.nextElementSibling.classList.toggle('hidden')">&#xFE19;</div>
                       <div class="menu fixed min-w-[9rem] right-2 bg-white text-xl shadow-xl z-10 hidden">
                         <ul class="list-none">
                           {#if resource.isLoggable}<li class="menu-item" onclick="showLogs(event)" data-logs-url="logs/{resource.name}/{item.namespace}/{item.name}">Logs</li>{/if}
@@ -328,6 +328,12 @@
           menu?.classList?.add("hidden") // in case a menu item has been clicked, close menu again
         }
 
+        function closeAllMenus() {
+          document.querySelectorAll(".menu").forEach((menu) =>
+            menu.classList.add("hidden")
+          )
+        }
+
         function setFocusTo(event, item) {
           if (item) {
             selectedItem = item
@@ -382,8 +388,14 @@
         }
 
         document.addEventListener("click", (event) => {
-          if (event.defaultPrevented == false && commandsContainer.contains(event.srcElement) == false) {
-            commandsContainer.classList.add("hidden") // click outside commandsContainer -> hide commandsContainer again
+          if (event.defaultPrevented == false) {
+            if (commandsContainer.contains(event.srcElement) == false) {
+              commandsContainer.classList.add("hidden") // click outside commandsContainer -> hide commandsContainer again
+            }
+
+            if (event.srcElement.classList.contains("menu-toggler") == false) {
+              closeAllMenus() // click outside menus -> hide menus again
+            }
           }
         })
 
