@@ -134,18 +134,18 @@
         <div id="commandsContainer" class="fixed right-1 bottom-[3.5rem] max-md:left-1 md:max-w-[760px] bg-zinc-300 text-white rounded-2xl shadow-md z-[998] hidden">
           <div class="flex justify-evenly content-stretch mt-[0.15rem] p-[0.125rem]">
             <div class="flex-[1_0_auto] w-[25vw] max-w-[15.5rem] invisible"></div>
-            <div class="flex items-center flex-[1_0_auto] w-[25vw] max-w-[15.5rem] h-16 p-2 bg-primary rounded-2xl">
+            <div class="flex items-center flex-[1_0_auto] w-[25vw] max-w-[15.5rem] h-16 p-2 pl-1 bg-primary rounded-2xl">
               <label for="selectCustomResourceDefinition">CRD</label>
-              <select id="selectCustomResourceDefinition" class="w-full h-[2.75rem] ml-2 pl-1 bg-white text-primary rounded-lg" aria-label="Select custom resource definition"
+              <select id="selectCustomResourceDefinition" class="w-full h-[2.75rem] ml-1 pl-1 bg-white text-primary rounded-lg" aria-label="Select custom resource definition"
                       onchange="displayResourceItemsFromSelectBox(JSON.parse(this.value), event)">
                 {#for resource in customResourceDefinitions}
                   <option value='{ "group": "{resource.group}", "name": "{resource.name}" }'>{resource.kind}</option>
                 {/for}
               </select>
             </div>
-            <div class="flex items-center flex-[1_0_auto] w-[25vw] max-w-[15.5rem] h-16 p-2 bg-primary rounded-2xl">
-              <label for="selectStandardResource">Standard<br/>Resource</label>
-              <select id="selectStandardResource" class="w-full h-[2.75rem] ml-2 pl-1 bg-white text-primary rounded-lg" aria-label="Select standard resource"
+            <div class="flex items-center flex-[1_0_auto] w-[25vw] max-w-[15.5rem] h-16 p-2 pl-1 bg-primary rounded-2xl">
+              <label for="selectStandardResource">Std<br/>Res</label>
+              <select id="selectStandardResource" class="w-full h-[2.75rem] ml-1 pl-1 bg-white text-primary rounded-lg" aria-label="Select standard resource"
                       onchange="displayResourceItemsFromSelectBox(JSON.parse(this.value), event)">
                 {#for resource in standardResources}
                   <option value='{ "group": "{resource.group}", "name": "{resource.name}" }'>{resource.kind}</option>
@@ -157,9 +157,9 @@
           <div class="flex justify-evenly content-stretch mt-[0.15rem] p-[0.125rem]">
             <div class="flex-[1_0_auto] w-[25vw] max-w-[15.5rem] invisible"></div>
             <div class="flex-[1_0_auto] w-[25vw] max-w-[15.5rem] invisible"></div>
-            <div class="flex items-center flex-[1_0_auto] w-[25vw] max-w-[15.5rem] h-16 p-2 bg-primary rounded-2xl">
-              <label for="selectNamespace">Namespace</label>
-              <select id="selectNamespace" class="w-full h-[2.75rem] ml-2 pl-1 bg-white text-primary rounded-lg" aria-label="Select namespace"
+            <div class="flex items-center flex-[1_0_auto] w-[25vw] max-w-[15.5rem] h-16 p-2 pl-1 bg-primary rounded-2xl">
+              <label for="selectNamespace">Ns</label>
+              <select id="selectNamespace" class="w-full h-[2.75rem] ml-1 pl-1 bg-white text-primary rounded-lg" aria-label="Select namespace"
                       onchange="switchToNamespace(this.value, event)">
                 <option value=" " {#if selectedNamespace == null}selected{/if}>all</option>
                 {#for namespace in allNamespaces}
