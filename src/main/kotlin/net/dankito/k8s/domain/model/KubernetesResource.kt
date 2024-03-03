@@ -51,6 +51,9 @@ data class KubernetesResource(
     @get:JsonIgnore
     val isDeletable by lazy { containsVerb(Verb.delete) }
 
+    @get:JsonIgnore
+    val allowDeletingWithoutConfirmation by lazy { name == "pods" }
+
     fun containsVerb(verb: Verb) = verbs.contains(verb)
 
     override fun toString() = "$kind (${group?.let { "${it}." } ?: ""}${name} $version)"

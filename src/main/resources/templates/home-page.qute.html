@@ -99,7 +99,7 @@
                 {#for item in resourceItems}
                   <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200" tabindex="0"
                       {#if resource.isLoggable}data-logs-url="logs/{resource.name}/{item.namespace}/{item.name}"{/if}
-                      onmousedown="onTableRowMouseDown(event)" onkeydown="onTableRowKeyDown(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}', {resource.isScalable}, {resource.isDeletable})" >
+                      onmousedown="onTableRowMouseDown(event)" onkeydown="onTableRowKeyDown(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}', {resource.isScalable}, {resource.isDeletable}, {resource.allowDeletingWithoutConfirmation})" >
                     <td class="truncate {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">{item.namespace}</td>
                     <td class="truncate">{item.name}</td>
                     <td>
@@ -109,6 +109,7 @@
                           {#if resource.isLoggable}<li class="menu-item" onclick="showLogs(event)" data-logs-url="logs/{resource.name}/{item.namespace}/{item.name}">Logs</li>{/if}
                           {#if resource.isScalable}<li class="menu-item" onclick="closeMenu(event)" hx-patch="resource/{resource.name}/{item.namespace}/{item.name}" hx-prompt="Scale {resource.kind} {item.namespace}/{item.name}? Replicas:">Scale</li>{/if}
                           {#if resource.isDeletable}<li class="menu-item" onclick="closeMenu(event)" hx-delete="resource/{resource.name}/{item.namespace}/{item.name}" hx-confirm="Are you sure you want to delete {resource.kind} {item.name}?">Delete</li>{/if}
+                          {#if resource.allowDeletingWithoutConfirmation}<li class="menu-item" onclick="closeMenu(event)" hx-delete="resource/{resource.name}/{item.namespace}/{item.name}">Kill</li>{/if}
                         </ul>
                       </div>
                     </td>
@@ -252,7 +253,7 @@
           }
         }
 
-        function onTableRowKeyDown(event, resourceName, resourceKind, namespace, itemName, isScalable, isDeletable) {
+        function onTableRowKeyDown(event, resourceName, resourceKind, namespace, itemName, isScalable, isDeletable, allowDeletingWithoutConfirmation) {
           const itemPath = `resource/$\{resourceName}/$\{namespace}/$\{itemName}`
 
           if (noModifierKeyPressed(event)) {
@@ -280,6 +281,9 @@
                 executeHtmxRequest(itemPath, "DELETE")
                 event.preventDefault() // prevent Ctrl+D from bubbling on
               }
+            } else if (isDeletable && allowDeletingWithoutConfirmation && event.code == "KeyK") {
+                executeHtmxRequest(itemPath, "DELETE")
+                event.preventDefault() // prevent Ctrl+K from bubbling on
             }
           }
         }
