@@ -99,7 +99,8 @@
                 {#for item in resourceItems}
                   <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200" tabindex="0"
                       {#if resource.isLoggable}data-logs-url="logs/{resource.name}/{item.namespace}/{item.name}"{/if}
-                      onmousedown="onTableRowMouseDown(event)" onkeydown="onTableRowKeyDown(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}', {resource.isScalable}, {resource.isDeletable}, {resource.allowDeletingWithoutConfirmation})" >
+                      onmousedown="onTableRowMouseDown(event)" oncontextmenu="showMenu(this, event)"
+                      onkeydown="onTableRowKeyDown(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}', {resource.isScalable}, {resource.isDeletable}, {resource.allowDeletingWithoutConfirmation})" >
                     <td class="truncate {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">{item.namespace}</td>
                     <td class="truncate">{item.name}</td>
                     <td>
@@ -351,13 +352,23 @@
         }
 
         function showMenu(element, event) {
-          closeAllMenus();
+          closeAllMenus()
+          let menu = element.nextElementSibling
 
-          const elementRect = element.getBoundingClientRect()
-          const menu = element.nextElementSibling
-          menu.style.top = `$\{elementRect.bottom}px`
+          if (event.type == "contextmenu") {
+            menu = element.querySelector(".menu")
+
+            menu.style.top = `$\{event.clientY}px`
+            menu.style.left = `$\{event.clientX}px`
+            menu.style.right = "unset"
+          } else {
+            const elementRect = element.getBoundingClientRect()
+            menu.style.top = `$\{elementRect.bottom}px`
+            menu.style.left = "unset"
+            menu.style.right = "0.5rem"
+          }
+
           menu.classList.toggle('hidden')
-
           event.preventDefault()
         }
 
