@@ -37,6 +37,10 @@ data class KubernetesResource(
 
     }
 
+
+    @get:JsonIgnore
+    val isPod: Boolean by lazy { group == null && name == "pods" }
+
     @get:JsonIgnore
     val identifier by lazy { createIdentifier(this) }
 
@@ -55,6 +59,27 @@ data class KubernetesResource(
     val allowDeletingWithoutConfirmation by lazy { name == "pods" }
 
     fun containsVerb(verb: Verb) = verbs.contains(verb)
+
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is KubernetesResource) return false
+
+        if (group != other.group) return false
+        if (storageVersion != other.storageVersion) return false
+        if (name != other.name) return false
+        if (kind != other.kind) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = group?.hashCode() ?: 0
+        result = 31 * result + storageVersion.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + kind.hashCode()
+        return result
+    }
 
     override fun toString() = "$kind (${group?.let { "${it}." } ?: ""}${name} $version)"
 

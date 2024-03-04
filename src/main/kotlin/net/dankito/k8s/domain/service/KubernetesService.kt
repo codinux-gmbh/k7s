@@ -9,7 +9,9 @@ import io.fabric8.kubernetes.client.dsl.*
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext
 import jakarta.inject.Singleton
 import net.codinux.log.logger
+import net.dankito.k8s.domain.model.ContainerStatus
 import net.dankito.k8s.domain.model.KubernetesResource
+import net.dankito.k8s.domain.model.PodResourceItem
 import net.dankito.k8s.domain.model.ResourceItem
 import net.dankito.k8s.domain.model.Verb
 import java.io.InputStream
@@ -44,6 +46,8 @@ class KubernetesService(
 
     fun getIngresses(namespace: String? = null) = listItems(ingressResource, client.network().ingresses(), namespace)
 
+    fun getDeployments(namespace: String? = null) = listItems(deploymentResource, client.apps().deployments(), namespace)
+
     val namespaceResource by lazy { getResource(null, "namespaces")!! }
 
     val podResource by lazy { getResource(null, "pods")!! }
@@ -52,6 +56,8 @@ class KubernetesService(
 
     // for deprecated API groups see https://kubernetes.io/docs/reference/using-api/deprecation-guide/
     val ingressResource by lazy { getResource("networking.k8s.io", "ingresses") ?: getResource("extensions", "ingresses")!! }
+
+    val deploymentResource by lazy { getResource("apps", "deployments")!! }
 
 
     fun getCustomResourceDefinitions(): List<KubernetesResource> {
@@ -161,7 +167,17 @@ class KubernetesService(
     }
 
     fun getResourceItems(resource: KubernetesResource, namespace: String? = null): List<ResourceItem> {
-        return listItems(resource, getGenericResources(resource, namespace))
+        return if (resource == podResource) {
+            getPods(namespace)
+        } else if (resource == serviceResource) {
+            getServices(namespace)
+        } else if (resource == ingressResource) {
+            getIngresses(namespace)
+        } else if (resource == deploymentResource) {
+            getDeployments(namespace)
+        } else {
+            listItems(resource, getGenericResources(resource, namespace))
+        }
     }
 
     fun watchResourceItems(resource: KubernetesResource, namespace: String? = null, update: (List<ResourceItem>) -> Unit) {

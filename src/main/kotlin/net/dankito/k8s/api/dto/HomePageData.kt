@@ -24,11 +24,9 @@ class HomePageData(
         .filter { highlightedResourcesNames.contains(it.name) && it.kind != "PodMetrics" }
 
     val standardResources = listableResources.filter { it.isCustomResourceDefinition == false }
-        .filter { highlightedResources.contains(it) == false }
         .sortedBy { it.name }
 
     val customResourceDefinitions = listableResources.filter { it.isCustomResourceDefinition }
-        .filter { highlightedResources.contains(it) == false }
         .sortedBy { it.identifier }
 
     val commandNamesToUrlPath: Map<String, String> =

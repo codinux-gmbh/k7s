@@ -87,11 +87,15 @@
           {#fragment id=resourceItems}
             <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border"
                     hx-ext="sse" sse-connect="watch/resources/{resource.group ?: "null"}/{resource.name}{#if selectedNamespace}?namespace={selectedNamespace}{/if}" sse-swap="resourceItemsUpdated">
-              <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500 hidden lg:table-caption">
+              <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500 hidden lg:table-header-group">
                   <tr>
-                    <th class="w-[7.25rem] sm:w-[12rem] text-left {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">Namespace</th>
+                    <th class="w-[5.5rem] sm:w-[12rem] text-left {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">Namespace</th>
                     <th>Name</th>
-                    <th class="w-12"></th>
+                    {#if resource.isPod}
+                      <th class="w-[3.5rem]">Ready</th>
+                      <th class="w-[6rem]">Status</th>
+                    {/if}
+                    <th class="w-12 p-0"></th>
                   </tr>
               </thead>
 
@@ -103,14 +107,22 @@
                       onkeydown="onTableRowKeyDown(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}', {resource.isScalable}, {resource.isDeletable}, {resource.allowDeletingWithoutConfirmation})"
                   >
                     {! mobile view !}
-                    <td class="flex items-center lg:hidden">
-                      {#if resource.isNamespaced && selectedNamespace == null}<div class="w-[7.25rem] sm:w-[12rem] mr-2 truncate">{item.namespace}</div>{/if}
+                    <td class="flex items-center min-h-[3.25rem] lg:hidden">
+                      {#if resource.isNamespaced && selectedNamespace == null}<div class="w-[5.5rem] sm:w-[12rem] mr-2 flex-[0_0_auto] truncate">{item.namespace}</div>{/if}
                       <div class="grow truncate">{item.name}</div>
+                      {#if resource.isPod}
+                        <div class="w-4 ml-1 text-center flex-[0_0_auto]">{item.countReadyContainers}/{item.container.size}</div>
+                        <div class="w-[3.5rem] ml-1 flex-[0_0_auto]">{item.phase}</div>
+                      {/if}
                     </td>
                     {! desktop view !}
                     <td class="truncate hidden {#if resource.isNamespaced && selectedNamespace == null}lg:table-cell{/if}">{item.namespace}</td>
                     <td class="truncate hidden lg:table-cell">{item.name}</td>
-                    <td class="w-12">
+                    {#if resource.isPod}
+                      <td class="text-center hidden lg:table-cell">{item.countReadyContainers}/{item.container.size}</td>
+                      <td class="hidden lg:table-cell">{item.phase}</td>
+                    {/if}
+                    <td class="w-8 sm:w-12 p-0">
                       <div class="menu-toggler flex justify-center items-center w-full h-full text-zinc-500 text-3xl cursor-pointer" onclick="showMenu(this, event)">&#xFE19;</div>
                       <div class="menu fixed min-w-[9rem] right-2 bg-white text-xl shadow-xl z-10 hidden">
                         <ul class="list-none">
