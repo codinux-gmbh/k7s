@@ -107,7 +107,7 @@
                       <div class="menu fixed min-w-[9rem] right-2 bg-white text-xl shadow-xl z-10 hidden">
                         <ul class="list-none">
                           {#if resource.isLoggable}<li class="menu-item" onclick="showLogs(event)" data-logs-url="logs/{resource.name}/{item.namespace}/{item.name}">Logs</li>{/if}
-                          {#if resource.isScalable}<li class="menu-item" onclick="closeMenu(event)" hx-patch="resource/{resource.name}/{item.namespace}/{item.name}" hx-prompt="Scale {resource.kind} {item.namespace}/{item.name}? Replicas:">Scale</li>{/if}
+                          {#if resource.isScalable}<li class="menu-item" onclick="scaleTo(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}')">Scale</li>{/if}
                           {#if resource.isDeletable}<li class="menu-item" onclick="closeMenu(event)" hx-delete="resource/{resource.name}/{item.namespace}/{item.name}" hx-confirm="Are you sure you want to delete {resource.kind} {item.name}?">Delete</li>{/if}
                           {#if resource.allowDeletingWithoutConfirmation}<li class="menu-item" onclick="closeMenu(event)" hx-delete="resource/{resource.name}/{item.namespace}/{item.name}">Kill</li>{/if}
                         </ul>
@@ -280,7 +280,7 @@
         }
 
         function onTableRowKeyDown(event, resourceName, resourceKind, namespace, itemName, isScalable, isDeletable, allowDeletingWithoutConfirmation) {
-          const itemPath = `resource/$\{resourceName}/$\{namespace}/$\{itemName}`
+          const itemPath = getItemPath(resourceName, namespace, itemName)
 
           if (noModifierKeyPressed(event)) {
             if (event.code == "ArrowDown") {
@@ -294,11 +294,7 @@
                 showLogs(event)
               }
             } else if (isScalable && event.code == "KeyS") {
-              const countReplica = window.prompt(`Scale $\{resourceKind} $\{namespace}/$\{itemName}? Replicas:`)
-              if (countReplica) {
-                executeHtmxRequest(itemPath + "?scaleTo=" + countReplica, "PATCH")
-                event.preventDefault() // prevent key 'S' from bubbling on
-              }
+              scaleTo(event, resourceName, resourceKind, namespace, itemName)
             }
           }
           else if (ctrlIsTheOnlyPressedModifierKey(event)) {
@@ -321,6 +317,21 @@
             closeMenu(event) // in case a menu item has been clicked, close menu again
             event.preventDefault()
           }
+        }
+
+        function scaleTo(event, resourceName, resourceKind, namespace, itemName) {
+          const countReplica = window.prompt(`Scale $\{resourceKind} $\{namespace}/$\{itemName}? Replicas:`)
+          if (countReplica) {
+            const itemPath = getItemPath(resourceName, namespace, itemName)
+            executeHtmxRequest(itemPath + "?scaleTo=" + countReplica, "PATCH")
+
+            closeMenu(event)
+            event.preventDefault() // prevent key 'S' from bubbling on
+          }
+        }
+
+        function getItemPath(resourceName, namespace, itemName) {
+          return `resource/$\{resourceName}/$\{namespace}/$\{itemName}`
         }
 
         function closeMenu(event) {
