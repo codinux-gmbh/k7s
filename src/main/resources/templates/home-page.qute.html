@@ -103,7 +103,7 @@
                     <td class="truncate {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">{item.namespace}</td>
                     <td class="truncate">{item.name}</td>
                     <td>
-                      <div class="menu-toggler flex justify-center items-center w-full h-full text-zinc-500 text-3xl cursor-pointer" onclick="closeAllMenus(); this.nextElementSibling.classList.toggle('hidden')">&#xFE19;</div>
+                      <div class="menu-toggler flex justify-center items-center w-full h-full text-zinc-500 text-3xl cursor-pointer" onclick="showMenu(this, event)">&#xFE19;</div>
                       <div class="menu fixed min-w-[9rem] right-2 bg-white text-xl shadow-xl z-10 hidden">
                         <ul class="list-none">
                           {#if resource.isLoggable}<li class="menu-item" onclick="showLogs(event)" data-logs-url="logs/{resource.name}/{item.namespace}/{item.name}">Logs</li>{/if}
@@ -348,6 +348,17 @@
 
         function getItemPath(resourceName, namespace, itemName) {
           return `resource/$\{resourceName}/$\{namespace}/$\{itemName}`
+        }
+
+        function showMenu(element, event) {
+          closeAllMenus();
+
+          const elementRect = element.getBoundingClientRect()
+          const menu = element.nextElementSibling
+          menu.style.top = `$\{elementRect.bottom}px`
+          menu.classList.toggle('hidden')
+
+          event.preventDefault()
         }
 
         function closeMenu(event) {
