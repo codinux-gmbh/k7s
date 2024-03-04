@@ -207,6 +207,7 @@
         const resourceItemsContainer = document.getElementById("resourceItemsContainer")
         var selectedItem = null
         var previousFocusedElement = null
+        const isTouchDevice = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0)
 
         initializeTable()
 
@@ -216,10 +217,12 @@
         observer.observe(resourceItemsContainer, { childList: true })
 
         function initializeTable() {
-          const firstTableRow = resourceItemsContainer.querySelector("tbody tr")
-          if (firstTableRow) { // there are items in the table
-            selectedItem = firstTableRow
-            selectedItem.focus()
+          if (isTouchDevice == false) {
+            const firstTableRow = resourceItemsContainer.querySelector("tbody tr")
+            if (firstTableRow) { // there are items in the table
+              selectedItem = firstTableRow
+              selectedItem.focus()
+            }
           }
         }
 
@@ -272,12 +275,20 @@
         }
 
         function onTableRowMouseDown(event) {
-          const parentRowElement = event.srcElement.closest("tr")
-          if (parentRowElement) {
-            setFocusTo(null, parentRowElement) // do not prevent default -> null for event
-          } else if (event.srcElement.tagName == "TR") {
-            setFocusTo(null, event.srcElement)
+          if (isTouchDevice == false) {
+            const parentRowElement = getRowElement(event)
+            if (parentRowElement) {
+              setFocusTo(null, parentRowElement) // do not prevent default -> null for event
+            }
           }
+        }
+
+        function getRowElement(event) {
+          if (event.srcElement.tagName == "TR") {
+            return event.srcElement
+          }
+
+          return event.srcElement.closest("tr")
         }
 
         function onTableRowKeyDown(event, resourceName, resourceKind, namespace, itemName, isScalable, isDeletable, allowDeletingWithoutConfirmation) {
