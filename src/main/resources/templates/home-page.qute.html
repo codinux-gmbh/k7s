@@ -108,8 +108,8 @@
                         <ul class="list-none">
                           {#if resource.isLoggable}<li class="menu-item" onclick="showLogs(event)" data-logs-url="logs/{resource.name}/{item.namespace}/{item.name}">Logs</li>{/if}
                           {#if resource.isScalable}<li class="menu-item" onclick="scaleTo(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}')">Scale</li>{/if}
-                          {#if resource.isDeletable}<li class="menu-item" onclick="closeMenu(event)" hx-delete="resource/{resource.name}/{item.namespace}/{item.name}" hx-confirm="Are you sure you want to delete {resource.kind} {item.name}?">Delete</li>{/if}
-                          {#if resource.allowDeletingWithoutConfirmation}<li class="menu-item" onclick="closeMenu(event)" hx-delete="resource/{resource.name}/{item.namespace}/{item.name}">Kill</li>{/if}
+                          {#if resource.isDeletable}<li class="menu-item" onclick="deleteItem(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}')">Delete</li>{/if}
+                          {#if resource.allowDeletingWithoutConfirmation}<li class="menu-item" onclick="killItem(event, '{resource.name}', '{item.namespace}', '{item.name}')">Kill</li>{/if}
                         </ul>
                       </div>
                     </td>
@@ -280,8 +280,6 @@
         }
 
         function onTableRowKeyDown(event, resourceName, resourceKind, namespace, itemName, isScalable, isDeletable, allowDeletingWithoutConfirmation) {
-          const itemPath = getItemPath(resourceName, namespace, itemName)
-
           if (noModifierKeyPressed(event)) {
             if (event.code == "ArrowDown") {
               setFocusTo(event, selectedItem?.nextElementSibling)
@@ -299,13 +297,9 @@
           }
           else if (ctrlIsTheOnlyPressedModifierKey(event)) {
             if (isDeletable && event.code == "KeyD") {
-              if (window.confirm(`Are you sure you want to delete $\{resourceKind} $\{itemName}?`)) {
-                executeHtmxRequest(itemPath, "DELETE")
-                event.preventDefault() // prevent Ctrl+D from bubbling on
-              }
+              deleteItem(event, resourceName, resourceKind, namespace, itemName)
             } else if (isDeletable && allowDeletingWithoutConfirmation && event.code == "KeyK") {
-                executeHtmxRequest(itemPath, "DELETE")
-                event.preventDefault() // prevent Ctrl+K from bubbling on
+              killItem(event, resourceName, namespace, itemName)
             }
           }
         }
@@ -325,9 +319,27 @@
             const itemPath = getItemPath(resourceName, namespace, itemName)
             executeHtmxRequest(itemPath + "?scaleTo=" + countReplica, "PATCH")
 
-            closeMenu(event)
+            closeMenu(event) // in case a menu item has been clicked, close menu again
             event.preventDefault() // prevent key 'S' from bubbling on
           }
+        }
+
+        function deleteItem(event, resourceName, resourceKind, namespace, itemName) {
+          if (window.confirm(`Are you sure you want to delete $\{resourceKind} $\{itemName}?`)) {
+            const itemPath = getItemPath(resourceName, namespace, itemName)
+            executeHtmxRequest(itemPath, "DELETE")
+
+            closeMenu(event) // in case a menu item has been clicked, close menu again
+            event.preventDefault() // prevent Ctrl+D from bubbling on
+          }
+        }
+
+        function killItem(event, resourceName, namespace, itemName) {
+          const itemPath = getItemPath(resourceName, namespace, itemName)
+          executeHtmxRequest(itemPath, "DELETE")
+
+          closeMenu(event) // in case a menu item has been clicked, close menu again
+          event.preventDefault() // prevent Ctrl+K from bubbling on
         }
 
         function getItemPath(resourceName, namespace, itemName) {
