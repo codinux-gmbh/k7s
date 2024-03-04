@@ -306,40 +306,44 @@
 
         function showLogs(event) {
           if (event.srcElement.dataset.logsUrl) {
-            window.open(event.srcElement.dataset.logsUrl, "_blank", "popup=true,toolbar=true")
-
             closeMenu(event) // in case a menu item has been clicked, close menu again
             event.preventDefault()
+
+            window.open(event.srcElement.dataset.logsUrl, "_blank", "popup=true,toolbar=true")
           }
         }
 
         function scaleTo(event, resourceName, resourceKind, namespace, itemName) {
-          const countReplica = window.prompt(`Scale $\{resourceKind} $\{namespace}/$\{itemName}? Replicas:`)
-          if (countReplica) {
-            const itemPath = getItemPath(resourceName, namespace, itemName)
-            executeHtmxRequest(itemPath + "?scaleTo=" + countReplica, "PATCH")
+          closeMenu(event) // in case a menu item has been clicked, close menu again
+          event.preventDefault() // prevent key 'S' from bubbling on
 
-            closeMenu(event) // in case a menu item has been clicked, close menu again
-            event.preventDefault() // prevent key 'S' from bubbling on
-          }
+          setTimeout(() => { // so that menu first gets hidden and isn't still visible when prompt dialog gets shown wait 1 millisecond
+            const countReplica = window.prompt(`Scale $\{resourceKind} $\{namespace}/$\{itemName}? Replicas:`)
+            if (countReplica) {
+              const itemPath = getItemPath(resourceName, namespace, itemName)
+              executeHtmxRequest(itemPath + "?scaleTo=" + countReplica, "PATCH")
+            }
+          }, 1)
         }
 
         function deleteItem(event, resourceName, resourceKind, namespace, itemName) {
-          if (window.confirm(`Are you sure you want to delete $\{resourceKind} $\{itemName}?`)) {
-            const itemPath = getItemPath(resourceName, namespace, itemName)
-            executeHtmxRequest(itemPath, "DELETE")
+          closeMenu(event) // in case a menu item has been clicked, close menu again
+          event.preventDefault() // prevent Ctrl+D from bubbling on
 
-            closeMenu(event) // in case a menu item has been clicked, close menu again
-            event.preventDefault() // prevent Ctrl+D from bubbling on
-          }
+          setTimeout(() => { // so that menu first gets hidden and isn't still visible when confirmation dialog gets shown wait 1 millisecond
+            if (window.confirm(`Are you sure you want to delete $\{resourceKind} $\{itemName}?`)) {
+              const itemPath = getItemPath(resourceName, namespace, itemName)
+              executeHtmxRequest(itemPath, "DELETE")
+            }
+          }, 1)
         }
 
         function killItem(event, resourceName, namespace, itemName) {
-          const itemPath = getItemPath(resourceName, namespace, itemName)
-          executeHtmxRequest(itemPath, "DELETE")
-
           closeMenu(event) // in case a menu item has been clicked, close menu again
           event.preventDefault() // prevent Ctrl+K from bubbling on
+
+          const itemPath = getItemPath(resourceName, namespace, itemName)
+          executeHtmxRequest(itemPath, "DELETE")
         }
 
         function getItemPath(resourceName, namespace, itemName) {
