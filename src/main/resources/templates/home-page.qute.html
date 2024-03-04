@@ -87,7 +87,7 @@
           {#fragment id=resourceItems}
             <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border"
                     hx-ext="sse" sse-connect="watch/resources/{resource.group ?: "null"}/{resource.name}{#if selectedNamespace}?namespace={selectedNamespace}{/if}" sse-swap="resourceItemsUpdated">
-              <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500">
+              <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500 hidden lg:table-caption">
                   <tr>
                     <th class="w-[7.25rem] sm:w-[12rem] text-left {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">Namespace</th>
                     <th>Name</th>
@@ -100,10 +100,17 @@
                   <tr class="border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200" tabindex="0"
                       {#if resource.isLoggable}data-logs-url="logs/{resource.name}/{item.namespace}/{item.name}"{/if}
                       onmousedown="onTableRowMouseDown(event)" oncontextmenu="showMenu(this, event)"
-                      onkeydown="onTableRowKeyDown(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}', {resource.isScalable}, {resource.isDeletable}, {resource.allowDeletingWithoutConfirmation})" >
-                    <td class="truncate {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">{item.namespace}</td>
-                    <td class="truncate">{item.name}</td>
-                    <td>
+                      onkeydown="onTableRowKeyDown(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}', {resource.isScalable}, {resource.isDeletable}, {resource.allowDeletingWithoutConfirmation})"
+                  >
+                    {! mobile view !}
+                    <td class="flex items-center lg:hidden">
+                      {#if resource.isNamespaced && selectedNamespace == null}<div class="w-[7.25rem] sm:w-[12rem] mr-2 truncate">{item.namespace}</div>{/if}
+                      <div class="grow truncate">{item.name}</div>
+                    </td>
+                    {! desktop view !}
+                    <td class="truncate hidden {#if resource.isNamespaced && selectedNamespace == null}lg:table-cell{/if}">{item.namespace}</td>
+                    <td class="truncate hidden lg:table-cell">{item.name}</td>
+                    <td class="w-12">
                       <div class="menu-toggler flex justify-center items-center w-full h-full text-zinc-500 text-3xl cursor-pointer" onclick="showMenu(this, event)">&#xFE19;</div>
                       <div class="menu fixed min-w-[9rem] right-2 bg-white text-xl shadow-xl z-10 hidden">
                         <ul class="list-none">
