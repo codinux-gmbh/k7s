@@ -4,6 +4,8 @@ import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.apps.Deployment
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder
+import io.fabric8.kubernetes.api.model.metrics.v1beta1.NodeMetricsList
+import io.fabric8.kubernetes.api.model.metrics.v1beta1.PodMetricsList
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress
 import io.fabric8.kubernetes.client.ApiVisitor
 import io.fabric8.kubernetes.client.KubernetesClient
@@ -18,6 +20,7 @@ import net.dankito.k8s.domain.model.ResourceItem
 import net.dankito.k8s.domain.model.Verb
 import java.io.InputStream
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -38,13 +41,15 @@ class KubernetesService(
 
     private lateinit var allAvailableResourceTypes: List<KubernetesResource>
 
+    private var isMetricsApiAvailable: Boolean? = null
+
     private val log by logger()
 
 
     // for deprecated API groups see https://kubernetes.io/docs/reference/using-api/deprecation-guide/
     fun getNamespaces() = listItems(namespaceResource, client.namespaces())
 
-    fun getPods(namespace: String? = null) = listItems(podResource, client.pods(), namespace)
+    fun getPods(namespace: String? = null) = listItems(podResource, client.pods(), namespace, getMetrics(client.top().pods(), namespace))
 
     fun getServices(namespace: String? = null) = listItems(serviceResource, client.services(), namespace)
 
@@ -189,7 +194,7 @@ class KubernetesService(
         } else if (resource == namespaceResource) {
             listItems(namespaceResource, client.namespaces())
         } else if (resource == nodeResource) {
-            listItems(namespaceResource, client.nodes())
+            listItems(namespaceResource, client.nodes(), metrics = getMetrics(client.top().nodes()))
         } else if (resource == configMapResource) {
             listItems(namespaceResource, client.configMaps(), namespace)
         } else if (resource == secretResource) {
@@ -276,7 +281,8 @@ class KubernetesService(
     private fun <T : HasMetadata, L : KubernetesResourceList<T>, R> listItems(
         resource: KubernetesResource,
         operation: AnyNamespaceOperation<T, L, R>,
-        namespace: String? = null
+        namespace: String? = null,
+        metrics: KubernetesResourceList<HasMetadata>? = null
     ): List<ResourceItem> =
         try {
             operation.let {
@@ -287,17 +293,17 @@ class KubernetesService(
                 }
             }
                 .list().items.let { it as List<T> }.map { item ->
-                mapResourceItem(item)
+                mapResourceItem(item, metrics)
             }
         } catch (e: Exception) {
             log.error(e) { "Could not get items for resource '$resource'" }
             emptyList()
         }
 
-    private fun <T : HasMetadata> mapResourceItem(item: T): ResourceItem {
+    private fun <T : HasMetadata> mapResourceItem(item: T, metrics: KubernetesResourceList<HasMetadata>? = null): ResourceItem {
         val name = item.metadata.name
         val namespace = item.metadata.namespace?.takeUnless { it.isBlank() }
-        val additionalValues = getAdditionalValues(item)
+        val additionalValues = getAdditionalValues(item, metrics)
 
         return if (item is Pod) {
             val status = item.status
@@ -309,11 +315,20 @@ class KubernetesService(
         }
     }
 
-    private fun <T> getAdditionalValues(item: T): Map<String, String?> {
+    private fun <T> getAdditionalValues(item: T, metrics: KubernetesResourceList<HasMetadata>? = null): Map<String, String?> {
         return if (item is Pod) {
+            val emptyValue = if (metrics is PodMetricsList) "0" else "n/a"
             buildMap {
                 put("IP", item.status.podIP)
                 put("HostIP", item.status.hostIP)
+                put("CPU", emptyValue)
+                put("Mem", emptyValue)
+                if (metrics is PodMetricsList) {
+                    metrics.items.orEmpty().firstOrNull { it.metadata.name == item.metadata.name && it.metadata.namespace == item.metadata.namespace }?.let { podMetrics ->
+                        put("CPU", toDisplayValue(podMetrics.containers.orEmpty().sumOf { toMilliCore(it.usage["cpu"]) ?: BigDecimal.ZERO }))
+                        put("Mem", toDisplayValue(podMetrics.containers.orEmpty().sumOf { toMiByte(it.usage["memory"]) ?: BigDecimal.ZERO }))
+                    }
+                }
             }
         } else if (item is Service) {
             val spec = item.spec
@@ -329,12 +344,88 @@ class KubernetesService(
         } else if (item is Secret) {
             mapOf("Type" to item.type, "Data" to item.data.size.toString())
         } else if (item is Node) {
-            val status = item.status // TODO: where to get roles from, like for master: "control-plane,etcd,master"?
-            mapOf("Status" to status.conditions.firstOrNull { it.status == "True" }?.type, "Taints" to item.spec.taints.size.toString(), "Version" to status.nodeInfo?.kubeletVersion, "Kernel" to status.nodeInfo?.kernelVersion, "CPU/A" to status.capacity?.get("cpu")?.numericalAmount?.multiply(BigDecimal.valueOf(1000))?.toString(), "Mem/A" to status.capacity?.get("memory")?.numericalAmount?.divide(BigDecimal.valueOf(1_024 * 1_024))?.toBigInteger()?.toString(), "Images" to status.images.size.toString())
+            val status = item.status
+            val availableCpu = toMilliCore(status.capacity?.get("cpu"))
+            val availableMemory = toMiByte(status.capacity?.get("memory"))
+            val emptyValue = if (metrics is PodMetricsList) "0" else "n/a"
+
+            buildMap { // TODO: where to get roles from, like for master: "control-plane,etcd,master"?
+                put("Status", status.conditions.firstOrNull { it.status == "True" }?.type)
+                put("Taints", item.spec.taints.size.toString())
+                put("Version", status.nodeInfo?.kubeletVersion)
+                put("Kernel", status.nodeInfo?.kernelVersion)
+                put("CPU", emptyValue)
+                put("%CPU", emptyValue)
+                put("CPU/A", toDisplayValue(availableCpu))
+                put("Mem", emptyValue)
+                put("%Mem", emptyValue)
+                put("Mem/A", toDisplayValue(availableMemory))
+                put("Images", status.images.size.toString())
+
+                if (metrics is NodeMetricsList) {
+                    metrics.items.orEmpty().firstOrNull { it.metadata.name == item.metadata.name }?.let { nodeMetrics ->
+                        val cpu = toMilliCore(nodeMetrics.usage?.get("cpu"))
+                        this["CPU"] = toDisplayValue(cpu)
+                        this["%CPU"] = toDisplayValue((cpu ?: BigDecimal.ZERO).multiply(BigDecimal.valueOf(100)).divide(availableCpu, 0, RoundingMode.DOWN))
+
+                        val memory = toMiByte(nodeMetrics.usage?.get("memory"))
+                        this["Mem"] = toDisplayValue(memory)
+                        this["%Mem"] = toDisplayValue((memory ?: BigDecimal.ZERO).multiply(BigDecimal.valueOf(100)).divide(availableMemory, 0, RoundingMode.DOWN))
+                    }
+                }
+            }
         } else {
             emptyMap()
         }
     }
+
+    private fun toMilliCore(cpu: Quantity?): BigDecimal? = cpu?.let {
+        when (cpu.format) {
+            "n" -> cpu.numericalAmount.multiply(BigDecimal.valueOf(1_000))
+            "" -> cpu.numericalAmount.multiply(BigDecimal.valueOf(1_000))
+            else -> cpu.numericalAmount
+        }
+    }
+
+    private fun toMiByte(memory: Quantity?): BigDecimal? = memory?.let {
+        when (memory.format) {
+            "Ki" -> memory.numericalAmount?.divide(BigDecimal.valueOf(1_024 * 1_024))
+            else -> memory.numericalAmount
+        }
+    }
+
+    private fun toDisplayValue(metricValue: BigDecimal?): String? = metricValue?.let {
+        metricValue.setScale(0, RoundingMode.UP).toString()
+    }
+
+    private fun getMetrics(metricOperation: MetricOperation<*, *>, namespace: String? = null): KubernetesResourceList<HasMetadata>? {
+        if (this.isMetricsApiAvailable == false) {
+            return null
+        }
+
+        return try {
+            // TODO: what an ugly code
+            val operation = if (namespace != null && metricOperation is Namespaceable<*>) {
+                metricOperation.inNamespace(namespace) as MetricOperation<*, *>
+            } else {
+                metricOperation
+            }
+
+            val result = operation.metrics() as? KubernetesResourceList<HasMetadata>
+            if (result != null) {
+                isMetricsApiAvailable = true
+            }
+
+            result
+        } catch (e: Throwable) {
+            log.error(e) { "Could not fetch metrics" }
+            if (isMetricsApiAvailable == null) {
+                isMetricsApiAvailable = false // TODO: this is not fully correct, check kind of error as soon as correct error code (e.g. 404) is known
+            }
+            null
+        }
+    }
+
 
     fun patchResourceItem(resourceName: String, namespace: String?, itemName: String, scaleTo: Int? = null): Boolean {
         val resource = getResourceByName(resourceName)

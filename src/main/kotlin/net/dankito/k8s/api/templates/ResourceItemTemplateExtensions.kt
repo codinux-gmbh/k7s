@@ -9,13 +9,13 @@ object ResourceItemTemplateExtensions {
     @JvmStatic
     fun getAdditionalValuesNames(resource: KubernetesResource): List<String> =
         when (resource.kind) {
-            "Pod" -> listOf("IP", "HostIP")
+            "Pod" -> listOf("IP", "HostIP", "CPU", "Mem")
             "Service" -> listOf("Type", "ClusterIP", "ExternalIPs", "Ports")
             "Ingress" -> listOf("Class", "Hosts", "Address", "Ports")
             "Deployment" -> listOf("Ready", "Up-to-date", "Available")
             "ConfigMap" -> listOf("Data")
             "Secret" -> listOf("Type", "Data")
-            "Node" -> listOf("Status", "Taints", "Version", "Kernel", "CPU/A" , "Mem/A", "Images")
+            "Node" -> listOf("Status", "Taints", "Version", "Kernel", "CPU", "%CPU", "CPU/A", "Mem", "%Mem", "Mem/A", "Images")
             else -> emptyList()
         }
 
