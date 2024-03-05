@@ -25,8 +25,8 @@ class KubernetesService(
 ) {
 
     companion object {
-        val LoggableResourceNames = hashSetOf(
-            "pods", "deployments", "statefulsets", "daemonsets", "replicasets", "jobs"
+        val LoggableResourceKinds = hashSetOf(
+            "Pod", "Deployment", "StatefulSet", "DaemonSet", "ReplicaSet", "Job"
         )
     }
 

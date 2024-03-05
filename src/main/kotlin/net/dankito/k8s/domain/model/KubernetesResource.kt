@@ -39,7 +39,7 @@ data class KubernetesResource(
 
 
     @get:JsonIgnore
-    val isPod: Boolean by lazy { group == null && name == "pods" }
+    val isPod: Boolean by lazy { group == null && kind == "Pod" }
 
     @get:JsonIgnore
     val identifier by lazy { createIdentifier(this) }
@@ -47,16 +47,16 @@ data class KubernetesResource(
     @get:JsonIgnore
     val version: String = storageVersion // to be better readable
 
-    val isLoggable by lazy { KubernetesService.LoggableResourceNames.contains(name) }
+    val isLoggable by lazy { KubernetesService.LoggableResourceKinds.contains(kind) }
 
     @get:JsonIgnore
-    val isScalable by lazy { name == "deployments" || name == "statefulsets" }
+    val isScalable by lazy { kind == "Deployment" || kind == "StatefulSet" }
 
     @get:JsonIgnore
     val isDeletable by lazy { containsVerb(Verb.delete) }
 
     @get:JsonIgnore
-    val allowDeletingWithoutConfirmation by lazy { name == "pods" }
+    val allowDeletingWithoutConfirmation by lazy { isPod }
 
     fun containsVerb(verb: Verb) = verbs.contains(verb)
 
