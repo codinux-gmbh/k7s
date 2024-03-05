@@ -297,19 +297,25 @@ class KubernetesService(
     private fun <T : HasMetadata> mapResourceItem(item: T): ResourceItem {
         val name = item.metadata.name
         val namespace = item.metadata.namespace?.takeUnless { it.isBlank() }
+        val additionalValues = getAdditionalValues(item)
 
         return if (item is Pod) {
             val status = item.status
-            PodResourceItem(name, namespace, status.phase, status.podIP, status.hostIP, status.containerStatuses.map {
+            PodResourceItem(name, namespace, status.phase, status.podIP, additionalValues, status.containerStatuses.map {
                 ContainerStatus(it.name, try { it.containerID } catch (ignored: Exception) { null }, it.image, it.imageID, it.restartCount, it.started, it.ready, it.state.waiting != null, it.state.running != null, it.state.terminated != null)
             })
         } else {
-            ResourceItem(name, namespace, getAdditionalValues(item))
+            ResourceItem(name, namespace, additionalValues)
         }
     }
 
     private fun <T> getAdditionalValues(item: T): Map<String, String?> {
-        return if (item is Service) {
+        return if (item is Pod) {
+            buildMap {
+                put("IP", item.status.podIP)
+                put("HostIP", item.status.hostIP)
+            }
+        } else if (item is Service) {
             val spec = item.spec
             mapOf("Type" to spec.type, "ClusterIP" to spec.clusterIP, "ExternalIPs" to spec.externalIPs.joinToString(), "Ports" to spec.ports.joinToString { "${it.name}: ${it.port}►${it.nodePort ?: 0}" })
         } else if (item is Ingress) {
