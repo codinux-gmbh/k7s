@@ -70,6 +70,9 @@ class K7sPage(
         if (resource == null) {
             throw NotFoundException("Resource for group '$group' and name '$name' not found in Kubernetes cluster")
         }
+        if (resource.isWatchable == false) {
+            return // a not watchable resource like Binding, ComponentStatus, NodeMetrics, PodMetrics, ...
+        }
 
         val fragment = homePage.getFragment("resourceItems")
 

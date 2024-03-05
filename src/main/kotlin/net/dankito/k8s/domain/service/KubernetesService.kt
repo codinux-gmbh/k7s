@@ -217,6 +217,10 @@ class KubernetesService(
     }
 
     fun watchResourceItems(resource: KubernetesResource, namespace: String? = null, update: (List<ResourceItem>) -> Unit) {
+        if (resource.isWatchable == false) {
+            return // a not watchable resource like Binding, ComponentStatus, NodeMetrics, PodMetrics, ...
+        }
+
         val resources = getGenericResources(resource, namespace)
 
         resources.watch(KubernetesResourceWatcher<GenericKubernetesResource> { _, _ ->

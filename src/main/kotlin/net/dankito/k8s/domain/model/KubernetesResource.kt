@@ -58,6 +58,9 @@ data class KubernetesResource(
     @get:JsonIgnore
     val allowDeletingWithoutConfirmation by lazy { isPod }
 
+    @get:JsonIgnore
+    val isWatchable by lazy { containsVerb(Verb.watch) }
+
     fun containsVerb(verb: Verb) = verbs.contains(verb)
 
 
