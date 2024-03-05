@@ -1,8 +1,10 @@
 package net.dankito.k8s.domain.service
 
 import io.fabric8.kubernetes.api.model.*
+import io.fabric8.kubernetes.api.model.apps.Deployment
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder
+import io.fabric8.kubernetes.api.model.networking.v1.Ingress
 import io.fabric8.kubernetes.client.ApiVisitor
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.dsl.*
@@ -15,6 +17,7 @@ import net.dankito.k8s.domain.model.PodResourceItem
 import net.dankito.k8s.domain.model.ResourceItem
 import net.dankito.k8s.domain.model.Verb
 import java.io.InputStream
+import java.math.BigDecimal
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -284,12 +287,48 @@ class KubernetesService(
                 }
             }
                 .list().items.let { it as List<T> }.map { item ->
-                    ResourceItem(item.metadata.name, item.metadata.namespace?.takeUnless { it.isBlank() })
-                }
+                mapResourceItem(item)
+            }
         } catch (e: Exception) {
             log.error(e) { "Could not get items for resource '$resource'" }
             emptyList()
         }
+
+    private fun <T : HasMetadata> mapResourceItem(item: T): ResourceItem {
+        val name = item.metadata.name
+        val namespace = item.metadata.namespace?.takeUnless { it.isBlank() }
+
+        return if (item is Pod) {
+            val status = item.status
+            PodResourceItem(name, namespace, status.phase, status.podIP, status.hostIP, status.containerStatuses.map {
+                ContainerStatus(it.name, try { it.containerID } catch (ignored: Exception) { null }, it.image, it.imageID, it.restartCount, it.started, it.ready, it.state.waiting != null, it.state.running != null, it.state.terminated != null)
+            })
+        } else {
+            ResourceItem(name, namespace, getAdditionalValues(item))
+        }
+    }
+
+    private fun <T> getAdditionalValues(item: T): Map<String, String?> {
+        return if (item is Service) {
+            val spec = item.spec
+            mapOf("Type" to spec.type, "ClusterIP" to spec.clusterIP, "ExternalIPs" to spec.externalIPs.joinToString(), "Ports" to spec.ports.joinToString { "${it.name}: ${it.port}►${it.nodePort ?: 0}" })
+        } else if (item is Ingress) {
+            val spec = item.spec
+            mapOf("Class" to spec.ingressClassName, "Hosts" to spec.rules.joinToString { it.host }, "Address" to item.status.loadBalancer.ingress.joinToString { it.hostname }, "Ports" to spec.rules.joinToString { it.http.paths.joinToString { it.backend.service.port.number.toString() } })
+        } else if (item is Deployment) {
+            val status = item.status
+            mapOf("Ready" to "${status.readyReplicas ?: 0}/${status.replicas ?: 0}", "Up-to-date" to "${status.updatedReplicas ?: 0}", "Available" to "${status.availableReplicas ?: 0}")
+        } else if (item is ConfigMap) {
+            mapOf("Data" to item.data.size.toString())
+        } else if (item is Secret) {
+            mapOf("Type" to item.type, "Data" to item.data.size.toString())
+        } else if (item is Node) {
+            val status = item.status // TODO: where to get roles from, like for master: "control-plane,etcd,master"?
+            mapOf("Status" to status.conditions.firstOrNull { it.status == "True" }?.type, "Taints" to item.spec.taints.size.toString(), "Version" to status.nodeInfo?.kubeletVersion, "Kernel" to status.nodeInfo?.kernelVersion, "CPU/A" to status.capacity?.get("cpu")?.numericalAmount?.multiply(BigDecimal.valueOf(1000))?.toString(), "Mem/A" to status.capacity?.get("memory")?.numericalAmount?.divide(BigDecimal.valueOf(1_024 * 1_024))?.toBigInteger()?.toString(), "Images" to status.images.size.toString())
+        } else {
+            emptyMap()
+        }
+    }
 
     fun patchResourceItem(resourceName: String, namespace: String?, itemName: String, scaleTo: Int? = null): Boolean {
         val resource = getResourceByName(resourceName)

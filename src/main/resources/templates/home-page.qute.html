@@ -95,6 +95,9 @@
                       <th class="w-[3.5rem]">Ready</th>
                       <th class="w-[6rem]">Status</th>
                     {/if}
+                    {#for headerName in resource.getAdditionalValuesNames()}
+                      <th>{headerName}</th>
+                    {/for}
                     <th class="w-12 p-0"></th>
                   </tr>
               </thead>
@@ -107,12 +110,21 @@
                       onkeydown="onTableRowKeyDown(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}', {resource.isScalable}, {resource.isDeletable}, {resource.allowDeletingWithoutConfirmation})"
                   >
                     {! mobile view !}
-                    <td class="flex items-center min-h-[3.25rem] lg:hidden">
-                      {#if resource.isNamespaced && selectedNamespace == null}<div class="w-[5.5rem] sm:w-[12rem] mr-2 flex-[0_0_auto] truncate">{item.namespace}</div>{/if}
-                      <div class="grow truncate">{item.name}</div>
-                      {#if resource.isPod}
-                        <div class="w-4 ml-1 text-center flex-[0_0_auto]">{item.countReadyContainers}/{item.container.size}</div>
-                        <div class="w-[3.5rem] ml-1 flex-[0_0_auto]">{item.phase}</div>
+                    <td class="flex flex-col min-h-[3.25rem] lg:hidden">
+                      <div class="flex items-center">
+                        {#if resource.isNamespaced && selectedNamespace == null}<div class="w-[5.5rem] sm:w-[12rem] mr-2 flex-[0_0_auto] truncate">{item.namespace}</div>{/if}
+                        <div class="grow truncate">{item.name}</div>
+                        {#if resource.isPod}
+                          <div class="w-4 ml-1 text-center flex-[0_0_auto]">{item.countReadyContainers}/{item.container.size}</div>
+                          <div class="w-[3.5rem] ml-1 flex-[0_0_auto]">{item.phase}</div>
+                        {/if}
+                      </div>
+                      {#if item.additionalValues}
+                        <div class="flex items-center mt-1">
+                          {#for keyValue in item.additionalValues}
+                            <div class="mr-1">{keyValue.key}: {keyValue.value}</div>
+                          {/for}
+                        </div>
                       {/if}
                     </td>
                     {! desktop view !}
@@ -122,6 +134,9 @@
                       <td class="text-center hidden lg:table-cell">{item.countReadyContainers}/{item.container.size}</td>
                       <td class="hidden lg:table-cell">{item.phase}</td>
                     {/if}
+                    {#for keyValue in item.additionalValues}
+                      <td class="hidden lg:table-cell">{keyValue.value}</td>
+                    {/for}
                     <td class="w-8 sm:w-12 p-0">
                       <div class="menu-toggler flex justify-center items-center w-full h-full text-zinc-500 text-3xl cursor-pointer" onclick="showMenu(this, event)">&#xFE19;</div>
                       <div class="menu fixed min-w-[9rem] right-2 bg-white text-xl shadow-xl z-10 hidden">
