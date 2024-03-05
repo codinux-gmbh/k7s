@@ -38,26 +38,30 @@ class KubernetesService(
     private val log by logger()
 
 
+    // for deprecated API groups see https://kubernetes.io/docs/reference/using-api/deprecation-guide/
     fun getNamespaces() = listItems(namespaceResource, client.namespaces())
 
     fun getPods(namespace: String? = null) = listItems(podResource, client.pods(), namespace)
 
     fun getServices(namespace: String? = null) = listItems(serviceResource, client.services(), namespace)
 
-    fun getIngresses(namespace: String? = null) = listItems(ingressResource, client.network().ingresses(), namespace)
-
-    fun getDeployments(namespace: String? = null) = listItems(deploymentResource, client.apps().deployments(), namespace)
-
     val namespaceResource by lazy { getResource(null, "namespaces")!! }
+
+    val nodeResource by lazy { getResource(null, "nodes")!! }
 
     val podResource by lazy { getResource(null, "pods")!! }
 
-    val serviceResource by lazy { getResource(null, "services")!! }
+    val serviceResource by lazy { getResourceByName("services")!! }
 
-    // for deprecated API groups see https://kubernetes.io/docs/reference/using-api/deprecation-guide/
-    val ingressResource by lazy { getResource("networking.k8s.io", "ingresses") ?: getResource("extensions", "ingresses")!! }
+    val configMapResource by lazy { getResource(null, "configmaps")!! }
 
-    val deploymentResource by lazy { getResource("apps", "deployments")!! }
+    val secretResource by lazy { getResource(null, "secrets")!! }
+
+    val serviceAccountResource by lazy { getResource(null, "serviceaccounts")!! }
+
+    val persistentVolumeResource by lazy { getResource(null, "persistentvolumes")!! }
+
+    val persistentVolumeClaimResource by lazy { getResource(null, "persistentvolumeclaims")!! }
 
 
     fun getCustomResourceDefinitions(): List<KubernetesResource> {
@@ -147,23 +151,31 @@ class KubernetesService(
 
 
     fun getResource(group: String?, name: String): KubernetesResource? {
-        val resource = getAllAvailableResourceTypes().firstOrNull { it.group == group && it.name == name }
+        val resources = getAllAvailableResourceTypes().filter { it.group == group && it.name == name }
 
-        if (resource == null) {
+        if (resources.isEmpty()) {
             log.error { "Could not find resource for group = $group and name = $name. Should never happen." }
         }
 
-        return resource
+        return findBestAvailableResource(resources)
     }
 
     fun getResourceByName(resourceName: String): KubernetesResource? {
-        val resource = getAllAvailableResourceTypes().firstOrNull { it.name == resourceName }
+        val resources = getAllAvailableResourceTypes().filter { it.name == resourceName }
 
-        if (resource == null) {
+        if (resources.isEmpty()) {
             log.error { "Could not find resource with name '$resourceName'. Are you sure that it exists?." }
         }
 
-        return resource
+        return findBestAvailableResource(resources)
+    }
+
+    private fun findBestAvailableResource(resources: List<KubernetesResource>): KubernetesResource {
+        if (resources.size == 1) {
+            return resources.first()
+        }
+
+        return resources.first { it.version == it.storageVersion }
     }
 
     fun getResourceItems(resource: KubernetesResource, namespace: String? = null): List<ResourceItem> {
@@ -171,10 +183,34 @@ class KubernetesService(
             getPods(namespace)
         } else if (resource == serviceResource) {
             getServices(namespace)
-        } else if (resource == ingressResource) {
-            getIngresses(namespace)
-        } else if (resource == deploymentResource) {
-            getDeployments(namespace)
+        } else if (resource == namespaceResource) {
+            listItems(namespaceResource, client.namespaces())
+        } else if (resource == nodeResource) {
+            listItems(namespaceResource, client.nodes())
+        } else if (resource == configMapResource) {
+            listItems(namespaceResource, client.configMaps(), namespace)
+        } else if (resource == secretResource) {
+            listItems(namespaceResource, client.secrets(), namespace)
+        } else if (resource == serviceAccountResource) {
+            listItems(namespaceResource, client.serviceAccounts(), namespace)
+        } else if (resource == persistentVolumeResource) {
+            listItems(namespaceResource, client.persistentVolumes(), namespace)
+        } else if (resource == persistentVolumeClaimResource) {
+            listItems(namespaceResource, client.persistentVolumeClaims(), namespace)
+        } else if (resource.name == "ingresses") {
+            if (resource.group == "extensions") {
+                listItems(resource, client.extensions().ingresses(), namespace)
+            } else if (resource.version == "v1beta1") {
+                listItems(resource, client.network().v1beta1().ingresses(), namespace)
+            } else {
+                listItems(resource, client.network().v1().ingresses(), namespace)
+            }
+        } else if (resource.name == "deployments") {
+            if (resource.group == "extensions") {
+                listItems(resource, client.extensions().deployments(), namespace)
+            } else {
+                listItems(resource, client.apps().deployments(), namespace) // TODO: where are apps/v1beta1 and apps/v1beta2 versions of deployments?
+            }
         } else {
             listItems(resource, getGenericResources(resource, namespace))
         }
