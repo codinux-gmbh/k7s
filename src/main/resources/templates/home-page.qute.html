@@ -86,7 +86,7 @@
         <div id="resourceItemsContainer" class="flex flex-col" hx-swap="outerHTML">
           {#fragment id=resourceItems}
             <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border"
-                   {#if resource.isWatchable}hx-ext="sse" sse-connect="watch/resources/{resource.group ?: "null"}/{resource.name}{#if selectedNamespace}?namespace={selectedNamespace}{/if}" sse-swap="resourceItemsUpdated"{/if}>
+                   {#if resource.isWatchable}hx-ext="sse" sse-connect="{createWatchResourcePath()}" sse-swap="resourceItemsUpdated"{/if}>
               <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500 hidden lg:table-header-group">
                   <tr>
                     <th class="w-[5.5rem] sm:w-[12rem] text-left {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">Namespace</th>
@@ -154,8 +154,9 @@
             </table>
 
             <script type="text/javascript">
+              selectedContext = {#if selectedContext}"{selectedContext}"{#else}null{/if}
               selectedNamespace = {#if selectedNamespace}"{selectedNamespace}"{#else}null{/if}
-              currentPath = "page/resources/{resource.group ?: "null"}/{resource.name}{#if selectedNamespace}?namespace={selectedNamespace}{/if}"
+              currentPath = "page/resources/{resource.group ?: "null"}/{resource.name}"
             </script>
 
           {/fragment}
@@ -191,7 +192,15 @@
 
           <div class="flex justify-evenly content-stretch mt-[0.15rem] p-[0.125rem]">
             <div class="flex-[1_0_auto] w-[25vw] max-w-[32vw] lg:max-w-[15.5rem] invisible"></div>
-            <div class="flex-[1_0_auto] w-[25vw] max-w-[32vw] lg:max-w-[15.5rem] invisible"></div>
+            <div class="flex items-center flex-[1_0_auto] w-[25vw] max-w-[32vw] lg:max-w-[15.5rem] h-16 p-2 pl-1 bg-primary rounded-2xl">
+              <label for="selectContext">cxt</label>
+              <select id="selectContext" class="w-full h-[2.75rem] ml-1 pl-1 bg-white text-primary rounded-lg" aria-label="Select namespace"
+                      onchange="switchToContext(this.value, event)">
+                {#for context in contexts}
+                  <option value="{context}" {#if context == selectedContext || (selectedContext == null && context == defaultContext)}selected{/if}>{context}</option>
+                {/for}
+              </select>
+            </div>
             <div class="flex items-center flex-[1_0_auto] w-[25vw] max-w-[32vw] lg:max-w-[15.5rem] h-16 p-2 pl-1 bg-primary rounded-2xl">
               <label for="selectNamespace">Ns</label>
               <select id="selectNamespace" class="w-full h-[2.75rem] ml-1 pl-1 bg-white text-primary rounded-lg" aria-label="Select namespace"
@@ -229,8 +238,10 @@
       </div>
 
       <script type="text/javascript">
-        var selectedNamespace = null
-        var currentPath = "page/resources/{resource.group ?: "null"}/{resource.name}{#if selectedNamespace}?namespace={selectedNamespace}{/if}"
+        var selectedContext = {#if selectedContext}"{selectedContext}"{#else}null{/if}
+        var selectedNamespace = {#if selectedNamespace}"{selectedNamespace}"{#else}null{/if}
+        var currentPath = "page/resources/{resource.group ?: "null"}/{resource.name}"
+
         const commandNamesToUrlPath = new Map() // copy commands so that we can access them from JavaScript
         {#for entry in commandNamesToUrlPath}
           commandNamesToUrlPath.set("{entry.key}", {entry.value.raw})
@@ -265,10 +276,7 @@
         }
 
         function displayResourceItems(resourceGroup, resourceName, event) {
-          let path = `page/resources/$\{resourceGroup || "null"}/$\{resourceName}`
-          if (selectedNamespace) {
-            path += `?namespace=$\{selectedNamespace}`
-          }
+          let path = getResourcesPath(resourceGroup, resourceName, selectedNamespace)
 
           executeHtmxRequest(path)
 
@@ -278,21 +286,37 @@
           }
         }
 
+        function switchToContext(context, event) {
+          commandsContainer.classList.add("hidden")
+
+          window.location.search = "?context=" + context
+        }
+
         function switchToNamespace(namespace, event) {
-          let path = currentPath
-          const indexOfNamespaceQueryParam = path.indexOf("namespace=")
-          if (indexOfNamespaceQueryParam > -1) {
-            path = path.substring(0, indexOfNamespaceQueryParam) // TODO: this assumes that there is no other query parameter after the namespace query param
-            if (namespace) {
-              path += "namespace=" + namespace
-            }
-          } else if (namespace) {
-            path += "?namespace=" + namespace // TODO: this assumes that namespace is the only query parameter
-          }
+          const path = appendContextAndNamespaceToPath(currentPath, namespace)
 
           executeHtmxRequest(path)
 
           commandsContainer.classList.add("hidden")
+        }
+
+        function getResourcesPath(resourceGroup, resourceName, namespace) {
+          const path = `page/resources/$\{resourceGroup || "null"}/$\{resourceName}`
+
+          return appendContextAndNamespaceToPath(path, namespace)
+        }
+
+        function appendContextAndNamespaceToPath(path, namespace) {
+          const url = new URL(path, window.location)
+
+          if (selectedContext) {
+            url.searchParams.append("context", selectedContext)
+          }
+          if (namespace) {
+            url.searchParams.append("namespace", namespace)
+          }
+
+          return url.pathname + url.search
         }
 
         function executeHtmxRequest(path, verb) {
@@ -355,7 +379,8 @@
             closeMenu(event) // in case a menu item has been clicked, close menu again
             event.preventDefault()
 
-            window.open(event.srcElement.dataset.logsUrl, "_blank", "popup=true,toolbar=true")
+            const path = appendContextAndNamespaceToPath(event.srcElement.dataset.logsUrl, null)
+            window.open(path, "_blank", "popup=true,toolbar=true")
           }
         }
 

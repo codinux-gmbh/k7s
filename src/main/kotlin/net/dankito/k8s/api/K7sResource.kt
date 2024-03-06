@@ -14,19 +14,19 @@ class K7sResource(
 
     @Path("resources")
     @GET // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
-    fun getAllAvailableResourceTypes() =
-        service.getAllAvailableResourceTypes()
+    fun getAllAvailableResourceTypes(@RestQuery("context") context: String? = null) =
+        service.getAllAvailableResourceTypes(context)
 
     @Path("resource/{resourceName}/{namespace}/{itemName}") // TODO: why doesn't "resources/{namespace}/{itemName}" work?
     @DELETE
-    fun deleteResourceItem(@RestPath("resourceName") resourceName: String, @RestPath("namespace") namespace: String?, @RestPath("itemName") itemName: String) {
-        service.deleteResourceItem(resourceName, namespace?.takeUnless { it.isBlank() || it == "null" }, itemName)
+    fun deleteResourceItem(@RestPath("resourceName") resourceName: String, @RestPath("namespace") namespace: String?, @RestPath("itemName") itemName: String, @RestQuery("context") context: String? = null) {
+        service.deleteResourceItem(resourceName, namespace?.takeUnless { it.isBlank() || it == "null" }, itemName, context)
     }
 
     @Path("resource/{resourceName}/{namespace}/{itemName}")
     @PATCH
-    fun deleteResourceItem(@RestPath("resourceName") resourceName: String, @RestPath("namespace") namespace: String?, @RestPath("itemName") itemName: String, @RestQuery("scaleTo") scaleTo: Int? = null) {
-        service.patchResourceItem(resourceName, namespace?.takeUnless { it.isBlank() || it == "null" }, itemName, scaleTo)
+    fun deleteResourceItem(@RestPath("resourceName") resourceName: String, @RestPath("namespace") namespace: String?, @RestPath("itemName") itemName: String, @RestQuery("context") context: String? = null, @RestQuery("scaleTo") scaleTo: Int? = null) {
+        service.patchResourceItem(resourceName, namespace?.takeUnless { it.isBlank() || it == "null" }, itemName, context, scaleTo)
     }
 
 }

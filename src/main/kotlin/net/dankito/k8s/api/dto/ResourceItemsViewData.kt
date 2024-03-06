@@ -6,6 +6,7 @@ import net.dankito.k8s.domain.model.ResourceItem
 open class ResourceItemsViewData(
     val resource: KubernetesResource,
     resourceItems: List<ResourceItem> = emptyList(),
+    val selectedContext: String?,
     val selectedNamespace: String?
 ) {
 

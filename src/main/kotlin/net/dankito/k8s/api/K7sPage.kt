@@ -33,8 +33,18 @@ class K7sPage(
 
     @GET
     @Blocking // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
-    fun homePage(): TemplateInstance =
-        homePage.data(HomePageData(service.getAllAvailableResourceTypes(), service.getNamespaces(), service.podResource, service.getPods()))
+    fun homePage(
+        @RestQuery("context") context: String? = null
+    ): TemplateInstance =
+        homePage.data(HomePageData(
+            service.getAllAvailableResourceTypes(context),
+            service.getNamespaces(context),
+            service.contextsNames,
+            service.defaultContext,
+            service.podResource,
+            service.getPods(context),
+            context?.takeUnless { it == service.defaultContext }
+        ))
 
     @Path("page/resources/{group}/{name}") // TODO: don't know why, but if i use only "/resources/..." Quarkus cannot resolve the method anymore and i only get 404 Not Found
     @GET
@@ -42,17 +52,18 @@ class K7sPage(
     fun getResourcesView(
         @RestPath("group") group: String,
         @RestPath("name") name: String,
+        @RestQuery("context") context: String? = null,
         @RestQuery("namespace") namespace: String? = null,
     ): TemplateInstance {
-        val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name)
+        val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name, context)
         if (resource == null) {
             throw NotFoundException("Resource for group '$group' and name '$name' not found in Kubernetes cluster")
         }
 
-        val resourceItems = service.getResourceItems(resource, namespace)
+        val resourceItems = service.getResourceItems(resource, context, namespace)
 
         return homePage.getFragment("resourceItems")
-            .data(ResourceItemsViewData(resource, resourceItems, namespace))
+            .data(ResourceItemsViewData(resource, resourceItems, context.takeUnless { it == service.defaultContext }, namespace))
     }
 
     @Path("watch/resources/{group}/{name}")
@@ -63,6 +74,7 @@ class K7sPage(
     fun watchResources(
         @RestPath("group") group: String,
         @RestPath("name") name: String,
+        @RestQuery("context") context: String? = null,
         @RestQuery("namespace") namespace: String? = null,
         @Context sseEventSink: SseEventSink
     ) {
@@ -80,7 +92,7 @@ class K7sPage(
             if (sseEventSink.isClosed) {
                 return@watchResourceItems // TODO: stop watcher
             } else {
-                val html = fragment.data(ResourceItemsViewData(resource, resourceItems, namespace)).render()
+                val html = fragment.data(ResourceItemsViewData(resource, resourceItems, context.takeUnless { it == service.defaultContext }, namespace)).render()
                 sseEventSink.send(sse.newEvent("resourceItemsUpdated", html))
             }
         }
@@ -95,12 +107,13 @@ class K7sPage(
         @RestPath("namespace") namespace: String,
         @RestPath("itemName") itemName: String,
         @RestQuery("containerName") containerName: String? = null,
+        @RestQuery("context") context: String? = null,
         @RestQuery("since") since: String? = null
     ): TemplateInstance {
         val sinceTimeUtc = since?.let { ZonedDateTime.parse(it) }
         val startWatchingAt = Instant.now().atZone(ZoneOffset.UTC)
 
-        val logs = service.getLogs(resourceKind, namespace, itemName, containerName, sinceTimeUtc)
+        val logs = service.getLogs(resourceKind, namespace, itemName, containerName, context, sinceTimeUtc)
 
         return logsView
             .data("logs", logs)
@@ -117,12 +130,13 @@ class K7sPage(
         @RestPath("namespace") namespace: String,
         @RestPath("itemName") itemName: String,
         @RestQuery("containerName") containerName: String? = null,
+        @RestQuery("context") context: String? = null,
         @RestQuery("since") since: String? = null,
         @Context sseEventSink: SseEventSink
     ) {
         val sinceTimeUtc = since?.let { ZonedDateTime.parse(it) }
 
-        val inputStream = service.watchLogs(resourceKind, namespace, itemName, containerName, sinceTimeUtc)
+        val inputStream = service.watchLogs(resourceKind, namespace, itemName, containerName, context, sinceTimeUtc)
 
         inputStream?.bufferedReader()?.use { logReader ->
             logReader.forEachLine { line ->

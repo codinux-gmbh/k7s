@@ -1,6 +1,8 @@
 package net.dankito.k8s.api.templates
 
 import io.quarkus.qute.TemplateExtension
+import jakarta.ws.rs.core.UriBuilder
+import net.dankito.k8s.api.dto.ResourceItemsViewData
 import net.dankito.k8s.domain.model.KubernetesResource
 
 @TemplateExtension
@@ -18,5 +20,20 @@ object ResourceItemTemplateExtensions {
             "Node" -> listOf("Status", "Taints", "Version", "Kernel", "CPU", "%CPU", "CPU/A", "Mem", "%Mem", "Mem/A", "Images")
             else -> emptyList()
         }
+
+    @JvmStatic
+    fun createWatchResourcePath(data: ResourceItemsViewData): String {
+        val resource = data.resource
+        val uriBuilder = UriBuilder.fromPath("watch/resources/${resource.group ?: "null"}/${resource.name}")
+
+        if (data.selectedContext != null) {
+            uriBuilder.queryParam("context", data.selectedContext)
+        }
+        if (data.selectedNamespace != null) {
+            uriBuilder.queryParam("namespace", data.selectedNamespace)
+        }
+
+        return uriBuilder.toTemplate()
+    }
 
 }

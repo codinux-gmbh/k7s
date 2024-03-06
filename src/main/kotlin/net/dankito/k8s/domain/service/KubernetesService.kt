@@ -9,25 +9,25 @@ import io.fabric8.kubernetes.api.model.metrics.v1beta1.PodMetricsList
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress
 import io.fabric8.kubernetes.client.ApiVisitor
 import io.fabric8.kubernetes.client.KubernetesClient
+import io.fabric8.kubernetes.client.KubernetesClientBuilder
 import io.fabric8.kubernetes.client.dsl.*
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext
 import jakarta.inject.Singleton
 import net.codinux.log.logger
+import net.dankito.k8s.domain.model.*
 import net.dankito.k8s.domain.model.ContainerStatus
 import net.dankito.k8s.domain.model.KubernetesResource
-import net.dankito.k8s.domain.model.PodResourceItem
-import net.dankito.k8s.domain.model.ResourceItem
-import net.dankito.k8s.domain.model.Verb
 import java.io.InputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.util.concurrent.ConcurrentHashMap
 
 @Singleton
 class KubernetesService(
-    private val client: KubernetesClient
+    private val kubeConfigs: KubeConfigs
 ) {
 
     companion object {
@@ -37,21 +37,25 @@ class KubernetesService(
     }
 
 
-    private lateinit var customResourceDefinitions: List<KubernetesResource>
+    val contextsNames: List<String> = kubeConfigs.contextConfigs.keys.sorted()
 
-    private lateinit var allAvailableResourceTypes: List<KubernetesResource>
+    val defaultContext = kubeConfigs.defaultContext
 
-    private var isMetricsApiAvailable: Boolean? = null
+    private val clientForContext = ConcurrentHashMap<String?, KubernetesClient>()
+
+    private val allAvailableResourceTypes = ConcurrentHashMap<String?, List<KubernetesResource>>()
+
+    private val isMetricsApiAvailable = ConcurrentHashMap<String?, Boolean>()
 
     private val log by logger()
 
 
     // for deprecated API groups see https://kubernetes.io/docs/reference/using-api/deprecation-guide/
-    fun getNamespaces() = listItems(namespaceResource, client.namespaces())
+    fun getNamespaces(context: String? = null) = listItems(namespaceResource, getClient(context).namespaces())
 
-    fun getPods(namespace: String? = null) = listItems(podResource, client.pods(), namespace, getMetrics(client.top().pods(), namespace))
+    fun getPods(context: String? = null, namespace: String? = null) = listItems(podResource, getClient(context).pods(), namespace, getMetrics(getClient(context).top().pods(), namespace))
 
-    fun getServices(namespace: String? = null) = listItems(serviceResource, client.services(), namespace)
+    fun getServices(context: String? = null, namespace: String? = null) = listItems(serviceResource, getClient(context).services(), namespace)
 
     val namespaceResource by lazy { getResource(null, "namespaces")!! }
 
@@ -72,12 +76,20 @@ class KubernetesService(
     val persistentVolumeClaimResource by lazy { getResource(null, "persistentvolumeclaims")!! }
 
 
-    fun getCustomResourceDefinitions(): List<KubernetesResource> {
-        if (this::customResourceDefinitions.isInitialized) {
-            customResourceDefinitions
-        }
+    private fun getClient(context: String?): KubernetesClient {
+        val contextToSearch = context ?: defaultContext
 
-        val crds = client.apiextensions().v1().customResourceDefinitions().list().items
+        return clientForContext.getOrPut(contextToSearch) {
+            if (contextToSearch == null) {
+                KubernetesClientBuilder().build()
+            } else {
+                KubernetesClientBuilder().withConfig(kubeConfigs.contextConfigs[contextToSearch]).build()
+            }
+        }
+    }
+
+    fun getCustomResourceDefinitions(context: String? = null): List<KubernetesResource> {
+        val crds = getClient(context).apiextensions().v1().customResourceDefinitions().list().items
 
         return crds.map { crd ->
             val storageVersion = crd.spec.versions.first { it.storage }
@@ -94,18 +106,15 @@ class KubernetesService(
                 shortNames = crd.spec.names.shortNames.takeIf { it.isNotEmpty() },
                 servedVersions = crd.spec.versions.map { it.name }
             )
-        }.also {
-            this.customResourceDefinitions = it
         }
     }
 
-    fun getAllAvailableResourceTypes(): List<KubernetesResource> {
-        if (this::allAvailableResourceTypes.isInitialized) {
-            allAvailableResourceTypes
-        }
+    fun getAllAvailableResourceTypes(context: String? = null): List<KubernetesResource> =
+        allAvailableResourceTypes.getOrPut(context ?: defaultContext) { retrieveAllAvailableResourceTypes(context) }
 
+    private fun retrieveAllAvailableResourceTypes(context: String? = null): List<KubernetesResource> {
         val apiResourceByIdentifier = mutableMapOf<String, MutableList<Triple<String, String, APIResource>>>()
-        client.visitResources { group, version, apiResource, _ ->
+        getClient(context).visitResources { group, version, apiResource, _ ->
             apiResourceByIdentifier.getOrPut(KubernetesResource.createIdentifier(group, apiResource.name), { mutableListOf() })
                 .add(Triple(group, version, apiResource))
 
@@ -119,8 +128,6 @@ class KubernetesService(
             val versions = apiResources.map { it.second }
             map(group.takeUnless { it.isNullOrBlank() }, versions, apiResources.firstNotNullOf { it.third }, crds)
         }
-
-        this.allAvailableResourceTypes = resources
 
         return resources
     }
@@ -158,8 +165,8 @@ class KubernetesService(
     }
 
 
-    fun getResource(group: String?, name: String): KubernetesResource? {
-        val resources = getAllAvailableResourceTypes().filter { it.group == group && it.name == name }
+    fun getResource(group: String?, name: String, context: String? = null): KubernetesResource? {
+        val resources = getAllAvailableResourceTypes(context).filter { it.group == group && it.name == name }
 
         if (resources.isEmpty()) {
             log.error { "Could not find resource for group = $group and name = $name. Should never happen." }
@@ -168,8 +175,8 @@ class KubernetesService(
         return findBestAvailableResource(resources)
     }
 
-    fun getResourceByName(resourceName: String): KubernetesResource? {
-        val resources = getAllAvailableResourceTypes().filter { it.name == resourceName }
+    fun getResourceByName(resourceName: String, context: String? = null): KubernetesResource? {
+        val resources = getAllAvailableResourceTypes(context).filter { it.name == resourceName }
 
         if (resources.isEmpty()) {
             log.error { "Could not find resource with name '$resourceName'. Are you sure that it exists?." }
@@ -186,11 +193,13 @@ class KubernetesService(
         return resources.first { it.version == it.storageVersion }
     }
 
-    fun getResourceItems(resource: KubernetesResource, namespace: String? = null): List<ResourceItem> {
+    fun getResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null): List<ResourceItem> {
+        val client = getClient(context)
+
         return if (resource == podResource) {
-            getPods(namespace)
+            getPods(context, namespace)
         } else if (resource == serviceResource) {
-            getServices(namespace)
+            getServices(context, namespace)
         } else if (resource == namespaceResource) {
             listItems(namespaceResource, client.namespaces())
         } else if (resource == nodeResource) {
@@ -220,24 +229,24 @@ class KubernetesService(
                 listItems(resource, client.apps().deployments(), namespace) // TODO: where are apps/v1beta1 and apps/v1beta2 versions of deployments?
             }
         } else {
-            listItems(resource, getGenericResources(resource, namespace))
+            listItems(resource, getGenericResources(resource, context, namespace))
         }
     }
 
-    fun watchResourceItems(resource: KubernetesResource, namespace: String? = null, update: (List<ResourceItem>) -> Unit) {
+    fun watchResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null, update: (List<ResourceItem>) -> Unit) {
         if (resource.isWatchable == false) {
             return // a not watchable resource like Binding, ComponentStatus, NodeMetrics, PodMetrics, ...
         }
 
-        val resources = getGenericResources(resource, namespace)
+        val resources = getGenericResources(resource, context, namespace)
 
         resources.watch(KubernetesResourceWatcher<GenericKubernetesResource> { _, _ ->
-            update(getResourceItems(resource, namespace)) // TODO: make diff update instead of fetching all items again
+            update(getResourceItems(resource, context, namespace)) // TODO: make diff update instead of fetching all items again
         })
     }
 
-    private fun getGenericResources(resource: KubernetesResource, namespace: String?) =
-        client.genericKubernetesResources(getResourceContext(resource)).let {
+    private fun getGenericResources(resource: KubernetesResource, context: String?, namespace: String?) =
+        getClient(context).genericKubernetesResources(getResourceContext(resource)).let {
             if (namespace != null) {
                 it.inNamespace(namespace)
             } else {
@@ -254,7 +263,7 @@ class KubernetesService(
             .withNamespaced(resource.isNamespaced)
             .build()
 
-    fun getResourceItemsResponse(resource: KubernetesResource): String? {
+    fun getResourceItemsResponse(resource: KubernetesResource, context: String? = null): String? {
         return if (resource.containsVerb(Verb.list) == false) {
             null
         } else {
@@ -267,9 +276,9 @@ class KubernetesService(
                 // - without group: /api/v1/namespaces/collab/pods
                 // - with group: /apis/apps/v1/namespaces/collab/deployments
                 if (resource.group.isNullOrBlank()) {
-                    client.raw("/api/${resource.storageVersion}/${resource.name}")
+                    getClient(context).raw("/api/${resource.storageVersion}/${resource.name}")
                 } else {
-                    client.raw("/apis/${resource.group}/${resource.storageVersion}/${resource.name}")
+                    getClient(context).raw("/apis/${resource.group}/${resource.storageVersion}/${resource.name}")
                 }
             } catch (e: Exception) {
                 log.error(e) { "Could not request all items of resource $resource" }
@@ -398,8 +407,9 @@ class KubernetesService(
         metricValue.setScale(0, RoundingMode.UP).toString()
     }
 
-    private fun getMetrics(metricOperation: MetricOperation<*, *>, namespace: String? = null): KubernetesResourceList<HasMetadata>? {
-        if (this.isMetricsApiAvailable == false) {
+    private fun getMetrics(metricOperation: MetricOperation<*, *>, context: String? = null, namespace: String? = null): KubernetesResourceList<HasMetadata>? {
+        val actualContext = context ?: defaultContext
+        if (this.isMetricsApiAvailable[actualContext] == false) {
             return null
         }
 
@@ -413,31 +423,31 @@ class KubernetesService(
 
             val result = operation.metrics() as? KubernetesResourceList<HasMetadata>
             if (result != null) {
-                isMetricsApiAvailable = true
+                isMetricsApiAvailable[actualContext] = true
             }
 
             result
         } catch (e: Throwable) {
             log.error(e) { "Could not fetch metrics" }
-            if (isMetricsApiAvailable == null) {
-                isMetricsApiAvailable = false // TODO: this is not fully correct, check kind of error as soon as correct error code (e.g. 404) is known
+            if (isMetricsApiAvailable[actualContext] == null) {
+                isMetricsApiAvailable[actualContext] = false // TODO: this is not fully correct, check kind of error as soon as correct error code (e.g. 404) is known
             }
             null
         }
     }
 
 
-    fun patchResourceItem(resourceName: String, namespace: String?, itemName: String, scaleTo: Int? = null): Boolean {
-        val resource = getResourceByName(resourceName)
+    fun patchResourceItem(resourceName: String, namespace: String?, itemName: String, context: String? = null, scaleTo: Int? = null): Boolean {
+        val resource = getResourceByName(resourceName, context)
         if (resource != null) {
             if (scaleTo != null && scaleTo > -1 && resource.isScalable) {
                 // TODO: check for older versions e.g. extensions/deployment
                 val result = if (resource.name == "deployments") {
-                    client.apps().deployments().inNamespace(namespace).withName(itemName).edit { item ->
+                    getClient(context).apps().deployments().inNamespace(namespace).withName(itemName).edit { item ->
                         DeploymentBuilder(item).editSpec().withReplicas(scaleTo).endSpec().build()
                     }
                 } else if (resource.name == "statefulsets") {
-                    client.apps().statefulSets().inNamespace(namespace).withName(itemName).edit { item ->
+                    getClient(context).apps().statefulSets().inNamespace(namespace).withName(itemName).edit { item ->
                         StatefulSetBuilder(item).editSpec().withReplicas(scaleTo).endSpec().build()
                     }
                 } else {
@@ -451,10 +461,10 @@ class KubernetesService(
         return false
     }
 
-    fun deleteResourceItem(resourceName: String, namespace: String?, itemName: String): Boolean {
+    fun deleteResourceItem(resourceName: String, namespace: String?, itemName: String, context: String? = null): Boolean {
         val resource = getResourceByName(resourceName)
         if (resource != null) {
-            val statuses = getGenericResources(resource, namespace).withName(itemName).delete()
+            val statuses = getGenericResources(resource, namespace, context).withName(itemName).delete()
 
             return statuses.all { it.causes.isNullOrEmpty() }
         }
@@ -463,8 +473,8 @@ class KubernetesService(
     }
 
 
-    fun getLogs(resourceKind: String, namespace: String, itemName: String, containerName: String? = null, sinceTimeUtc: ZonedDateTime? = null): List<String> =
-        getLoggable(resourceKind, namespace, itemName, containerName)
+    fun getLogs(resourceKind: String, namespace: String, itemName: String, containerName: String? = null, context: String? = null, sinceTimeUtc: ZonedDateTime? = null): List<String> =
+        getLoggable(resourceKind, namespace, itemName, containerName, context)
             .sinceTime((sinceTimeUtc ?: Instant.now().atOffset(ZoneOffset.UTC).minusMinutes(10)).toString())
             .getLog(true)
             .split('\n')
@@ -476,15 +486,15 @@ class KubernetesService(
                 }
             }
 
-    fun watchLogs(resourceKind: String, namespace: String, itemName: String, containerName: String? = null, sinceTimeUtc: ZonedDateTime? = null): InputStream? =
-        getLoggable(resourceKind, namespace, itemName, containerName)
+    fun watchLogs(resourceKind: String, namespace: String, itemName: String, containerName: String? = null, context: String? = null, sinceTimeUtc: ZonedDateTime? = null): InputStream? =
+        getLoggable(resourceKind, namespace, itemName, containerName, context)
             .sinceTime((sinceTimeUtc ?: Instant.now().atOffset(ZoneOffset.UTC)).toString())
             // if the pods of an (old) RollableScalableResource like Deployment, ReplicaSet, ... don't exist anymore then watchLog() returns null
             .watchLog()?.output
 
     // oh boy is that ugly code!
-    private fun getLoggable(resourceKind: String, namespace: String, itemName: String, containerName: String?): TimeTailPrettyLoggable =
-        ((getLoggableForResource(resourceKind).inNamespace(namespace) as Nameable<*>).withName(itemName) as TimeTailPrettyLoggable).let {
+    private fun getLoggable(resourceKind: String, namespace: String, itemName: String, containerName: String?, context: String? = null): TimeTailPrettyLoggable =
+        ((getLoggableForResource(resourceKind, context).inNamespace(namespace) as Nameable<*>).withName(itemName) as TimeTailPrettyLoggable).let {
             if (containerName != null && it is PodResource) {
                 it.inContainer(containerName) as TimeTailPrettyLoggable
             } else {
@@ -493,13 +503,13 @@ class KubernetesService(
         }
 
     //private fun <E, L : KubernetesResourceList<E>, T> getLoggableForResource(resourceKind: String): MixedOperation<out E, out L, out T> where T : Resource<E>, T : Loggable = when (resourceKind) {
-    private fun getLoggableForResource(resourceKind: String): Namespaceable<*> = when (resourceKind) {
-        "pods" -> client.pods()
-        "deployments" -> client.apps().deployments()
-        "statefulsets" -> client.apps().statefulSets()
-        "daemonsets" -> client.apps().daemonSets()
-        "replicasets" -> client.apps().replicaSets()
-        "jobs" -> client.batch().v1().jobs()
+    private fun getLoggableForResource(resourceKind: String, context: String? = null): Namespaceable<*> = when (resourceKind) {
+        "pods" -> getClient(context).pods()
+        "deployments" -> getClient(context).apps().deployments()
+        "statefulsets" -> getClient(context).apps().statefulSets()
+        "daemonsets" -> getClient(context).apps().daemonSets()
+        "replicasets" -> getClient(context).apps().replicaSets()
+        "jobs" -> getClient(context).batch().v1().jobs()
         else -> throw IllegalArgumentException("Trying to get Loggable for resource '$resourceKind' which is not loggable")
     } as Namespaceable<*>
 
