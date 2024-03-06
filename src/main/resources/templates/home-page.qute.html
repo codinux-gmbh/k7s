@@ -83,7 +83,7 @@
           </datalist>
         </div>
 
-        <div id="resourceItemsContainer" class="flex flex-col">
+        <div id="resourceItemsContainer" class="flex flex-col" hx-swap="outerHTML">
           {#fragment id=resourceItems}
             <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border"
                    {#if resource.isWatchable}hx-ext="sse" sse-connect="watch/resources/{resource.group ?: "null"}/{resource.name}{#if selectedNamespace}?namespace={selectedNamespace}{/if}" sse-swap="resourceItemsUpdated"{/if}>
