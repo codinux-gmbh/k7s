@@ -117,7 +117,7 @@
                         <div class="grow truncate">{item.name}</div>
                         {#if resource.isPod}
                           <div class="w-4 ml-1 text-center flex-[0_0_auto]">{item.countReadyContainers}/{item.container.size}</div>
-                          <div class="w-[3.5rem] ml-1 flex-[0_0_auto]">{item.phase}</div>
+                          <div class="w-[3.5rem] ml-1 flex-[0_0_auto]">{item.status}</div>
                         {/if}
                       </div>
                       {#if item.additionalValues}
@@ -133,7 +133,7 @@
                     <td class="truncate hidden lg:table-cell">{item.name}</td>
                     {#if resource.isPod}
                       <td class="text-center hidden lg:table-cell">{item.countReadyContainers}/{item.container.size}</td>
-                      <td class="hidden lg:table-cell">{item.phase}</td>
+                      <td class="hidden lg:table-cell">{item.status}</td>
                     {/if}
                     {#for keyValue in item.additionalValues}
                       <td class="hidden lg:table-cell">{keyValue.value}</td>

@@ -316,12 +316,48 @@ class KubernetesService(
 
         return if (item is Pod) {
             val status = item.status
-            PodResourceItem(name, namespace, status.phase, status.podIP, additionalValues, status.containerStatuses.map {
+            PodResourceItem(name, namespace, mapPodStatus(status), status.podIP, additionalValues, status.containerStatuses.map {
                 ContainerStatus(it.name, try { it.containerID } catch (ignored: Exception) { null }, it.image, it.imageID, it.restartCount, it.started, it.ready, it.state.waiting != null, it.state.running != null, it.state.terminated != null)
             })
         } else {
             ResourceItem(name, namespace, additionalValues)
         }
+    }
+
+    private fun mapPodStatus(status: PodStatus): String {
+        val notRunningContainer = if (status.containerStatuses.size == 1) status.containerStatuses.first().takeIf { it.state.running == null }
+        else if (status.containerStatuses.size > 1) status.containerStatuses.firstOrNull { it.state.running == null && it.state.terminated?.reason != "Completed" }
+        else null
+
+        // if a container is not running, use their state reason as status for whole pod
+        if (notRunningContainer != null) {
+            /**
+             * Possible values of waiting.reason:
+             *     ContainerCreating,
+             *     CrashLoopBackOff,
+             *     ErrImagePull,
+             *     ImagePullBackOff,
+             *     CreateContainerConfigError,
+             *     InvalidImageName,
+             *     ErrImageNeverPull
+             *     CreateContainerError
+             *
+             *
+             * Possible values of terminated.reason:
+             *     OOMKilled,
+             *     Error,
+             *     Completed,
+             *     ContainerCannotRun,
+             *     DeadlineExceeded
+             *
+             */
+            val reason = notRunningContainer.state.waiting?.reason ?: notRunningContainer.state.terminated?.reason
+            if (reason != null) {
+                return reason.replace("ContainerCreating", "Creating")
+            }
+        }
+
+        return status.phase // else use PodStatus.phase (Pending, Running, Succeeded, Failed, Unknown) as default
     }
 
     private fun <T> getAdditionalValues(item: T, metrics: KubernetesResourceList<HasMetadata>? = null): Map<String, String?> {
