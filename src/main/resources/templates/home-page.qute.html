@@ -105,7 +105,7 @@
 
               <tbody>
                 {#for item in resourceItems}
-                  <tr class="border-b first:border-t border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-[#326CE5] lg:hover:text-white" tabindex="0"
+                  <tr class="border-b first:border-t border-zinc-200 even:bg-zinc-100/50 {item.getItemStyle()}lg:hover:bg-[#326CE5] lg:hover:text-white" tabindex="0"
                       {#if resource.isLoggable}data-logs-url="logs/{resource.name}/{item.namespace}/{item.name}"{/if}
                       onmousedown="onTableRowMouseDown(event)" oncontextmenu="showMenu(this, event)"
                       onkeydown="onTableRowKeyDown(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}', {resource.isScalable}, {resource.isDeletable}, {resource.allowDeletingWithoutConfirmation})"

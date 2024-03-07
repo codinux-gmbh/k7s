@@ -4,9 +4,39 @@ import io.quarkus.qute.TemplateExtension
 import jakarta.ws.rs.core.UriBuilder
 import net.dankito.k8s.api.dto.ResourceItemsViewData
 import net.dankito.k8s.domain.model.KubernetesResource
+import net.dankito.k8s.domain.model.PodResourceItem
+import net.dankito.k8s.domain.model.ResourceItem
 
 @TemplateExtension
 object ResourceItemTemplateExtensions {
+
+    const val PendingStateStyle = "text-orange-500 "
+
+    const val SucceededStateStyle = "text-gray-400 "
+
+    const val ErrorStateStyle = "text-red-700 "
+
+    @JvmStatic
+    fun getItemStyle(item: ResourceItem): String {
+        if (item is PodResourceItem) {
+            return when (item.status) {
+                "Creating", "PodInitializing", "ContainerCreating", "Pending" -> PendingStateStyle
+                "Succeeded", "Completed" -> SucceededStateStyle
+                "Failed", "Error", "CrashLoopBackOff", "ImagePullBackOff", "CreateContainerConfigError", "InvalidImageName",
+                "ErrImageNeverPull", "CreateContainerError", "OOMKilled", "ContainerCannotRun", "DeadlineExceeded" -> ErrorStateStyle
+                "Running" -> {
+                    if (item.countReadyContainers != item.container.size) {
+                        ErrorStateStyle
+                    } else {
+                        ""
+                    }
+                }
+                else -> ""
+            }
+        }
+
+        return ""
+    }
 
     @JvmStatic
     fun getAdditionalValuesNames(resource: KubernetesResource): List<String> =
