@@ -42,7 +42,8 @@
             user-select: none; /* to now show select text cursor */
           }
           .menu-item:hover {
-            background-color: rgb(228 228 231);
+            color: white;
+            background-color: #326CE5;
           }
           .menu-item:last-child {
               border-bottom: none;
@@ -104,7 +105,7 @@
 
               <tbody>
                 {#for item in resourceItems}
-                  <tr class="border-b first:border-t border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200" tabindex="0"
+                  <tr class="border-b first:border-t border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-[#326CE5] lg:hover:text-white" tabindex="0"
                       {#if resource.isLoggable}data-logs-url="logs/{resource.name}/{item.namespace}/{item.name}"{/if}
                       onmousedown="onTableRowMouseDown(event)" oncontextmenu="showMenu(this, event)"
                       onkeydown="onTableRowKeyDown(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}', {resource.isScalable}, {resource.isDeletable}, {resource.allowDeletingWithoutConfirmation})"
@@ -138,8 +139,8 @@
                       <td class="hidden lg:table-cell">{keyValue.value}</td>
                     {/for}
                     <td class="w-8 sm:w-12 p-0">
-                      <div class="menu-toggler flex justify-center items-center w-full h-full text-zinc-500 text-3xl cursor-pointer" onclick="showMenu(this, event)">&#xFE19;</div>
-                      <div class="menu fixed min-w-[9rem] right-2 bg-white text-xl shadow-xl z-10 hidden">
+                      <div class="menu-toggler flex justify-center items-center w-full h-full text-zinc-500 lg:hover:text-white text-3xl cursor-pointer" onclick="showMenu(this, event)">&#xFE19;</div>
+                      <div class="menu fixed min-w-[9rem] right-2 bg-white text-zinc-700 text-xl shadow-xl z-10 hidden">
                         <ul class="list-none">
                           {#if resource.isLoggable}<li class="menu-item" onclick="showLogs(event)" data-logs-url="logs/{resource.name}/{item.namespace}/{item.name}">Logs</li>{/if}
                           {#if resource.isScalable}<li class="menu-item" onclick="scaleTo(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}')">Scale</li>{/if}

@@ -21,7 +21,7 @@
     <table class="table-fixed w-full text-xs sm:text-[1rem]">
         <tbody>
             {#for resource in highlightedResources}
-              <tr class="cursor-pointer lg:hover:bg-zinc-200" onclick="displayResourceItems('{resource.group}', '{resource.name}', event)">
+              <tr class="cursor-pointer lg:hover:bg-[#326CE5] lg:hover:text-white" onclick="displayResourceItems('{resource.group}', '{resource.name}', event)">
                   <td class="resource-cell">
                       {resource.kind}
                   </td>
@@ -37,7 +37,7 @@
     <table class="table-fixed w-full text-xs sm:text-[1rem] hidden">
         <tbody>
             {#for resource in standardResources}
-                <tr class="cursor-pointer lg:hover:bg-zinc-200" onclick="displayResourceItems('{resource.group}', '{resource.name}', event)">
+                <tr class="cursor-pointer lg:hover:bg-[#326CE5] lg:hover:text-white" onclick="displayResourceItems('{resource.group}', '{resource.name}', event)">
                     <td class="resource-cell">
                         {resource.kind}
                     </td>
@@ -53,7 +53,7 @@
     <table class="table-fixed w-full text-xs sm:text-[1rem] hidden">
         <tbody>
             {#for resource in customResourceDefinitions}
-                <tr class="cursor-pointer lg:hover:bg-zinc-200" onclick="displayResourceItems('{resource.group}', '{resource.name}', event)">
+                <tr class="cursor-pointer lg:hover:bg-[#326CE5] lg:hover:text-white" onclick="displayResourceItems('{resource.group}', '{resource.name}', event)">
                     <td class="resource-cell">
                         {resource.kind} {resource.group}.{resource.version}
                     </td>
