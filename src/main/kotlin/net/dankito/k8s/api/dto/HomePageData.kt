@@ -12,8 +12,9 @@ class HomePageData(
     val defaultContext: String?,
     resource: KubernetesResource,
     resourceItems: List<ResourceItem> = emptyList(),
-    selectedContext: String? = null
-) : ResourceItemsViewData(resource, resourceItems, selectedContext, null) {
+    selectedContext: String? = null,
+    resourceVersion: String? = null
+) : ResourceItemsViewData(resource, resourceItems, selectedContext, null, resourceVersion) {
 
     companion object {
         private val highlightedResourcesNames = hashSetOf("pods", "services", "ingresses")

@@ -193,7 +193,7 @@ class KubernetesService(
         return resources.first { it.version == it.storageVersion }
     }
 
-    fun getResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null): List<ResourceItem> {
+    fun getResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null): ResourceItems? {
         val client = getClient(context)
 
         return if (resource == podResource) {
@@ -201,7 +201,7 @@ class KubernetesService(
         } else if (resource == serviceResource) {
             getServices(context, namespace)
         } else if (resource == namespaceResource) {
-            listItems(namespaceResource, client.namespaces())
+            getNamespaces(context)
         } else if (resource == nodeResource) {
             listItems(namespaceResource, client.nodes(), metrics = getMetrics(client.top().nodes()))
         } else if (resource == configMapResource) {
@@ -233,15 +233,19 @@ class KubernetesService(
         }
     }
 
-    fun watchResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null, update: (List<ResourceItem>) -> Unit) {
+    fun watchResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null, resourceVersion: String? = null, update: (List<ResourceItem>) -> Unit) {
         if (resource.isWatchable == false) {
             return // a not watchable resource like Binding, ComponentStatus, NodeMetrics, PodMetrics, ...
         }
 
         val resources = getGenericResources(resource, context, namespace)
 
-        resources.watch(KubernetesResourceWatcher<GenericKubernetesResource> { _, _ ->
-            update(getResourceItems(resource, context, namespace)) // TODO: make diff update instead of fetching all items again
+        val options = ListOptions().apply {
+            resourceVersion?.let { this.resourceVersion = it }
+        }
+        resources.watch(options, KubernetesResourceWatcher<GenericKubernetesResource> { _, _ ->
+            // TODO: make diff update instead of fetching all items again
+            getResourceItems(resource, context, namespace)?.let { update(it.items) }
         })
     }
 
@@ -292,21 +296,24 @@ class KubernetesService(
         operation: AnyNamespaceOperation<T, L, R>,
         namespace: String? = null,
         metrics: KubernetesResourceList<HasMetadata>? = null
-    ): List<ResourceItem> =
+    ): ResourceItems? =
         try {
-            operation.let {
+            val listable = operation.let {
                 if (namespace != null && operation is MixedOperation<T, L, *>) {
                     operation.inNamespace(namespace)
                 } else {
                     operation
                 }
             }
-                .list().items.let { it as List<T> }.map { item ->
+                .list()
+
+            val items = listable.items.let { it as List<T> }.map { item ->
                 mapResourceItem(item, metrics)
             }
+            ResourceItems(listable.metadata.resourceVersion, items)
         } catch (e: Exception) {
             log.error(e) { "Could not get items for resource '$resource'" }
-            emptyList()
+            null
         }
 
     private fun <T : HasMetadata> mapResourceItem(item: T, metrics: KubernetesResourceList<HasMetadata>? = null): ResourceItem {

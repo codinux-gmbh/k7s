@@ -7,7 +7,8 @@ open class ResourceItemsViewData(
     val resource: KubernetesResource,
     resourceItems: List<ResourceItem> = emptyList(),
     val selectedContext: String?,
-    val selectedNamespace: String?
+    val selectedNamespace: String?,
+    val resourceVersion: String? = null
 ) {
 
     companion object {

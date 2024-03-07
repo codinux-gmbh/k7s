@@ -64,6 +64,9 @@ object ResourceItemTemplateExtensions {
         if (data.selectedNamespace != null) {
             uriBuilder.queryParam("namespace", data.selectedNamespace)
         }
+        if (data.resourceVersion != null) {
+            uriBuilder.queryParam("resourceVersion", data.resourceVersion)
+        }
 
         return uriBuilder.toTemplate()
     }

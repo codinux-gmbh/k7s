@@ -35,16 +35,20 @@ class K7sPage(
     @Blocking // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
     fun homePage(
         @RestQuery("context") context: String? = null
-    ): TemplateInstance =
-        homePage.data(HomePageData(
+    ): TemplateInstance {
+        val defaultResource = service.getPods(context)
+
+        return homePage.data(HomePageData(
             service.getAllAvailableResourceTypes(context),
-            service.getNamespaces(context),
+            service.getNamespaces(context)?.items.orEmpty(),
             service.contextsNames,
             service.defaultContext,
             service.podResource,
-            service.getPods(context),
-            context?.takeUnless { it == service.defaultContext }
+            defaultResource?.items.orEmpty(),
+            context?.takeUnless { it == service.defaultContext },
+            defaultResource?.resourceVersion
         ))
+    }
 
     @Path("page/resources/{group}/{name}") // TODO: don't know why, but if i use only "/resources/..." Quarkus cannot resolve the method anymore and i only get 404 Not Found
     @GET
@@ -63,7 +67,7 @@ class K7sPage(
         val resourceItems = service.getResourceItems(resource, context, namespace)
 
         return homePage.getFragment("resourceItems")
-            .data(ResourceItemsViewData(resource, resourceItems, context.takeUnless { it == service.defaultContext }, namespace))
+            .data(ResourceItemsViewData(resource, resourceItems?.items.orEmpty(), context.takeUnless { it == service.defaultContext }, namespace, resourceItems?.resourceVersion))
     }
 
     @Path("watch/resources/{group}/{name}")
@@ -76,6 +80,7 @@ class K7sPage(
         @RestPath("name") name: String,
         @RestQuery("context") context: String? = null,
         @RestQuery("namespace") namespace: String? = null,
+        @RestQuery("resourceVersion") resourceVersion: String? = null,
         @Context sseEventSink: SseEventSink
     ) {
         val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name, context)
@@ -88,7 +93,7 @@ class K7sPage(
 
         val fragment = homePage.getFragment("resourceItems")
 
-        service.watchResourceItems(resource, context, namespace) { resourceItems ->
+        service.watchResourceItems(resource, context, namespace, resourceVersion?.takeUnless { it.isBlank() || it == "null" }) { resourceItems ->
             if (sseEventSink.isClosed) {
                 return@watchResourceItems // TODO: stop watcher
             } else {
