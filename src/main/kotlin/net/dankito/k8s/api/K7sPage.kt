@@ -78,7 +78,7 @@ class K7sPage(
         @RestQuery("namespace") namespace: String? = null,
         @Context sseEventSink: SseEventSink
     ) {
-        val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name)
+        val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name, context)
         if (resource == null) {
             throw NotFoundException("Resource for group '$group' and name '$name' not found in Kubernetes cluster")
         }
@@ -88,7 +88,7 @@ class K7sPage(
 
         val fragment = homePage.getFragment("resourceItems")
 
-        service.watchResourceItems(resource, namespace) { resourceItems ->
+        service.watchResourceItems(resource, context, namespace) { resourceItems ->
             if (sseEventSink.isClosed) {
                 return@watchResourceItems // TODO: stop watcher
             } else {
