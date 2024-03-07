@@ -34,18 +34,20 @@ class KubernetesService(
         val LoggableResourceKinds = hashSetOf(
             "Pod", "Deployment", "StatefulSet", "DaemonSet", "ReplicaSet", "Job"
         )
+
+        val NonNullDefaultContextName = "__<default>__"
     }
 
 
     val contextsNames: List<String> = kubeConfigs.contextConfigs.keys.sorted()
 
-    val defaultContext = kubeConfigs.defaultContext
+    val defaultContext = kubeConfigs.defaultContext ?: NonNullDefaultContextName // ConcurrentHashMap throws an error on null keys
 
-    private val clientForContext = ConcurrentHashMap<String?, KubernetesClient>()
+    private val clientForContext = ConcurrentHashMap<String, KubernetesClient>()
 
-    private val allAvailableResourceTypes = ConcurrentHashMap<String?, List<KubernetesResource>>()
+    private val allAvailableResourceTypes = ConcurrentHashMap<String, List<KubernetesResource>>()
 
-    private val isMetricsApiAvailable = ConcurrentHashMap<String?, Boolean>()
+    private val isMetricsApiAvailable = ConcurrentHashMap<String, Boolean>()
 
     private val log by logger()
 
@@ -80,7 +82,7 @@ class KubernetesService(
         val contextToSearch = context ?: defaultContext
 
         return clientForContext.getOrPut(contextToSearch) {
-            if (contextToSearch == null) {
+            if (contextToSearch == null || contextToSearch == NonNullDefaultContextName) { // e.g. in Kubernetes clusters where there is no context available
                 KubernetesClientBuilder().build()
             } else {
                 KubernetesClientBuilder().withConfig(kubeConfigs.contextConfigs[contextToSearch]).build()

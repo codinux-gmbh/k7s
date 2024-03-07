@@ -43,7 +43,7 @@ class K7sPage(
             service.getAllAvailableResourceTypes(context),
             service.getNamespaces(context)?.items.orEmpty(),
             service.contextsNames,
-            service.defaultContext,
+            service.defaultContext.takeUnless { it == KubernetesService.NonNullDefaultContextName },
             service.podResource,
             defaultResource?.items.orEmpty(),
             context?.takeUnless { it == service.defaultContext },

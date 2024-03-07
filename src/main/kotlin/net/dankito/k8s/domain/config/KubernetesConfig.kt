@@ -31,7 +31,14 @@ class KubernetesConfig {
         }
 
         val defaultConfig = Config.autoConfigure(null)
-        return KubeConfigs(defaultConfig.currentContext?.name, mapOf(defaultConfig.contexts.first().name to defaultConfig)) // the default context doesn't load other contexts than the current one
+        return KubeConfigs(
+            defaultConfig.currentContext?.name,
+            if (defaultConfig.contexts.isNotEmpty()) {
+                mapOf((defaultConfig.currentContext ?: defaultConfig.contexts.first()).name to defaultConfig) // the default context doesn't load other contexts than the current one
+            } else {
+                emptyMap()
+            }
+        )
     }
 
     private fun loadConfigsFromKubectl(): KubeConfigs? {
@@ -44,7 +51,8 @@ class KubernetesConfig {
                 return loadConfigsFromString(kubectlConfigString)
             }
         } catch (e: Throwable) {
-            log.info(e) { "Could not load contexts from kubectl, trying to load contexts from KUBECONFIG environment variable" }
+            log.info { "Could not load contexts from kubectl (${e.message}), trying to load contexts from KUBECONFIG environment variable" }
+            log.debug(e) { "Error when trying to load contexts from kubectl was:" }
         }
 
         return null
