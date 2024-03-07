@@ -39,7 +39,8 @@ class HomePageData(
                 it to commandToExecute
             }
         }.toMap() +
-                mapOf("ns:all" to """{ "command": "switchToNamespace", "namespace": null }""") +
+                mapOf("dp" to """{ "command": "displayResourceItems", "resourceGroup": "apps", "resourceName": "deployments" }""") + // custom shortcuts
+                mapOf("ns:all" to """{ "command": "switchToNamespace", "namespace": null }""") + // add "ns:all" to unselect selected namespace
                 allNamespaces.map { "ns:${it.name}" to """{ "command": "switchToNamespace", "namespace": "${it.name}" }""" }
 
 }
