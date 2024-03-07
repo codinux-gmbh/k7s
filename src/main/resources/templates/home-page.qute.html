@@ -193,7 +193,7 @@
 
           <div class="flex justify-evenly content-stretch mt-[0.15rem] p-[0.125rem]">
             <div class="flex-[1_0_auto] w-[25vw] max-w-[32vw] lg:max-w-[15.5rem] invisible"></div>
-            <div class="flex items-center flex-[1_0_auto] w-[25vw] max-w-[32vw] lg:max-w-[15.5rem] h-16 p-2 pl-1 bg-primary rounded-2xl">
+            <div class="flex items-center flex-[1_0_auto] w-[25vw] max-w-[32vw] lg:max-w-[15.5rem] h-16 p-2 pl-1 bg-primary rounded-2xl{#if contexts.isEmpty} invisible{/if}">
               <label for="selectContext" class="w-8">cxt</label>
               <select id="selectContext" class="w-full h-[2.75rem] ml-1 pl-1 bg-white text-primary rounded-lg" aria-label="Select namespace"
                       onchange="switchToContext(this.value, event)">
