@@ -313,7 +313,7 @@
           if (selectedContext) {
             url.searchParams.append("context", selectedContext)
           }
-          if (namespace && namespace != " ") {
+          if (namespace && namespace != "null" && namespace != " ") {
             url.searchParams.append("namespace", namespace)
           }
 
