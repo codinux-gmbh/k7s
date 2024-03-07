@@ -34,9 +34,10 @@ class K7sPage(
     @GET
     @Blocking // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
     fun homePage(
-        @RestQuery("context") context: String? = null
+        @RestQuery("context") context: String? = null,
+        @RestQuery("namespace") namespace: String? = null
     ): TemplateInstance {
-        val defaultResource = service.getPods(context)
+        val defaultResource = service.getPods(context, namespace)
 
         return homePage.data(HomePageData(
             service.getAllAvailableResourceTypes(context),
@@ -46,6 +47,7 @@ class K7sPage(
             service.podResource,
             defaultResource?.items.orEmpty(),
             context?.takeUnless { it == service.defaultContext },
+            namespace,
             defaultResource?.resourceVersion
         ))
     }
@@ -57,7 +59,7 @@ class K7sPage(
         @RestPath("group") group: String,
         @RestPath("name") name: String,
         @RestQuery("context") context: String? = null,
-        @RestQuery("namespace") namespace: String? = null,
+        @RestQuery("namespace") namespace: String? = null
     ): TemplateInstance {
         val resource = service.getResource(group.takeUnless { it.isBlank() || it == "null" }, name, context)
         if (resource == null) {
