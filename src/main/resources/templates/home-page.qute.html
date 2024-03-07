@@ -90,7 +90,7 @@
                    {#if resource.isWatchable}hx-ext="sse" sse-connect="{createWatchResourcePath()}" sse-swap="resourceItemsUpdated"{/if}>
               <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500 hidden lg:table-header-group">
                   <tr>
-                    <th class="w-[5.5rem] sm:w-[12rem] text-left {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">Namespace</th>
+                    <th class="w-[5.5rem] md:w-[12rem] text-left {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">Namespace</th>
                     <th>Name</th>
                     {#if resource.isPod}
                       <th class="w-[3.5rem]">Ready</th>
@@ -111,9 +111,9 @@
                       onkeydown="onTableRowKeyDown(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}', {resource.isScalable}, {resource.isDeletable}, {resource.allowDeletingWithoutConfirmation})"
                   >
                     {! mobile view !}
-                    <td class="flex flex-col justify-center min-h-[3.25rem]">
+                    <td class="flex flex-col justify-center min-h-[3.25rem] lg:hidden">
                       <div class="flex items-center">
-                        {#if resource.isNamespaced && selectedNamespace == null}<div class="w-[5.5rem] sm:w-[12rem] mr-2 flex-[0_0_auto] truncate">{item.namespace}</div>{/if}
+                        {#if resource.isNamespaced && selectedNamespace == null}<div class="max-w-[5.5rem] md:max-w-[12rem] mr-1 flex-[0_0_auto] font-medium truncate">{item.namespace}</div>{/if}
                         <div class="grow truncate">{item.name}</div>
                         {#if resource.isPod}
                           <div class="w-4 ml-1 text-center flex-[0_0_auto]">{item.countReadyContainers}/{item.container.size}</div>
