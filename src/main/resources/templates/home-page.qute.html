@@ -121,7 +121,7 @@
                         {/if}
                       </div>
                       {#if item.additionalValues}
-                        <div class="flex items-center mt-1">
+                        <div class="flex flex-wrap items-center mt-1">
                           {#for keyValue in item.additionalValues}
                             <div class="mr-1">{keyValue.key}: {keyValue.value}</div>
                           {/for}
