@@ -99,7 +99,7 @@ class K7sPage(
             if (sseEventSink.isClosed) {
                 return@watchResourceItems // TODO: stop watcher
             } else {
-                val html = fragment.data(ResourceItemsViewData(resource, resourceItems, context.takeUnless { it == service.defaultContext }, namespace)).render()
+                val html = fragment.data(ResourceItemsViewData(resource, resourceItems.items, context.takeUnless { it == service.defaultContext }, namespace, resourceItems.resourceVersion)).render()
                 sseEventSink.send(sse.newEvent("resourceItemsUpdated", html))
             }
         }

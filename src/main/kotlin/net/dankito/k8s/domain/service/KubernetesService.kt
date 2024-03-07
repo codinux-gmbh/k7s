@@ -233,7 +233,7 @@ class KubernetesService(
         }
     }
 
-    fun watchResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null, resourceVersion: String? = null, update: (List<ResourceItem>) -> Unit) {
+    fun watchResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null, resourceVersion: String? = null, update: (ResourceItems) -> Unit) {
         if (resource.isWatchable == false) {
             return // a not watchable resource like Binding, ComponentStatus, NodeMetrics, PodMetrics, ...
         }
@@ -245,7 +245,7 @@ class KubernetesService(
         }
         resources.watch(options, KubernetesResourceWatcher<GenericKubernetesResource> { _, _ ->
             // TODO: make diff update instead of fetching all items again
-            getResourceItems(resource, context, namespace)?.let { update(it.items) }
+            getResourceItems(resource, context, namespace)?.let { update(it) }
         })
     }
 
