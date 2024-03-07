@@ -56,7 +56,7 @@ object ResourceItemTemplateExtensions {
     @JvmStatic
     fun createWatchResourcePath(data: ResourceItemsViewData): String {
         val resource = data.resource
-        val uriBuilder = UriBuilder.fromPath("watch/resources/${resource.group ?: "null"}/${resource.name}")
+        val uriBuilder = UriBuilder.fromPath("k7s/watch/resources/${resource.group ?: "null"}/${resource.name}")
 
         if (data.selectedContext != null) {
             uriBuilder.queryParam("context", data.selectedContext)
