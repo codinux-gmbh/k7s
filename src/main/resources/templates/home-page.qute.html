@@ -206,7 +206,7 @@
               <label for="selectNamespace" class="w-8">ns</label>
               <select id="selectNamespace" class="w-full h-[2.75rem] ml-1 pl-1 bg-white text-primary rounded-lg" aria-label="Select namespace"
                       onchange="switchToNamespace(this.value, event)">
-                <option value=" " {#if selectedNamespace == null}selected{/if}>all</option>
+                <option value=null {#if selectedNamespace == null}selected{/if}>all</option>
                 {#for namespace in allNamespaces}
                   <option value="{namespace.name}" {#if namespace.name == selectedNamespace}selected{/if}>{namespace.name}</option>
                 {/for}
@@ -313,7 +313,7 @@
           if (selectedContext) {
             url.searchParams.append("context", selectedContext)
           }
-          if (namespace) {
+          if (namespace && namespace != " ") {
             url.searchParams.append("namespace", namespace)
           }
 
