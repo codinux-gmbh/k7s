@@ -498,9 +498,9 @@ class KubernetesService(
     }
 
     fun deleteResourceItem(resourceName: String, namespace: String?, itemName: String, context: String? = null): Boolean {
-        val resource = getResourceByName(resourceName)
+        val resource = getResourceByName(resourceName, context)
         if (resource != null) {
-            val statuses = getGenericResources(resource, namespace, context).withName(itemName).delete()
+            val statuses = getGenericResources(resource, context, namespace).withName(itemName).delete()
 
             return statuses.all { it.causes.isNullOrEmpty() }
         }
