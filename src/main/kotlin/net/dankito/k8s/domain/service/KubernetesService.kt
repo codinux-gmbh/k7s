@@ -303,6 +303,8 @@ class KubernetesService(
             val listable = operation.let {
                 if (namespace != null && operation is MixedOperation<T, L, *>) {
                     operation.inNamespace(namespace)
+                } else if (operation is MixedOperation<T, L, *>) {
+                    operation.inAnyNamespace() // in Kubernetes cluster otherwise only resource items of default namespace are returned, not that one of all namespaces
                 } else {
                     operation
                 }
