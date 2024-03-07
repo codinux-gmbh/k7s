@@ -487,8 +487,11 @@
                 case "switchToNamespace":
                   switchToNamespace(commandToExecute.namespace, event)
                   break
+                case "switchToContext":
+                  switchToContext(commandToExecute.context, event)
+                  break
                 default:
-                  console.warn("Unknown command to execute encountered:", commandToExecute, "Known commands are: displayResourceItems, switchToNamespace")
+                  console.warn("Unknown command to execute encountered:", commandToExecute, "Known commands are: displayResourceItems, switchToContext, switchToNamespace")
               }
               eval(commandToExecute)
             }
