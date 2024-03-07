@@ -419,10 +419,29 @@ class KubernetesService(
                     }
                 }
             }
+        } else if (item is PersistentVolume) {
+            val spec = item.spec
+            mapOf(
+                "Capacity" to spec.capacity["storage"]?.toString(),
+                "Access Modes" to mapAccessModes(spec.accessModes),
+                "Reclaim Policy" to spec.persistentVolumeReclaimPolicy,
+                "Status" to item.status.phase,
+                "Claim" to "${spec.claimRef.namespace}/${spec.claimRef.name}",
+                "StorageClass" to spec.storageClassName,
+                "Reason" to (item.status.reason ?: "")
+            )
+        } else if (item is PersistentVolumeClaim) {
+            val spec = item.spec
+            mapOf("Status" to item.status.phase, "Volume" to spec.volumeName, "Capacity" to item.status.capacity["storage"]?.toString(), "Access Modes" to mapAccessModes(spec.accessModes), "StorageClass" to spec.storageClassName)
         } else {
             emptyMap()
         }
     }
+
+    private fun mapAccessModes(accessModes: List<String>) = accessModes.joinToString {
+            it.replace("ReadWriteOnce", "RWO").replace("ReadOnlyMany", "ROM")
+                .replace("ReadWriteMany", "RWM").replace("ReadWriteOncePod", "RWOP")
+        }
 
     private fun toMilliCore(cpu: Quantity?): BigDecimal? = cpu?.let {
         when (cpu.format) {
