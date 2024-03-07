@@ -106,7 +106,7 @@
               <tbody>
                 {#for item in resourceItems}
                   <tr class="border-b first:border-t border-zinc-200 even:bg-zinc-100/50 {item.getItemStyle()}lg:hover:bg-[#326CE5] lg:hover:text-white" tabindex="0"
-                      {#if resource.isLoggable}data-logs-url="k7s/logs/{resource.name}/{item.namespace}/{item.name}"{/if}
+                      {#if resource.isLoggable}data-logs-url="/k7s/logs/{resource.name}/{item.namespace}/{item.name}"{/if}
                       onmousedown="onTableRowMouseDown(event)" oncontextmenu="showMenu(this, event)"
                       onkeydown="onTableRowKeyDown(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}', {resource.isScalable}, {resource.isDeletable}, {resource.allowDeletingWithoutConfirmation})"
                   >
@@ -142,7 +142,7 @@
                       <div class="menu-toggler flex justify-center items-center w-full h-full text-zinc-500 lg:hover:text-white text-3xl cursor-pointer" onclick="showMenu(this, event)">&#xFE19;</div>
                       <div class="menu fixed min-w-[9rem] right-2 bg-white text-zinc-700 text-xl shadow-xl z-10 hidden">
                         <ul class="list-none">
-                          {#if resource.isLoggable}<li class="menu-item" onclick="showLogs(event)" data-logs-url="k7s/logs/{resource.name}/{item.namespace}/{item.name}">Logs</li>{/if}
+                          {#if resource.isLoggable}<li class="menu-item" onclick="showLogs(event)" data-logs-url="/k7s/logs/{resource.name}/{item.namespace}/{item.name}">Logs</li>{/if}
                           {#if resource.isScalable}<li class="menu-item" onclick="scaleTo(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}')">Scale</li>{/if}
                           {#if resource.isDeletable}<li class="menu-item" onclick="deleteItem(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}')">Delete</li>{/if}
                           {#if resource.allowDeletingWithoutConfirmation}<li class="menu-item" onclick="killItem(event, '{resource.name}', '{item.namespace}', '{item.name}')">Kill</li>{/if}
@@ -157,7 +157,7 @@
             <script type="text/javascript">
               selectedContext = {#if selectedContext}"{selectedContext}"{#else}null{/if}
               selectedNamespace = {#if selectedNamespace}"{selectedNamespace}"{#else}null{/if}
-              currentPath = "k7s/page/resources/{resource.group ?: "null"}/{resource.name}"
+              currentPath = "/k7s/page/resources/{resource.group ?: "null"}/{resource.name}"
             </script>
 
           {/fragment}
@@ -166,7 +166,7 @@
 
         <div class="fixed w-12 h-12 right-1 bottom-1 p-[0.2rem] bg-primary text-2xl font-bold rounded-lg shadow-md select-none z-[999]"
              onclick="document.getElementById('commandsContainer').classList.toggle('hidden'); return false;">
-          <img alt="Kubernetes Logo" src="k7s/assets/images/kubernetes-icon-color.svg">
+          <img alt="Kubernetes Logo" src="/k7s/assets/images/kubernetes-icon-color.svg">
         </div>
         <div id="commandsContainer" class="fixed right-1 bottom-[3.5rem] max-md:left-1 md:max-w-[760px] bg-zinc-200 text-white rounded-2xl shadow-md z-[998] hidden">
           <div class="flex justify-evenly content-stretch mt-[0.15rem] p-[0.125rem]">
@@ -241,7 +241,7 @@
       <script type="text/javascript">
         var selectedContext = {#if selectedContext}"{selectedContext}"{#else}null{/if}
         var selectedNamespace = {#if selectedNamespace}"{selectedNamespace}"{#else}null{/if}
-        var currentPath = "k7s/page/resources/{resource.group ?: "null"}/{resource.name}"
+        var currentPath = "/k7s/page/resources/{resource.group ?: "null"}/{resource.name}"
 
         const commandNamesToUrlPath = new Map() // copy commands so that we can access them from JavaScript
         {#for entry in commandNamesToUrlPath}
@@ -302,7 +302,7 @@
         }
 
         function getResourcesPath(resourceGroup, resourceName, namespace) {
-          const path = `k7s/page/resources/$\{resourceGroup || "null"}/$\{resourceName}`
+          const path = `/k7s/page/resources/$\{resourceGroup || "null"}/$\{resourceName}`
 
           return appendContextAndNamespaceToPath(path, namespace)
         }
@@ -419,7 +419,7 @@
         }
 
         function getItemPath(resourceName, namespace, itemName) {
-          return `k7s/resource/$\{resourceName}/$\{namespace}/$\{itemName}`
+          return `/k7s/resource/$\{resourceName}/$\{namespace}/$\{itemName}`
         }
 
         function showMenu(element, event) {
