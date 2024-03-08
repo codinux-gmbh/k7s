@@ -452,6 +452,7 @@ class KubernetesService(
                 put("%Mem", emptyValue)
                 put("Mem/A", toDisplayValue(availableMemory))
                 put("Images", status.images.size.toString())
+                put("Pods", "n/a")
 
                 if (stats.isNullOrEmpty() == false) {
                     val statsSummaryForNode = stats[item.metadata.name]
@@ -465,6 +466,8 @@ class KubernetesService(
                         val memory = toMiByte(nodeStats.memory?.workingSetBytes)
                         this["Mem"] = toDisplayValue(memory) ?: "n/a"
                         this["%Mem"] = toDisplayValue((memory?.let { BigDecimal(memory.toString()) } ?: BigDecimal.ZERO).multiply(BigDecimal.valueOf(100)).divide(availableMemory, 0, RoundingMode.DOWN))
+
+                        this["Pods"] = statsSummaryForNode.pods.size.toString()
                     }
                 }
             }
