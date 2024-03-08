@@ -410,7 +410,7 @@ class KubernetesService(
             val emptyValue = if (stats.isNullOrEmpty()) "n/a" else "0"
             buildMap {
                 put("IP", item.status.podIP)
-                put("HostIP", item.status.hostIP)
+                put("Host", item.status.hostIP)
                 put("CPU", emptyValue)
                 put("Mem", emptyValue)
                 if (stats.isNullOrEmpty() == false) {
@@ -418,6 +418,11 @@ class KubernetesService(
                     if (podStats != null) {
                         put("CPU", toDisplayValue(toMilliCore(podStats.containers.sumOf { it.cpu?.usageNanoCores ?: 0UL })))
                         put("Mem", toDisplayValue(toMiByte(podStats.containers.sumOf { it.memory?.workingSetBytes ?: 0UL }), RoundingMode.DOWN))
+
+                        val nodeStats = stats.values.firstOrNull { it?.pods?.contains(podStats) == true }?.node
+                        if (nodeStats != null) {
+                            this["Host"] = nodeStats.nodeName
+                        }
                     }
                 }
             }
