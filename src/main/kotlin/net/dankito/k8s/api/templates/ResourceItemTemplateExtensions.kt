@@ -48,8 +48,8 @@ object ResourceItemTemplateExtensions {
             "ConfigMap" -> listOf("Data")
             "Secret" -> listOf("Type", "Data")
             "PersistentVolume" -> listOf("Capacity", "Access Modes", "Reclaim Policy", "Status", "Claim", "StorageClass", "Reason")
-            "PersistentVolumeClaim" -> listOf("Status", "Volume", "Capacity", "Access Modes", "StorageClass")
-            "Node" -> listOf("Status", "Taints", "Version", "Kernel", "CPU", "%CPU", "CPU/A", "Mem", "%Mem", "Mem/A", "Images")
+            "PersistentVolumeClaim" -> listOf("Status", "Volume", "Used Mi", "Used %", "Capacity", "Access Modes", "StorageClass")
+            "Node" -> listOf("Status", "Taints", "Version", "Kernel", "CPU", "%CPU", "CPU/A", "Mem", "%Mem", "Mem/A", "Images", "Pods")
             else -> emptyList()
         }
 

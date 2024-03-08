@@ -26,6 +26,7 @@ class HomePageData(
         .filter { it.containsVerb(Verb.list) }
 
     val highlightedResources = listableResources
+        // TODO: there may exists two different Ingress resources: networking.k8s.io.ingresses.v1 and extensions.ingresses.v1beta1
         .filter { highlightedResourcesNames.contains(it.name) && it.kind != "PodMetrics" }
 
     val standardResources = listableResources.filter { it.isCustomResourceDefinition == false }

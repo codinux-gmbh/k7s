@@ -1,11 +1,11 @@
 package net.dankito.k8s.domain.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.apps.Deployment
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder
-import io.fabric8.kubernetes.api.model.metrics.v1beta1.NodeMetricsList
-import io.fabric8.kubernetes.api.model.metrics.v1beta1.PodMetricsList
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress
 import io.fabric8.kubernetes.client.ApiVisitor
 import io.fabric8.kubernetes.client.KubernetesClient
@@ -17,6 +17,8 @@ import net.codinux.log.logger
 import net.dankito.k8s.domain.model.*
 import net.dankito.k8s.domain.model.ContainerStatus
 import net.dankito.k8s.domain.model.KubernetesResource
+import net.dankito.k8s.domain.model.stats.StatsSummary
+import net.dankito.k8s.domain.model.stats.VolumeStats
 import java.io.InputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -27,12 +29,17 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Singleton
 class KubernetesService(
-    private val kubeConfigs: KubeConfigs
+    private val kubeConfigs: KubeConfigs,
+    private val objectMapper: ObjectMapper
 ) {
 
     companion object {
         val LoggableResourceKinds = hashSetOf(
             "Pod", "Deployment", "StatefulSet", "DaemonSet", "ReplicaSet", "Job"
+        )
+
+        val ResourcesWithStats = hashSetOf(
+            "Pod", "Node", "PersistentVolumeClaim"
         )
 
         val NonNullDefaultContextName = "__<default>__"
@@ -55,9 +62,11 @@ class KubernetesService(
     // for deprecated API groups see https://kubernetes.io/docs/reference/using-api/deprecation-guide/
     fun getNamespaces(context: String? = null) = listItems(namespaceResource, getClient(context).namespaces())
 
-    fun getPods(context: String? = null, namespace: String? = null) = listItems(podResource, getClient(context).pods(), namespace, getMetrics(getClient(context).top().pods(), namespace))
+    fun getPods(context: String? = null, namespace: String? = null) = listItems(podResource, getClient(context).pods(), namespace, context)
 
     fun getServices(context: String? = null, namespace: String? = null) = listItems(serviceResource, getClient(context).services(), namespace)
+
+    fun getNodes(context: String? = null) = listItems(nodeResource, getClient(context).nodes(), contextForStats = context)
 
     val namespaceResource by lazy { getResource(null, "namespaces")!! }
 
@@ -205,7 +214,7 @@ class KubernetesService(
         } else if (resource == namespaceResource) {
             getNamespaces(context)
         } else if (resource == nodeResource) {
-            listItems(namespaceResource, client.nodes(), metrics = getMetrics(client.top().nodes()))
+            getNodes(context)
         } else if (resource == configMapResource) {
             listItems(configMapResource, client.configMaps(), namespace)
         } else if (resource == secretResource) {
@@ -215,7 +224,7 @@ class KubernetesService(
         } else if (resource == persistentVolumeResource) {
             listItems(persistentVolumeResource, client.persistentVolumes(), namespace)
         } else if (resource == persistentVolumeClaimResource) {
-            listItems(persistentVolumeClaimResource, client.persistentVolumeClaims(), namespace)
+            listItems(persistentVolumeClaimResource, client.persistentVolumeClaims(), namespace, context)
         } else if (resource.name == "ingresses") {
             if (resource.group == "extensions") {
                 listItems(resource, client.extensions().ingresses(), namespace)
@@ -297,7 +306,7 @@ class KubernetesService(
         resource: KubernetesResource,
         operation: AnyNamespaceOperation<T, L, R>,
         namespace: String? = null,
-        metrics: KubernetesResourceList<HasMetadata>? = null
+        contextForStats: String? = null
     ): ResourceItems? =
         try {
             val listable = operation.let {
@@ -311,19 +320,44 @@ class KubernetesService(
             }
                 .list()
 
-            val items = listable.items.let { it as List<T> }.map { item ->
-                mapResourceItem(item, metrics)
-            }
-            ResourceItems(listable.metadata.resourceVersion, items)
+            val items = listable.items.let { it as List<T> }
+            val stats = if (isResourceWithStats(resource)) getStats(items, contextForStats) else null
+            val mappedItems = items.map { mapResourceItem(it, stats) }
+            ResourceItems(listable.metadata.resourceVersion, mappedItems)
         } catch (e: Exception) {
             log.error(e) { "Could not get items for resource '$resource'" }
             null
         }
 
-    private fun <T : HasMetadata> mapResourceItem(item: T, metrics: KubernetesResourceList<HasMetadata>? = null): ResourceItem {
+    private fun isResourceWithStats(resource: KubernetesResource): Boolean =
+        ResourcesWithStats.contains(resource.kind)
+
+    private fun <T> getStats(items: List<T>, context: String?): Map<String, StatsSummary?>? {
+        val stats = mutableMapOf<String, StatsSummary?>()
+
+        val nodes = if (items.all { it is Node }) items as List<Node> else getClient(context).nodes().list().items
+        val nodeNames = nodes.map { it.metadata.name }
+
+        nodeNames.forEach { nodeName ->
+            try {
+                // see https://kubernetes.io/docs/reference/instrumentation/node-metrics/
+                val statsResponse = getClient(context).raw("/api/v1/nodes/$nodeName/proxy/stats/summary")
+                if (statsResponse != null) {
+                    stats[nodeName] = objectMapper.readValue<StatsSummary>(statsResponse)
+                }
+            } catch (e: Throwable) {
+                log.error(e) { "Could not get stats for nodeName $nodeName" }
+                stats[nodeName] = null
+            }
+        }
+
+        return stats.takeUnless { it.isEmpty() || it.values.all { it == null } }
+    }
+
+    private fun <T : HasMetadata> mapResourceItem(item: T, stats: Map<String, StatsSummary?>? = null): ResourceItem {
         val name = item.metadata.name
         val namespace = item.metadata.namespace?.takeUnless { it.isBlank() }
-        val additionalValues = getAdditionalValues(item, metrics)
+        val additionalValues = getAdditionalValues(item, stats)
 
         return if (item is Pod) {
             val status = item.status
@@ -371,18 +405,19 @@ class KubernetesService(
         return status.phase // else use PodStatus.phase (Pending, Running, Succeeded, Failed, Unknown) as default
     }
 
-    private fun <T> getAdditionalValues(item: T, metrics: KubernetesResourceList<HasMetadata>? = null): Map<String, String?> {
+    private fun <T> getAdditionalValues(item: T, stats: Map<String, StatsSummary?>? = null): Map<String, String?> {
         return if (item is Pod) {
-            val emptyValue = if (metrics is PodMetricsList) "0" else "n/a"
+            val emptyValue = if (stats.isNullOrEmpty()) "n/a" else "0"
             buildMap {
                 put("IP", item.status.podIP)
                 put("HostIP", item.status.hostIP)
                 put("CPU", emptyValue)
                 put("Mem", emptyValue)
-                if (metrics is PodMetricsList) {
-                    metrics.items.orEmpty().firstOrNull { it.metadata.name == item.metadata.name && it.metadata.namespace == item.metadata.namespace }?.let { podMetrics ->
-                        put("CPU", toDisplayValue(podMetrics.containers.orEmpty().sumOf { toMilliCore(it.usage["cpu"]) ?: BigDecimal.ZERO }))
-                        put("Mem", toDisplayValue(podMetrics.containers.orEmpty().sumOf { toMiByte(it.usage["memory"]) ?: BigDecimal.ZERO }))
+                if (stats.isNullOrEmpty() == false) {
+                    val podStats = stats.values.firstNotNullOfOrNull { it?.pods.orEmpty().firstOrNull { it.podRef.name == item.metadata.name && it.podRef.namespace == item.metadata.namespace } }
+                    if (podStats != null) {
+                        put("CPU", toDisplayValue(toMilliCore(podStats.containers.sumOf { it.cpu?.usageNanoCores ?: 0UL })))
+                        put("Mem", toDisplayValue(toMiByte(podStats.containers.sumOf { it.memory?.workingSetBytes ?: 0UL }), RoundingMode.DOWN))
                     }
                 }
             }
@@ -403,7 +438,7 @@ class KubernetesService(
             val status = item.status
             val availableCpu = toMilliCore(status.capacity?.get("cpu"))
             val availableMemory = toMiByte(status.capacity?.get("memory"))
-            val emptyValue = if (metrics is PodMetricsList) "0" else "n/a"
+            val emptyValue = if (stats.isNullOrEmpty()) "n/a" else "0"
 
             buildMap { // TODO: where to get roles from, like for master: "control-plane,etcd,master"?
                 put("Status", status.conditions.firstOrNull { it.status == "True" }?.type)
@@ -418,15 +453,18 @@ class KubernetesService(
                 put("Mem/A", toDisplayValue(availableMemory))
                 put("Images", status.images.size.toString())
 
-                if (metrics is NodeMetricsList) {
-                    metrics.items.orEmpty().firstOrNull { it.metadata.name == item.metadata.name }?.let { nodeMetrics ->
-                        val cpu = toMilliCore(nodeMetrics.usage?.get("cpu"))
+                if (stats.isNullOrEmpty() == false) {
+                    val statsSummaryForNode = stats[item.metadata.name]
+                    if (statsSummaryForNode != null) {
+                        val nodeStats = statsSummaryForNode.node
+
+                        val cpu = toMilliCore(nodeStats.cpu?.usageNanoCores)
                         this["CPU"] = toDisplayValue(cpu)
                         this["%CPU"] = toDisplayValue((cpu ?: BigDecimal.ZERO).multiply(BigDecimal.valueOf(100)).divide(availableCpu, 0, RoundingMode.DOWN))
 
-                        val memory = toMiByte(nodeMetrics.usage?.get("memory"))
-                        this["Mem"] = toDisplayValue(memory)
-                        this["%Mem"] = toDisplayValue((memory ?: BigDecimal.ZERO).multiply(BigDecimal.valueOf(100)).divide(availableMemory, 0, RoundingMode.DOWN))
+                        val memory = toMiByte(nodeStats.memory?.workingSetBytes)
+                        this["Mem"] = toDisplayValue(memory) ?: "n/a"
+                        this["%Mem"] = toDisplayValue((memory?.let { BigDecimal(memory.toString()) } ?: BigDecimal.ZERO).multiply(BigDecimal.valueOf(100)).divide(availableMemory, 0, RoundingMode.DOWN))
                     }
                 }
             }
@@ -443,7 +481,10 @@ class KubernetesService(
             )
         } else if (item is PersistentVolumeClaim) {
             val spec = item.spec
-            mapOf("Status" to item.status.phase, "Volume" to spec.volumeName, "Capacity" to item.status.capacity["storage"]?.toString(), "Access Modes" to mapAccessModes(spec.accessModes), "StorageClass" to spec.storageClassName)
+            val volumeStats = if (stats.isNullOrEmpty()) null else stats.values.flatMap { it?.pods.orEmpty().flatMap { it.volume.filter { it.pvcRef != null } } }
+                ?.firstOrNull { it.pvcRef!!.name == item.metadata.name && it.pvcRef.namespace == item.metadata.namespace }
+            val usedBytes = getUsedBytes(volumeStats)
+            mapOf("Status" to item.status.phase, "Volume" to spec.volumeName, "Used Mi" to (toDisplayValue(toMiByte(usedBytes)) ?: "n/a"), "Used %" to (toUsagePercentage(usedBytes, volumeStats?.capacityBytes) ?: "n/a"), "Capacity" to item.status.capacity["storage"]?.toString(), "Access Modes" to mapAccessModes(spec.accessModes), "StorageClass" to spec.storageClassName)
         } else {
             emptyMap()
         }
@@ -454,12 +495,20 @@ class KubernetesService(
                 .replace("ReadWriteMany", "RWM").replace("ReadWriteOncePod", "RWOP")
         }
 
+    private fun toMilliCore(usageNanoCores: ULong?): BigDecimal? = usageNanoCores?.let {
+        BigDecimal(usageNanoCores.toString()).divide(BigDecimal.valueOf(1_000_000L))
+    }
+
     private fun toMilliCore(cpu: Quantity?): BigDecimal? = cpu?.let {
         when (cpu.format) {
             "n" -> cpu.numericalAmount.multiply(BigDecimal.valueOf(1_000))
             "" -> cpu.numericalAmount.multiply(BigDecimal.valueOf(1_000))
             else -> cpu.numericalAmount
         }
+    }
+
+    private fun toMiByte(bytes: ULong?): BigDecimal? = bytes?.let {
+        BigDecimal(bytes.toString()).divide(BigDecimal.valueOf(1_024L * 1_024L))
     }
 
     private fun toMiByte(memory: Quantity?): BigDecimal? = memory?.let {
@@ -469,39 +518,24 @@ class KubernetesService(
         }
     }
 
-    private fun toDisplayValue(metricValue: BigDecimal?): String? = metricValue?.let {
-        metricValue.setScale(0, RoundingMode.UP).toString()
-    }
-
-    private fun getMetrics(metricOperation: MetricOperation<*, *>, context: String? = null, namespace: String? = null): KubernetesResourceList<HasMetadata>? {
-        val actualContext = context ?: defaultContext
-        if (this.isMetricsApiAvailable[actualContext] == false) {
-            return null
+    private fun toUsagePercentage(used: ULong?, capacity: ULong?): String? =
+        if (used != null && capacity != null) {
+            BigDecimal(used.toString()).multiply(BigDecimal.valueOf(100)).divide(BigDecimal(capacity.toString()), 0, RoundingMode.DOWN).toString()
+        } else {
+            null
         }
 
-        return try {
-            // TODO: what an ugly code
-            val operation = if (namespace != null && metricOperation is Namespaceable<*>) {
-                metricOperation.inNamespace(namespace) as MetricOperation<*, *>
-            } else {
-                metricOperation
-            }
-
-            val result = operation.metrics() as? KubernetesResourceList<HasMetadata>
-            if (result != null) {
-                isMetricsApiAvailable[actualContext] = true
-            }
-
-            result
-        } catch (e: Throwable) {
-            log.error(e) { "Could not fetch metrics" }
-            if (isMetricsApiAvailable[actualContext] == null) {
-                isMetricsApiAvailable[actualContext] = false // TODO: this is not fully correct, check kind of error as soon as correct error code (e.g. 404) is known
-            }
+    private fun getUsedBytes(volumeStats: VolumeStats?): ULong? = volumeStats?.let {
+        if (volumeStats.availableBytes != null && volumeStats.capacityBytes != null) {
+            volumeStats.capacityBytes - volumeStats.availableBytes
+        } else {
             null
         }
     }
 
+    private fun toDisplayValue(metricValue: BigDecimal?, roundingMode: RoundingMode = RoundingMode.UP): String? = metricValue?.let {
+        metricValue.setScale(0, roundingMode).toString()
+    }
 
     fun patchResourceItem(resourceName: String, namespace: String?, itemName: String, context: String? = null, scaleTo: Int? = null): Boolean {
         val resource = getResourceByName(resourceName, context)
