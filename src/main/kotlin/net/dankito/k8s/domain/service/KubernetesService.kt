@@ -360,15 +360,15 @@ class KubernetesService(
     private fun <T : HasMetadata> mapResourceItem(item: T, stats: Map<String, StatsSummary?>? = null): ResourceItem {
         val name = item.metadata.name
         val namespace = item.metadata.namespace?.takeUnless { it.isBlank() }
-        val additionalValues = getAdditionalValues(item, stats)
+        val itemSpecificValues = getItemSpecificValues(item, stats)
 
         return if (item is Pod) {
             val status = item.status
-            PodResourceItem(name, namespace, mapPodStatus(status), status.podIP, additionalValues, status.containerStatuses.map {
+            PodResourceItem(name, namespace, mapPodStatus(status), status.podIP, itemSpecificValues, status.containerStatuses.map {
                 ContainerStatus(it.name, try { it.containerID } catch (ignored: Exception) { null }, it.image, it.imageID, it.restartCount, it.started, it.ready, it.state.waiting != null, it.state.running != null, it.state.terminated != null)
             })
         } else {
-            ResourceItem(name, namespace, additionalValues)
+            ResourceItem(name, namespace, itemSpecificValues)
         }
     }
 
@@ -408,7 +408,7 @@ class KubernetesService(
         return status.phase // else use PodStatus.phase (Pending, Running, Succeeded, Failed, Unknown) as default
     }
 
-    private fun <T> getAdditionalValues(item: T, stats: Map<String, StatsSummary?>? = null): Map<String, String?> {
+    private fun <T> getItemSpecificValues(item: T, stats: Map<String, StatsSummary?>? = null): Map<String, String?> {
         return if (item is Pod) {
             val emptyValue = if (stats.isNullOrEmpty()) "n/a" else "0"
             buildMap {

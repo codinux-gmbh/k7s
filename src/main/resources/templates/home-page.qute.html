@@ -96,7 +96,7 @@
                       <th class="w-[3.5rem]">Ready</th>
                       <th class="w-[6rem]">Status</th>
                     {/if}
-                    {#for headerName in resource.getAdditionalValuesNames()}
+                    {#for headerName in resource.getItemSpecificValuesNames()}
                       <th>{headerName}</th>
                     {/for}
                     <th class="w-12 p-0"></th>
@@ -120,9 +120,9 @@
                           <div class="w-[3.5rem] ml-1 flex-[0_0_auto]">{item.status}</div>
                         {/if}
                       </div>
-                      {#if item.additionalValues}
+                      {#if item.itemSpecificValues}
                         <div class="flex flex-wrap items-center mt-1">
-                          {#for keyValue in item.additionalValues}
+                          {#for keyValue in item.itemSpecificValues}
                             <div class="mr-1">{keyValue.key}: {keyValue.value}</div>
                           {/for}
                         </div>
@@ -135,7 +135,7 @@
                       <td class="text-center hidden lg:table-cell">{item.countReadyContainers}/{item.container.size}</td>
                       <td class="hidden lg:table-cell">{item.status}</td>
                     {/if}
-                    {#for keyValue in item.additionalValues}
+                    {#for keyValue in item.itemSpecificValues}
                       <td class="hidden lg:table-cell">{keyValue.value}</td>
                     {/for}
                     <td class="w-8 sm:w-12 p-0">
