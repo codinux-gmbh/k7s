@@ -13,6 +13,7 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder
 import io.fabric8.kubernetes.client.dsl.*
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext
 import jakarta.inject.Singleton
+import kotlinx.coroutines.*
 import net.codinux.log.logger
 import net.dankito.k8s.domain.model.*
 import net.dankito.k8s.domain.model.ContainerStatus
@@ -332,26 +333,28 @@ class KubernetesService(
     private fun isResourceWithStats(resource: KubernetesResource): Boolean =
         ResourcesWithStats.contains(resource.kind)
 
-    private fun <T> getStats(items: List<T>, context: String?): Map<String, StatsSummary?>? {
-        val stats = mutableMapOf<String, StatsSummary?>()
-
+    // TODO: cache stats
+    private fun <T> getStats(items: List<T>, context: String?): Map<String, StatsSummary?>? = runBlocking(Dispatchers.IO) {
         val nodes = if (items.all { it is Node }) items as List<Node> else getClient(context).nodes().list().items
         val nodeNames = nodes.map { it.metadata.name }
 
-        nodeNames.forEach { nodeName ->
-            try {
-                // see https://kubernetes.io/docs/reference/instrumentation/node-metrics/
-                val statsResponse = getClient(context).raw("/api/v1/nodes/$nodeName/proxy/stats/summary")
-                if (statsResponse != null) {
-                    stats[nodeName] = objectMapper.readValue<StatsSummary>(statsResponse)
+        val stats = nodeNames.map { nodeName ->
+            async(Dispatchers.IO) {
+                try {
+                    // see https://kubernetes.io/docs/reference/instrumentation/node-metrics/
+                    val statsResponse = getClient(context).raw("/api/v1/nodes/$nodeName/proxy/stats/summary")
+                    if (statsResponse != null) {
+                        return@async nodeName to objectMapper.readValue<StatsSummary>(statsResponse)
+                    }
+                } catch (e: Throwable) {
+                    log.error(e) { "Could not get stats for nodeName $nodeName" }
                 }
-            } catch (e: Throwable) {
-                log.error(e) { "Could not get stats for nodeName $nodeName" }
-                stats[nodeName] = null
-            }
-        }
 
-        return stats.takeUnless { it.isEmpty() || it.values.all { it == null } }
+                nodeName to null
+            }
+        }.awaitAll().toMap()
+
+        stats.takeUnless { it.isEmpty() || it.values.all { it == null } }
     }
 
     private fun <T : HasMetadata> mapResourceItem(item: T, stats: Map<String, StatsSummary?>? = null): ResourceItem {
