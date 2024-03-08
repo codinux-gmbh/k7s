@@ -207,15 +207,15 @@ class KubernetesService(
         } else if (resource == nodeResource) {
             listItems(namespaceResource, client.nodes(), metrics = getMetrics(client.top().nodes()))
         } else if (resource == configMapResource) {
-            listItems(namespaceResource, client.configMaps(), namespace)
+            listItems(configMapResource, client.configMaps(), namespace)
         } else if (resource == secretResource) {
-            listItems(namespaceResource, client.secrets(), namespace)
+            listItems(secretResource, client.secrets(), namespace)
         } else if (resource == serviceAccountResource) {
-            listItems(namespaceResource, client.serviceAccounts(), namespace)
+            listItems(serviceAccountResource, client.serviceAccounts(), namespace)
         } else if (resource == persistentVolumeResource) {
-            listItems(namespaceResource, client.persistentVolumes(), namespace)
+            listItems(persistentVolumeResource, client.persistentVolumes(), namespace)
         } else if (resource == persistentVolumeClaimResource) {
-            listItems(namespaceResource, client.persistentVolumeClaims(), namespace)
+            listItems(persistentVolumeClaimResource, client.persistentVolumeClaims(), namespace)
         } else if (resource.name == "ingresses") {
             if (resource.group == "extensions") {
                 listItems(resource, client.extensions().ingresses(), namespace)
