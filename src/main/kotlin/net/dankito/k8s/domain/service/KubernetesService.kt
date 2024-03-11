@@ -228,10 +228,10 @@ class KubernetesService(
             } else if (action == Watcher.Action.ADDED) {
                 val allItems = resources.list().items.map { "${it.metadata.namespace}/${it.metadata.name}" }
                 val insertionIndex = allItems.indexOf("${item.metadata.namespace}/${item.metadata.name}")
-                val stats = if (isResourceWithStats(resource)) getStats(listOf(item), context, true) else null
+                val stats = if (isResourceWithStats(resource)) getStats(emptyList<Node>(), context, true) else null
                 update(WatchAction.Added, mapper.mapResourceItem(item, stats), insertionIndex)
             }  else if (action == Watcher.Action.MODIFIED) {
-                val stats = if (isResourceWithStats(resource)) getStats(listOf(item), context, hasBeenCreatedLessThanStatsCacheDurationAgo(item)) else null
+                val stats = if (isResourceWithStats(resource)) getStats(emptyList<Node>(), context, hasBeenCreatedLessThanStatsCacheDurationAgo(item)) else null
                 update(WatchAction.Modified, mapper.mapResourceItem(item, stats), null)
             } else if (action == Watcher.Action.DELETED) {
                 update(WatchAction.Deleted, mapper.mapResourceItem(item), null)
@@ -336,7 +336,7 @@ class KubernetesService(
     }
 
     private fun <T> retrieveStats(items: List<T>, context: String?): Map<String, StatsSummary?>? = runBlocking(Dispatchers.IO) {
-        val nodes = if (items.all { it is Node }) items as List<Node> else getClient(context).nodes().list().items
+        val nodes = if (items.isNotEmpty() && items.all { it is Node }) items as List<Node> else getClient(context).nodes().list().items
         val nodeNames = nodes.map { it.metadata.name }
 
         val stats = nodeNames.map { nodeName ->
