@@ -119,28 +119,20 @@ class K7sPage(
         val resourceItemTableRowFragment = homePage.getFragment("resourceItemTableRow")
         val contextValue = context.takeUnless { it == service.defaultContext }
 
-        val watch = service.watchResourceItems(resource, context, namespace, resourceVersion?.takeUnless { it.isBlank() || it == "null" }) { action, items, resourceVersion, insertionIndex ->
+        val watch = service.watchResourceItems(resource, context, namespace, resourceVersion?.takeUnless { it.isBlank() || it == "null" }) { action, item, insertionIndex ->
             if (sseEventSink.isClosed) {
                 true
             } else {
                 if (action == WatchAction.Added) {
-                    items.forEach { item ->
-                        val html = resourceItemTableRowFragment.data(ResourceItemRowViewData(item, resource, namespace)).render()
-                        sseEventSink.send(sse.newEvent("resourceItemAdded", createEvent(item, html, insertionIndex)))
-                    }
+                    val html = resourceItemTableRowFragment.data(ResourceItemRowViewData(item, resource, namespace)).render()
+                    sseEventSink.send(sse.newEvent("resourceItemAdded", createEvent(item, html, insertionIndex)))
                 } else if (action == WatchAction.Modified) {
-                    items.forEach { item ->
-                        val html = resourceItemTableRowFragment.data(ResourceItemRowViewData(item, resource, namespace)).render()
-                        sseEventSink.send(sse.newEvent("resourceItemUpdated", createEvent(item, html)))
-                    }
+                    val html = resourceItemTableRowFragment.data(ResourceItemRowViewData(item, resource, namespace)).render()
+                    sseEventSink.send(sse.newEvent("resourceItemUpdated", createEvent(item, html)))
                 } else if (action == WatchAction.Deleted) {
-                    items.forEach { item ->
-                        sseEventSink.send(sse.newEvent("resourceItemDeleted", createEvent(item)))
-                    }
-                } else {
-                    val html = resourceItemsFragment.data(ResourceItemsViewData(resource, items, contextValue, namespace, resourceVersion)).render()
-                    sseEventSink.send(sse.newEvent("resourceItemsUpdated", html))
+                    sseEventSink.send(sse.newEvent("resourceItemDeleted", createEvent(item)))
                 }
+
                 false
             }
         }

@@ -539,11 +539,6 @@
         initEventSource()
 
         function initEventSource() {
-          eventSource.addEventListener("resourceItemsUpdated", (e) => {
-            const tableBody = document.querySelector("#resourceItemsContainer tbody")
-            tableBody.innerHTML = e.data
-          })
-
           eventSource.addEventListener("resourceItemAdded", (e) => {
             const event = JSON.parse(e.data)
             const insertionIndex = event.insertionIndex
