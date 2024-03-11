@@ -1,9 +1,20 @@
 package net.dankito.k8s.domain.model.stats
 
+import io.quarkus.runtime.annotations.RegisterForReflection
+
 /**
  * For definition and documentation of all types see:
  * [https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/kubelet/pkg/apis/stats/v1alpha1/types.go](https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/kubelet/pkg/apis/stats/v1alpha1/types.go)
  */
+@RegisterForReflection(
+    targets = [
+        StatsSummary::class,
+        NodeStats::class, ContainerStats::class, RuntimeStats::class, RlimitStats::class,
+        CpuStats::class, MemoryStats::class, NetworkStats::class, InterfaceStats::class, FsStats::class, SwapStats::class,
+        PodStats::class, PodReference::class, ProcessStats::class, VolumeStats::class, PvcReference::class, VolumeHealthStats::class,
+        ULong::class
+    ]
+)
 data class StatsSummary(
     val node: NodeStats,
     val pods: List<PodStats>
