@@ -1,5 +1,6 @@
 package net.dankito.k8s.api
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.quarkus.qute.Location
 import io.quarkus.qute.Template
 import io.quarkus.qute.TemplateInstance
@@ -14,7 +15,10 @@ import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.sse.Sse
 import jakarta.ws.rs.sse.SseEventSink
 import net.dankito.k8s.api.dto.HomePageData
+import net.dankito.k8s.api.dto.ItemModificationEvent
+import net.dankito.k8s.api.dto.ResourceItemRowViewData
 import net.dankito.k8s.api.dto.ResourceItemsViewData
+import net.dankito.k8s.domain.model.ResourceItem
 import net.dankito.k8s.domain.model.WatchAction
 import net.dankito.k8s.domain.service.KubernetesService
 import org.jboss.resteasy.reactive.RestPath
@@ -32,7 +36,8 @@ class K7sPage(
     private val service: KubernetesService,
     @Location("home-page") private val homePage: Template,
     @Location("logs-view") private val logsView: Template,
-    private val sse: Sse
+    private val sse: Sse,
+    private val objectMapper: ObjectMapper
 ) {
 
     private val resourceWatches = ConcurrentHashMap<SseEventSink, Closeable>()
@@ -110,18 +115,25 @@ class K7sPage(
             return // a not watchable resource like Binding, ComponentStatus, NodeMetrics, PodMetrics, ...
         }
 
-        val fragment = homePage.getFragment("resourceItems")
+        val resourceItemsFragment = homePage.getFragment("resourceItems")
+        val resourceItemTableRowFragment = homePage.getFragment("resourceItemTableRow")
+        val contextValue = context.takeUnless { it == service.defaultContext }
 
         val watch = service.watchResourceItems(resource, context, namespace, resourceVersion?.takeUnless { it.isBlank() || it == "null" }) { action, items, resourceVersion ->
             if (sseEventSink.isClosed) {
                 true
             } else {
-                if (action == WatchAction.Deleted) {
+                if (action == WatchAction.Modified) {
                     items.forEach { item ->
-                        sseEventSink.send(sse.newEvent("resourceItemDeleted", item.htmlSafeId))
+                        val html = resourceItemTableRowFragment.data(ResourceItemRowViewData(item, resource, namespace)).render()
+                        sseEventSink.send(sse.newEvent("resourceItemUpdated", createEvent(item, html)))
+                    }
+                } else if (action == WatchAction.Deleted) {
+                    items.forEach { item ->
+                        sseEventSink.send(sse.newEvent("resourceItemDeleted", createEvent(item)))
                     }
                 } else {
-                    val html = fragment.data(ResourceItemsViewData(resource, items, context.takeUnless { it == service.defaultContext }, namespace, resourceVersion)).render()
+                    val html = resourceItemsFragment.data(ResourceItemsViewData(resource, items, contextValue, namespace, resourceVersion)).render()
                     sseEventSink.send(sse.newEvent("resourceItemsUpdated", html))
                 }
                 false
@@ -131,6 +143,12 @@ class K7sPage(
         if (watch != null) {
             resourceWatches[sseEventSink] = watch
         }
+    }
+
+    private fun createEvent(item: ResourceItem, html: String? = null): String {
+        val event = ItemModificationEvent(item.htmlSafeId, html)
+
+        return objectMapper.writeValueAsString(event)
     }
 
 

@@ -148,43 +148,46 @@ class KubernetesService(
         return resources.first { it.version == it.storageVersion }
     }
 
-    fun getResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null): ResourceItems? {
+    fun getResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null): ResourceItems? =
+        listItems(resource, getOperationForResource(resource, context) as AnyNamespaceOperation<HasMetadata, KubernetesResourceList<HasMetadata>, *>, namespace)
+
+    private fun getOperationForResource(resource: KubernetesResource, context: String? = null): NonNamespaceOperation<*, *, *> {
         val client = getClient(context)
 
         return if (resource == podResource) {
-            getPods(context, namespace)
+            client.pods()
         } else if (resource == serviceResource) {
-            getServices(context, namespace)
+            client.services()
         } else if (resource == namespaceResource) {
-            getNamespaces(context)
+            client.namespaces()
         } else if (resource == nodeResource) {
-            getNodes(context)
+            client.nodes()
         } else if (resource == configMapResource) {
-            listItems(configMapResource, client.configMaps(), namespace)
+            client.configMaps()
         } else if (resource == secretResource) {
-            listItems(secretResource, client.secrets(), namespace)
+            client.secrets()
         } else if (resource == serviceAccountResource) {
-            listItems(serviceAccountResource, client.serviceAccounts(), namespace)
+            client.serviceAccounts()
         } else if (resource == persistentVolumeResource) {
-            listItems(persistentVolumeResource, client.persistentVolumes(), namespace)
+            client.persistentVolumes()
         } else if (resource == persistentVolumeClaimResource) {
-            listItems(persistentVolumeClaimResource, client.persistentVolumeClaims(), namespace, context)
+            client.persistentVolumeClaims()
         } else if (resource.name == "ingresses") {
             if (resource.group == "extensions") {
-                listItems(resource, client.extensions().ingresses(), namespace)
+                client.extensions().ingresses()
             } else if (resource.version == "v1beta1") {
-                listItems(resource, client.network().v1beta1().ingresses(), namespace)
+                client.network().v1beta1().ingresses()
             } else {
-                listItems(resource, client.network().v1().ingresses(), namespace)
+                client.network().v1().ingresses()
             }
         } else if (resource.name == "deployments") {
             if (resource.group == "extensions") {
-                listItems(resource, client.extensions().deployments(), namespace)
+                client.extensions().deployments()
             } else {
-                listItems(resource, client.apps().deployments(), namespace) // TODO: where are apps/v1beta1 and apps/v1beta2 versions of deployments?
+                client.apps().deployments() // TODO: where are apps/v1beta1 and apps/v1beta2 versions of deployments?
             }
         } else {
-            listItems(resource, getGenericResources(resource, context, namespace))
+            getGenericResources(resource, context, null)
         }
     }
 
@@ -193,7 +196,15 @@ class KubernetesService(
             return null // a not watchable resource like Binding, ComponentStatus, NodeMetrics, PodMetrics, ...
         }
 
-        val resources = getGenericResources(resource, context, namespace)
+        val resources = getOperationForResource(resource, context).let { operation ->
+            if (namespace != null && operation is MixedOperation<*, *, *>) {
+                operation.inNamespace(namespace)
+            } else if (operation is MixedOperation<*, *, *>) {
+                operation.inAnyNamespace() // in Kubernetes cluster otherwise only resource items of default namespace are returned, not that one of all namespaces
+            } else {
+                operation
+            }
+        } as MixedOperation<HasMetadata, KubernetesResourceList<HasMetadata>, *>
 
         val options = ListOptions().apply {
             resourceVersion?.let { this.resourceVersion = it }
@@ -201,10 +212,12 @@ class KubernetesService(
 
         var watch: Watch? = null
         // Kubernetes 1.27 introduced sendInitialEvents as an alpha feature, so we have to wait till this is broadly available (https://kubernetes.io/docs/reference/using-api/api-concepts/#streaming-lists)
-        watch = resources.watch(options, KubernetesResourceWatcher<GenericKubernetesResource> { action, item ->
+        watch = resources.watch(options, KubernetesResourceWatcher<HasMetadata> { action, item ->
             // TODO: make diff update instead of fetching all items again
             if (action == Watcher.Action.ERROR) {
                 watch?.close() // TODO: check via callback if SSESinkEvent is already closed, otherwise restart watch
+            } else if (action == Watcher.Action.MODIFIED) {
+                update(WatchAction.Modified, listOf(mapper.mapResourceItem(item)), null)
             } else if (action == Watcher.Action.DELETED) {
                 update(WatchAction.Deleted, listOf(mapper.mapResourceItem(item)), null)
             } else {
