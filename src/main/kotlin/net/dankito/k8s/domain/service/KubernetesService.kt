@@ -45,6 +45,8 @@ class KubernetesService(
         )
 
         val NonNullDefaultContextName = "__<default>__"
+
+        private val StatsCacheDuration = Duration.ofMinutes(1)
     }
 
 
@@ -59,7 +61,7 @@ class KubernetesService(
     private val isMetricsApiAvailable = ConcurrentHashMap<String, Boolean>()
 
     private val cachedStats: Cache<String, Map<String, StatsSummary?>?> = Caffeine.newBuilder()
-        .expireAfterWrite(Duration.ofMinutes(1))
+        .expireAfterWrite(StatsCacheDuration)
         .build()
 
     private val log by logger()
@@ -229,7 +231,7 @@ class KubernetesService(
                 val stats = if (isResourceWithStats(resource)) getStats(listOf(item), context, true) else null
                 update(WatchAction.Added, mapper.mapResourceItem(item, stats), insertionIndex)
             }  else if (action == Watcher.Action.MODIFIED) {
-                val stats = if (isResourceWithStats(resource)) getStats(listOf(item), context) else null
+                val stats = if (isResourceWithStats(resource)) getStats(listOf(item), context, hasBeenCreatedLessThanStatsCacheDurationAgo(item)) else null
                 update(WatchAction.Modified, mapper.mapResourceItem(item, stats), null)
             } else if (action == Watcher.Action.DELETED) {
                 update(WatchAction.Deleted, mapper.mapResourceItem(item), null)
@@ -239,6 +241,13 @@ class KubernetesService(
         })
 
         return watch
+    }
+
+    private fun hasBeenCreatedLessThanStatsCacheDurationAgo(item: HasMetadata): Boolean {
+        val creationTimestamp = Instant.parse(item.metadata.creationTimestamp)
+        val diff = Duration.between(Instant.now(), creationTimestamp)
+
+        return diff < StatsCacheDuration
     }
 
     private fun getGenericResources(resource: KubernetesResource, context: String?, namespace: String?) =
