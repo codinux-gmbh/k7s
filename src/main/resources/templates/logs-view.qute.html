@@ -16,7 +16,7 @@
   </div>
 
   <script type="text/javascript">
-    const tableBody = document.getElementsByTagName("tbody")[0]
+    const tableBody = document.querySelector("tbody")
     const eventSource = new EventSource(window.location.href.replace("logs/", "watch/logs/") + "?since={startWatchingAt}")
 
     eventSource.onmessage = (event) => {
@@ -36,6 +36,10 @@
         }
       }
     }
+
+    addEventListener("beforeunload", (event) => {
+      eventSource.close()
+    })
 
     scrollToBottom() // so that initially latest messages get displayed
 
