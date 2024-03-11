@@ -228,7 +228,8 @@ class KubernetesService(
                 val insertionIndex = allItems.indexOf("${item.metadata.namespace}/${item.metadata.name}")
                 update(WatchAction.Added, mapper.mapResourceItem(item), insertionIndex) // stats retrieval is not senseful as for newly created resources there are no stats yet
             }  else if (action == Watcher.Action.MODIFIED) {
-                val stats = if (isResourceWithStats(resource)) getStats(emptyList<Node>(), context, forceStatsRetrievalForItem(resource, item)) else null
+                // TODO: stats are still retrieved too often. Add some "prell" duration till to combine multiple short following MODIFIED events?
+                val stats = if (isResourceWithStats(resource)) getStats(emptyList<Node>(), context, forceStatsRetrievalForItem(resource, item, context)) else null
                 update(WatchAction.Modified, mapper.mapResourceItem(item, stats), null)
             } else if (action == Watcher.Action.DELETED) {
                 update(WatchAction.Deleted, mapper.mapResourceItem(item), null)
@@ -240,15 +241,31 @@ class KubernetesService(
         return watch
     }
 
-    private fun forceStatsRetrievalForItem(resource: KubernetesResource, item: HasMetadata): Boolean {
+    private fun forceStatsRetrievalForItem(resource: KubernetesResource, item: HasMetadata, context: String?): Boolean {
         if (isResourceWithStats(resource) == false) {
             return false
+        }
+
+        val stats = cachedStats.asMap()[context ?: defaultContext]
+        if (stats == null) {
+            return true
         }
 
         val creationTimestamp = Instant.parse(item.metadata.creationTimestamp)
         val durationSinceCreationTime = Duration.between(Instant.now(), creationTimestamp)
 
-        return durationSinceCreationTime < StatsCacheDuration
+        return if (durationSinceCreationTime < StatsCacheDuration) { // resource item has recently been created ...
+            // so check if stats already contains values for this recently created resource item
+            if (resource.kind == "Node") {
+                stats[item.metadata.name] == null
+            } else if (resource.isPod) {
+                stats.values.filterNotNull().any { it.pods.any { it.podRef.name == item.metadata.name && it.podRef.namespace == item.metadata.namespace } } == false
+            } else {
+                true
+            }
+        } else {
+            false
+        }
     }
 
     private fun getGenericResources(resource: KubernetesResource, context: String?, namespace: String?) =
