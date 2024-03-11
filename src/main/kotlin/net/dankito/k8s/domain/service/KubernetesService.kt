@@ -23,6 +23,7 @@ import net.dankito.k8s.domain.model.ResourceItems
 import net.dankito.k8s.domain.model.Verb
 import net.dankito.k8s.domain.model.stats.StatsSummary
 import net.dankito.k8s.domain.service.mapper.ModelMapper
+import java.io.Closeable
 import java.io.InputStream
 import java.time.Instant
 import java.time.ZoneOffset
@@ -192,9 +193,9 @@ class KubernetesService(
         }
     }
 
-    fun watchResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null, resourceVersion: String? = null, update: (ResourceItems) -> Boolean) {
+    fun watchResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null, resourceVersion: String? = null, update: (ResourceItems) -> Boolean): Closeable? {
         if (resource.isWatchable == false) {
-            return // a not watchable resource like Binding, ComponentStatus, NodeMetrics, PodMetrics, ...
+            return null // a not watchable resource like Binding, ComponentStatus, NodeMetrics, PodMetrics, ...
         }
 
         val resources = getGenericResources(resource, context, namespace)
@@ -213,6 +214,8 @@ class KubernetesService(
                 }
             }
         })
+
+        return watch
     }
 
     private fun getGenericResources(resource: KubernetesResource, context: String?, namespace: String?) =

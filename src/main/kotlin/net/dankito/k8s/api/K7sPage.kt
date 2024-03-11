@@ -3,6 +3,7 @@ package net.dankito.k8s.api
 import io.quarkus.qute.Location
 import io.quarkus.qute.Template
 import io.quarkus.qute.TemplateInstance
+import io.quarkus.scheduler.Scheduled
 import io.smallrye.common.annotation.Blocking
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.NotFoundException
@@ -18,9 +19,11 @@ import net.dankito.k8s.domain.service.KubernetesService
 import org.jboss.resteasy.reactive.RestPath
 import org.jboss.resteasy.reactive.RestQuery
 import org.jboss.resteasy.reactive.RestStreamElementType
+import java.io.Closeable
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.util.concurrent.ConcurrentHashMap
 
 @Path("")
 @Produces(MediaType.TEXT_HTML)
@@ -30,6 +33,19 @@ class K7sPage(
     @Location("logs-view") private val logsView: Template,
     private val sse: Sse
 ) {
+
+    private val resourceWatches = ConcurrentHashMap<SseEventSink, Closeable>()
+
+    @Scheduled(every="1m")
+    internal fun cleanWatches() {
+        resourceWatches.toMap().forEach { (sseEventSink, closeable) ->
+            if (sseEventSink.isClosed) {
+                closeable.close()
+                resourceWatches.remove(sseEventSink)
+            }
+        }
+    }
+
 
     @GET
     @Blocking // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
@@ -95,7 +111,7 @@ class K7sPage(
 
         val fragment = homePage.getFragment("resourceItems")
 
-        service.watchResourceItems(resource, context, namespace, resourceVersion?.takeUnless { it.isBlank() || it == "null" }) { resourceItems ->
+        val watch = service.watchResourceItems(resource, context, namespace, resourceVersion?.takeUnless { it.isBlank() || it == "null" }) { resourceItems ->
             if (sseEventSink.isClosed) {
                 true
             } else {
@@ -103,6 +119,10 @@ class K7sPage(
                 sseEventSink.send(sse.newEvent("resourceItemsUpdated", html))
                 false
             }
+        }
+
+        if (watch != null) {
+            resourceWatches[sseEventSink] = watch
         }
     }
 

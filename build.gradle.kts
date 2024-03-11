@@ -32,6 +32,7 @@ dependencies {
     implementation("io.quarkus:quarkus-resteasy-reactive")
     implementation("io.quarkus:quarkus-resteasy-reactive-jackson")
     implementation("io.quarkus:quarkus-resteasy-reactive-qute")
+    implementation("io.quarkus:quarkus-scheduler")
 
     implementation("io.quarkus:quarkus-kubernetes-client")
     implementation("org.bouncycastle:bcpkix-jdk18on")
