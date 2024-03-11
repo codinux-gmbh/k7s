@@ -220,8 +220,8 @@ class KubernetesService(
         var watch: Watch? = null
         // Kubernetes 1.27 introduced sendInitialEvents as an alpha feature, so we have to wait till this is broadly available (https://kubernetes.io/docs/reference/using-api/api-concepts/#streaming-lists)
         watch = resources.watch(options, KubernetesResourceWatcher<HasMetadata> { action, item ->
-            // TODO: make diff update instead of fetching all items again
             if (action == Watcher.Action.ERROR) {
+                log.warn { "An error occurred for resource watcher of $resource, closing it" }
                 watch?.close() // TODO: check via callback if SSESinkEvent is already closed, otherwise restart watch
             } else if (action == Watcher.Action.ADDED) {
                 val allItems = resources.list().items.map { "${it.metadata.namespace}/${it.metadata.name}" }
