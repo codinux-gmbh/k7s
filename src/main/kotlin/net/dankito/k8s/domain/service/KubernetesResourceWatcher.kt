@@ -14,6 +14,12 @@ class KubernetesResourceWatcher<T>(
         event(action, resource)
     }
 
+    override fun onClose() {
+        onCloseLogMessage?.let { message ->
+            log?.info { message }
+        }
+    }
+
     override fun onClose(cause: WatcherException?) {
         onCloseLogMessage?.let { message ->
             log?.info(cause) { message }
