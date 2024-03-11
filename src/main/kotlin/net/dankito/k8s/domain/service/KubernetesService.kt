@@ -198,7 +198,7 @@ class KubernetesService(
         }
     }
 
-    fun watchResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null, resourceVersion: String? = null, update: (WatchAction, List<ResourceItem>, String?) -> Boolean): Closeable? {
+    fun watchResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null, resourceVersion: String? = null, update: (WatchAction, List<ResourceItem>, String?, Int?) -> Boolean): Closeable? {
         if (resource.isWatchable == false) {
             return null // a not watchable resource like Binding, ComponentStatus, NodeMetrics, PodMetrics, ...
         }
@@ -223,14 +223,19 @@ class KubernetesService(
             // TODO: make diff update instead of fetching all items again
             if (action == Watcher.Action.ERROR) {
                 watch?.close() // TODO: check via callback if SSESinkEvent is already closed, otherwise restart watch
-            } else if (action == Watcher.Action.MODIFIED) {
+            } else if (action == Watcher.Action.ADDED) {
+                val allItems = resources.list().items.map { "${it.metadata.namespace}/${it.metadata.name}" }
+                val insertionIndex = allItems.indexOf("${item.metadata.namespace}/${item.metadata.name}")
+                val stats = if (isResourceWithStats(resource)) getStats(listOf(item), context, true) else null
+                update(WatchAction.Added, listOf(mapper.mapResourceItem(item, stats)), null, insertionIndex)
+            }  else if (action == Watcher.Action.MODIFIED) {
                 val stats = if (isResourceWithStats(resource)) getStats(listOf(item), context) else null
-                update(WatchAction.Modified, listOf(mapper.mapResourceItem(item, stats)), null)
+                update(WatchAction.Modified, listOf(mapper.mapResourceItem(item, stats)), null, null)
             } else if (action == Watcher.Action.DELETED) {
-                update(WatchAction.Deleted, listOf(mapper.mapResourceItem(item)), null)
+                update(WatchAction.Deleted, listOf(mapper.mapResourceItem(item)), null, null)
             } else {
                 getResourceItems(resource, context, namespace)?.let {
-                    val stop = update(WatchAction.Updated, it.items, it.resourceVersion)
+                    val stop = update(WatchAction.UpdateAll, it.items, it.resourceVersion, null)
                     if (stop) {
                         watch?.close()
                     }

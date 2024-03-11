@@ -1,7 +1,8 @@
 package net.dankito.k8s.domain.model
 
 enum class WatchAction {
-    Updated,
+    Added,
     Modified,
-    Deleted
+    Deleted,
+    UpdateAll
 }

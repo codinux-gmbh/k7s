@@ -543,6 +543,20 @@
             const tableBody = document.querySelector("#resourceItemsContainer tbody")
             tableBody.innerHTML = e.data
           })
+
+          eventSource.addEventListener("resourceItemAdded", (e) => {
+            const event = JSON.parse(e.data)
+            const insertionIndex = event.insertionIndex
+            const tableBody = document.querySelector("#resourceItemsContainer tbody")
+
+            if (insertionIndex >= tableBody.children.length) {
+              tableBody.insertAdjacentHTML("beforeend", event.html)
+            } else {
+              const elementAfter = tableBody.children[insertionIndex]
+              elementAfter.insertAdjacentHTML("beforebegin", event.html)
+            }
+          })
+
           eventSource.addEventListener("resourceItemUpdated", (e) => {
             const event = JSON.parse(e.data)
             const itemToUpdate = document.getElementById(event.itemId)
@@ -550,6 +564,7 @@
               itemToUpdate.outerHTML = event.html
             }
           })
+
           eventSource.addEventListener("resourceItemDeleted", (e) => {
             const event = JSON.parse(e.data)
             const itemToDelete = document.getElementById(event.itemId)

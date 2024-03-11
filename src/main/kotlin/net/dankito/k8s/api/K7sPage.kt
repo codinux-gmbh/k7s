@@ -119,11 +119,16 @@ class K7sPage(
         val resourceItemTableRowFragment = homePage.getFragment("resourceItemTableRow")
         val contextValue = context.takeUnless { it == service.defaultContext }
 
-        val watch = service.watchResourceItems(resource, context, namespace, resourceVersion?.takeUnless { it.isBlank() || it == "null" }) { action, items, resourceVersion ->
+        val watch = service.watchResourceItems(resource, context, namespace, resourceVersion?.takeUnless { it.isBlank() || it == "null" }) { action, items, resourceVersion, insertionIndex ->
             if (sseEventSink.isClosed) {
                 true
             } else {
-                if (action == WatchAction.Modified) {
+                if (action == WatchAction.Added) {
+                    items.forEach { item ->
+                        val html = resourceItemTableRowFragment.data(ResourceItemRowViewData(item, resource, namespace)).render()
+                        sseEventSink.send(sse.newEvent("resourceItemAdded", createEvent(item, html, insertionIndex)))
+                    }
+                } else if (action == WatchAction.Modified) {
                     items.forEach { item ->
                         val html = resourceItemTableRowFragment.data(ResourceItemRowViewData(item, resource, namespace)).render()
                         sseEventSink.send(sse.newEvent("resourceItemUpdated", createEvent(item, html)))
@@ -145,8 +150,8 @@ class K7sPage(
         }
     }
 
-    private fun createEvent(item: ResourceItem, html: String? = null): String {
-        val event = ItemModificationEvent(item.htmlSafeId, html)
+    private fun createEvent(item: ResourceItem, html: String? = null, insertionIndex: Int? = null): String {
+        val event = ItemModificationEvent(item.htmlSafeId, html, insertionIndex)
 
         return objectMapper.writeValueAsString(event)
     }
