@@ -58,8 +58,6 @@ class KubernetesService(
 
     private val allAvailableResourceTypes = ConcurrentHashMap<String, List<KubernetesResource>>()
 
-    private val isMetricsApiAvailable = ConcurrentHashMap<String, Boolean>()
-
     private val cachedStats: Cache<String, Map<String, StatsSummary?>?> = Caffeine.newBuilder()
         .expireAfterWrite(StatsCacheDuration)
         .build()
