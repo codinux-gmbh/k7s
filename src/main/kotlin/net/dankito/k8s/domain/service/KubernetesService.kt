@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder
 import io.fabric8.kubernetes.client.ApiVisitor
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
+import io.fabric8.kubernetes.client.Watch
 import io.fabric8.kubernetes.client.dsl.*
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext
 import jakarta.inject.Singleton
@@ -191,7 +192,7 @@ class KubernetesService(
         }
     }
 
-    fun watchResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null, resourceVersion: String? = null, update: (ResourceItems) -> Unit) {
+    fun watchResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null, resourceVersion: String? = null, update: (ResourceItems) -> Boolean) {
         if (resource.isWatchable == false) {
             return // a not watchable resource like Binding, ComponentStatus, NodeMetrics, PodMetrics, ...
         }
@@ -201,9 +202,16 @@ class KubernetesService(
         val options = ListOptions().apply {
             resourceVersion?.let { this.resourceVersion = it }
         }
-        resources.watch(options, KubernetesResourceWatcher<GenericKubernetesResource> { _, _ ->
+
+        var watch: Watch? = null
+        watch = resources.watch(options, KubernetesResourceWatcher<GenericKubernetesResource> { _, _ ->
             // TODO: make diff update instead of fetching all items again
-            getResourceItems(resource, context, namespace)?.let { update(it) }
+            getResourceItems(resource, context, namespace)?.let {
+                val stop = update(it)
+                if (stop) {
+                    watch?.close()
+                }
+            }
         })
     }
 

@@ -97,10 +97,11 @@ class K7sPage(
 
         service.watchResourceItems(resource, context, namespace, resourceVersion?.takeUnless { it.isBlank() || it == "null" }) { resourceItems ->
             if (sseEventSink.isClosed) {
-                return@watchResourceItems // TODO: stop watcher
+                true
             } else {
                 val html = fragment.data(ResourceItemsViewData(resource, resourceItems.items, context.takeUnless { it == service.defaultContext }, namespace, resourceItems.resourceVersion)).render()
                 sseEventSink.send(sse.newEvent("resourceItemsUpdated", html))
+                false
             }
         }
     }
@@ -143,6 +144,7 @@ class K7sPage(
     ) {
         val sinceTimeUtc = since?.let { ZonedDateTime.parse(it) }
 
+        // TODO: also close LogWatch
         val inputStream = service.watchLogs(resourceKind, namespace, itemName, containerName, context, sinceTimeUtc)
 
         inputStream?.bufferedReader()?.use { logReader ->
