@@ -1,8 +1,11 @@
 package net.dankito.k8s.domain.model
 
+import java.time.Instant
+
 open class ResourceItem(
     val name: String,
     val namespace: String? = null,
+    val creationTimestamp: Instant,
     val itemSpecificValues: Map<String, String?> = emptyMap()
 ) {
 

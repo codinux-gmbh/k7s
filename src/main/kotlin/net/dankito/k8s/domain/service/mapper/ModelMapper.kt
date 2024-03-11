@@ -12,6 +12,7 @@ import net.dankito.k8s.domain.model.stats.StatsSummary
 import net.dankito.k8s.domain.model.stats.VolumeStats
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Instant
 
 @Singleton
 class ModelMapper {
@@ -88,15 +89,16 @@ class ModelMapper {
     fun <T : HasMetadata> mapResourceItem(item: T, stats: Map<String, StatsSummary?>? = null): ResourceItem {
         val name = item.metadata.name
         val namespace = item.metadata.namespace?.takeUnless { it.isBlank() }
+        val creationTimestamp = Instant.parse(item.metadata.creationTimestamp)
         val itemSpecificValues = getItemSpecificValues(item, stats)
 
         return if (item is Pod) {
             val status = item.status
-            PodResourceItem(name, namespace, mapPodStatus(status), status.podIP, itemSpecificValues, status.containerStatuses.map {
+            PodResourceItem(name, namespace, creationTimestamp, mapPodStatus(status), status.podIP, itemSpecificValues, status.containerStatuses.map {
                 ContainerStatus(it.name, try { it.containerID } catch (ignored: Exception) { null }, it.image, it.imageID, it.restartCount, it.started, it.ready, it.state.waiting != null, it.state.running != null, it.state.terminated != null)
             })
         } else {
-            ResourceItem(name, namespace, itemSpecificValues)
+            ResourceItem(name, namespace, creationTimestamp, itemSpecificValues)
         }
     }
 
