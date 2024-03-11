@@ -36,6 +36,7 @@ dependencies {
 
     implementation("io.quarkus:quarkus-kubernetes-client")
     implementation("org.bouncycastle:bcpkix-jdk18on")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
     implementation("io.quarkus:quarkus-smallrye-health")
     implementation("io.quarkus:quarkus-micrometer-registry-prometheus")

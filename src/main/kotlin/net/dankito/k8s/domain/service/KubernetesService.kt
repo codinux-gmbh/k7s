@@ -2,6 +2,8 @@ package net.dankito.k8s.domain.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder
@@ -20,6 +22,7 @@ import net.dankito.k8s.domain.model.stats.StatsSummary
 import net.dankito.k8s.domain.service.mapper.ModelMapper
 import java.io.Closeable
 import java.io.InputStream
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -54,6 +57,10 @@ class KubernetesService(
     private val allAvailableResourceTypes = ConcurrentHashMap<String, List<KubernetesResource>>()
 
     private val isMetricsApiAvailable = ConcurrentHashMap<String, Boolean>()
+
+    private val cachedStats: Cache<String, Map<String, StatsSummary?>?> = Caffeine.newBuilder()
+        .expireAfterWrite(Duration.ofMinutes(1))
+        .build()
 
     private val log by logger()
 
@@ -217,7 +224,8 @@ class KubernetesService(
             if (action == Watcher.Action.ERROR) {
                 watch?.close() // TODO: check via callback if SSESinkEvent is already closed, otherwise restart watch
             } else if (action == Watcher.Action.MODIFIED) {
-                update(WatchAction.Modified, listOf(mapper.mapResourceItem(item)), null)
+                val stats = if (isResourceWithStats(resource)) getStats(listOf(item), context) else null
+                update(WatchAction.Modified, listOf(mapper.mapResourceItem(item, stats)), null)
             } else if (action == Watcher.Action.DELETED) {
                 update(WatchAction.Deleted, listOf(mapper.mapResourceItem(item)), null)
             } else {
@@ -305,8 +313,20 @@ class KubernetesService(
     private fun isResourceWithStats(resource: KubernetesResource): Boolean =
         ResourcesWithStats.contains(resource.kind)
 
-    // TODO: cache stats
-    private fun <T> getStats(items: List<T>, context: String?): Map<String, StatsSummary?>? = runBlocking(Dispatchers.IO) {
+    private fun <T> getStats(items: List<T>, context: String?, forceRetrieval: Boolean = false): Map<String, StatsSummary?>? {
+        if (forceRetrieval == false) {
+            cachedStats.asMap()[context ?: defaultContext]?.let { statsFromCache ->
+                return statsFromCache
+            }
+        }
+
+        val stats = retrieveStats(items, context)
+        cachedStats.put(context ?: defaultContext, stats)
+
+        return stats
+    }
+
+    private fun <T> retrieveStats(items: List<T>, context: String?): Map<String, StatsSummary?>? = runBlocking(Dispatchers.IO) {
         val nodes = if (items.all { it is Node }) items as List<Node> else getClient(context).nodes().list().items
         val nodeNames = nodes.map { it.metadata.name }
 
