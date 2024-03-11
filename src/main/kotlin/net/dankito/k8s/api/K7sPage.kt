@@ -15,6 +15,7 @@ import jakarta.ws.rs.sse.Sse
 import jakarta.ws.rs.sse.SseEventSink
 import net.dankito.k8s.api.dto.HomePageData
 import net.dankito.k8s.api.dto.ResourceItemsViewData
+import net.dankito.k8s.domain.model.WatchAction
 import net.dankito.k8s.domain.service.KubernetesService
 import org.jboss.resteasy.reactive.RestPath
 import org.jboss.resteasy.reactive.RestQuery
@@ -111,12 +112,18 @@ class K7sPage(
 
         val fragment = homePage.getFragment("resourceItems")
 
-        val watch = service.watchResourceItems(resource, context, namespace, resourceVersion?.takeUnless { it.isBlank() || it == "null" }) { resourceItems ->
+        val watch = service.watchResourceItems(resource, context, namespace, resourceVersion?.takeUnless { it.isBlank() || it == "null" }) { action, items, resourceVersion ->
             if (sseEventSink.isClosed) {
                 true
             } else {
-                val html = fragment.data(ResourceItemsViewData(resource, resourceItems.items, context.takeUnless { it == service.defaultContext }, namespace, resourceItems.resourceVersion)).render()
-                sseEventSink.send(sse.newEvent("resourceItemsUpdated", html))
+                if (action == WatchAction.Deleted) {
+                    items.forEach { item ->
+                        sseEventSink.send(sse.newEvent("resourceItemDeleted", item.htmlSafeId))
+                    }
+                } else {
+                    val html = fragment.data(ResourceItemsViewData(resource, items, context.takeUnless { it == service.defaultContext }, namespace, resourceVersion)).render()
+                    sseEventSink.send(sse.newEvent("resourceItemsUpdated", html))
+                }
                 false
             }
         }

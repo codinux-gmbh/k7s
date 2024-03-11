@@ -5,10 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder
-import io.fabric8.kubernetes.client.ApiVisitor
-import io.fabric8.kubernetes.client.KubernetesClient
-import io.fabric8.kubernetes.client.KubernetesClientBuilder
-import io.fabric8.kubernetes.client.Watch
+import io.fabric8.kubernetes.client.*
 import io.fabric8.kubernetes.client.dsl.*
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext
 import jakarta.inject.Singleton
@@ -17,10 +14,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import net.codinux.log.logger
-import net.dankito.k8s.domain.model.KubeConfigs
+import net.dankito.k8s.domain.model.*
 import net.dankito.k8s.domain.model.KubernetesResource
-import net.dankito.k8s.domain.model.ResourceItems
-import net.dankito.k8s.domain.model.Verb
 import net.dankito.k8s.domain.model.stats.StatsSummary
 import net.dankito.k8s.domain.service.mapper.ModelMapper
 import java.io.Closeable
@@ -193,7 +188,7 @@ class KubernetesService(
         }
     }
 
-    fun watchResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null, resourceVersion: String? = null, update: (ResourceItems) -> Boolean): Closeable? {
+    fun watchResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null, resourceVersion: String? = null, update: (WatchAction, List<ResourceItem>, String?) -> Boolean): Closeable? {
         if (resource.isWatchable == false) {
             return null // a not watchable resource like Binding, ComponentStatus, NodeMetrics, PodMetrics, ...
         }
@@ -205,12 +200,19 @@ class KubernetesService(
         }
 
         var watch: Watch? = null
-        watch = resources.watch(options, KubernetesResourceWatcher<GenericKubernetesResource> { _, _ ->
+        // Kubernetes 1.27 introduced sendInitialEvents as an alpha feature, so we have to wait till this is broadly available (https://kubernetes.io/docs/reference/using-api/api-concepts/#streaming-lists)
+        watch = resources.watch(options, KubernetesResourceWatcher<GenericKubernetesResource> { action, item ->
             // TODO: make diff update instead of fetching all items again
-            getResourceItems(resource, context, namespace)?.let {
-                val stop = update(it)
-                if (stop) {
-                    watch?.close()
+            if (action == Watcher.Action.ERROR) {
+                watch?.close() // TODO: check via callback if SSESinkEvent is already closed, otherwise restart watch
+            } else if (action == Watcher.Action.DELETED) {
+                update(WatchAction.Deleted, listOf(mapper.mapResourceItem(item)), null)
+            } else {
+                getResourceItems(resource, context, namespace)?.let {
+                    val stop = update(WatchAction.Updated, it.items, it.resourceVersion)
+                    if (stop) {
+                        watch?.close()
+                    }
                 }
             }
         })

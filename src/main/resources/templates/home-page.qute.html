@@ -72,8 +72,6 @@
           }
         </style>
 
-        <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/sse.js"></script>
-
         <div id="commandInputContainer" class="fixed flex items-center w-[20rem] h-[3.5rem] p-2 top-1 right-1 z-[999] bg-primary hidden">
           <input type="search" list="availableCommands" class="w-full h-full p-2 px-1 rounded-full focus:outline-none"
                  onchange="commandInputChanged(event)" onkeydown="commandInputKeyDown(event)" onblur="commandInputLostFocus(event)" />
@@ -86,8 +84,7 @@
 
         <div id="resourceItemsContainer" class="flex flex-col" hx-swap="outerHTML">
           {#fragment id=resourceItems}
-            <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border"
-                   {#if resource.isWatchable}hx-ext="sse" sse-connect="{createWatchResourcePath()}" sse-swap="resourceItemsUpdated"{/if}>
+            <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border">
               <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500 hidden lg:table-header-group">
                   <tr>
                     <th class="w-[5.5rem] md:w-[12rem] text-left {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">Namespace</th>
@@ -105,7 +102,7 @@
 
               <tbody>
                 {#for item in resourceItems}
-                  <tr class="border-b first:border-t border-zinc-200 even:bg-zinc-100/50 {item.getItemStyle()}lg:hover:bg-[#326CE5] lg:hover:text-white" tabindex="0"
+                  <tr id="{item.htmlSafeId}" class="border-b first:border-t border-zinc-200 even:bg-zinc-100/50 {item.getItemStyle()}lg:hover:bg-[#326CE5] lg:hover:text-white" tabindex="0"
                       {#if resource.isLoggable}data-logs-url="/k7s/logs/{resource.name}/{item.namespace}/{item.name}"{/if}
                       onmousedown="onTableRowMouseDown(event)" oncontextmenu="showMenu(this, event)"
                       onkeydown="onTableRowKeyDown(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}', {resource.isScalable}, {resource.isDeletable}, {resource.allowDeletingWithoutConfirmation})"
@@ -158,6 +155,14 @@
               selectedContext = {#if selectedContext}"{selectedContext}"{#else}null{/if}
               selectedNamespace = {#if selectedNamespace}"{selectedNamespace}"{#else}null{/if}
               currentPath = "/k7s/page/resources/{resource.group ?: "null"}/{resource.name}"
+
+              if (window['eventSource']) {
+                eventSource.close()
+
+                eventSource = new EventSource("{createWatchResourcePath()}")
+
+                initEventSource()
+              }
             </script>
 
           {/fragment}
@@ -521,6 +526,36 @@
             }
           }
         })
+
+
+        var eventSource = new EventSource("{createWatchResourcePath()}")
+
+        addEventListener("beforeunload", (event) => {
+          eventSource.close()
+        })
+
+        initEventSource()
+
+        function initEventSource() {
+          eventSource.addEventListener("resourceItemsUpdated", (e) => {
+            handleResourceItemsUpdated(e.data)
+          })
+          eventSource.addEventListener("resourceItemDeleted", (e) => {
+            handleResourceItemDeleted(e.data)
+          })
+        }
+
+        function handleResourceItemsUpdated(html) {
+          const tableBody = document.querySelector("#resourceItemsContainer tbody")
+          tableBody.innerHTML = html
+        }
+
+        function handleResourceItemDeleted(itemId) {
+          const itemToDelete = document.querySelector(`$\{itemId}`)
+          itemToDelete?.remove()
+
+    console.log("Delete itemId", itemId, itemToDelete) // TODO: remove again
+         }
 
       </script>
   </div>
