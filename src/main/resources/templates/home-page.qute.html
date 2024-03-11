@@ -84,7 +84,7 @@
 
         <div id="resourceItemsContainer" class="flex flex-col" hx-swap="outerHTML">
           {#fragment id=resourceItems}
-            <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border">
+            <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 bg-clip-border">
               <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500 hidden lg:table-header-group">
                   <tr>
                     <th class="w-[5.5rem] md:w-[12rem] text-left {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">Namespace</th>
