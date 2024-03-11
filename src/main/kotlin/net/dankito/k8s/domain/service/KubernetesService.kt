@@ -226,10 +226,9 @@ class KubernetesService(
             } else if (action == Watcher.Action.ADDED) {
                 val allItems = resources.list().items.map { "${it.metadata.namespace}/${it.metadata.name}" }
                 val insertionIndex = allItems.indexOf("${item.metadata.namespace}/${item.metadata.name}")
-                val stats = if (isResourceWithStats(resource)) getStats(emptyList<Node>(), context, true) else null
-                update(WatchAction.Added, mapper.mapResourceItem(item, stats), insertionIndex)
+                update(WatchAction.Added, mapper.mapResourceItem(item), insertionIndex) // stats retrieval is not senseful as for newly created resources there are no stats yet
             }  else if (action == Watcher.Action.MODIFIED) {
-                val stats = if (isResourceWithStats(resource)) getStats(emptyList<Node>(), context, hasBeenCreatedLessThanStatsCacheDurationAgo(item)) else null
+                val stats = if (isResourceWithStats(resource)) getStats(emptyList<Node>(), context, forceStatsRetrievalForItem(resource, item)) else null
                 update(WatchAction.Modified, mapper.mapResourceItem(item, stats), null)
             } else if (action == Watcher.Action.DELETED) {
                 update(WatchAction.Deleted, mapper.mapResourceItem(item), null)
@@ -241,11 +240,15 @@ class KubernetesService(
         return watch
     }
 
-    private fun hasBeenCreatedLessThanStatsCacheDurationAgo(item: HasMetadata): Boolean {
-        val creationTimestamp = Instant.parse(item.metadata.creationTimestamp)
-        val diff = Duration.between(Instant.now(), creationTimestamp)
+    private fun forceStatsRetrievalForItem(resource: KubernetesResource, item: HasMetadata): Boolean {
+        if (isResourceWithStats(resource) == false) {
+            return false
+        }
 
-        return diff < StatsCacheDuration
+        val creationTimestamp = Instant.parse(item.metadata.creationTimestamp)
+        val durationSinceCreationTime = Duration.between(Instant.now(), creationTimestamp)
+
+        return durationSinceCreationTime < StatsCacheDuration
     }
 
     private fun getGenericResources(resource: KubernetesResource, context: String?, namespace: String?) =
@@ -318,7 +321,10 @@ class KubernetesService(
         }
 
     private fun isResourceWithStats(resource: KubernetesResource): Boolean =
-        ResourcesWithStats.contains(resource.kind)
+        isResourceWithStats(resource.kind)
+
+    private fun isResourceWithStats(resourceKind: String): Boolean =
+        ResourcesWithStats.contains(resourceKind)
 
     private fun <T> getStats(items: List<T>, context: String?, forceRetrieval: Boolean = false): Map<String, StatsSummary?>? {
         if (forceRetrieval == false) {
