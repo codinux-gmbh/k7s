@@ -89,10 +89,6 @@
                   <tr>
                     <th class="w-[5.5rem] md:w-[12rem] text-left {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">Namespace</th>
                     <th>Name</th>
-                    {#if resource.isPod}
-                      <th class="w-[3.5rem]">Ready</th>
-                      <th class="w-[6rem]">Status</th>
-                    {/if}
                     {#for headerName in resource.getItemSpecificValuesNames()}
                       <th>{headerName}</th>
                     {/for}
@@ -113,14 +109,13 @@
                         <div class="flex items-center">
                           {#if resource.isNamespaced && selectedNamespace == null}<div class="max-w-[5.5rem] md:max-w-[12rem] mr-1 flex-[0_0_auto] font-medium truncate">{item.namespace}</div>{/if}
                           <div class="grow truncate">{item.name}</div>
-                          {#if resource.isPod}
-                            <div class="w-4 ml-1 text-center flex-[0_0_auto]">{item.countReadyContainers}/{item.container.size}</div>
-                            <div class="w-[3.5rem] ml-1 flex-[0_0_auto]">{item.status}</div>
-                          {/if}
+                          {#for keyValue in item.highlightedItemSpecificValues}
+                            <div class="ml-1 flex-[0_0_auto]">{keyValue.key}: {keyValue.value}</div>
+                          {/for}
                         </div>
-                        {#if item.itemSpecificValues}
+                        {#if item.secondaryItemSpecificValues}
                           <div class="flex flex-wrap items-center mt-1">
-                            {#for keyValue in item.itemSpecificValues}
+                            {#for keyValue in item.secondaryItemSpecificValues}
                               <div class="mr-1">{keyValue.key}: {keyValue.value}</div>
                             {/for}
                           </div>
@@ -129,11 +124,10 @@
                       {! desktop view !}
                       <td class="truncate hidden {#if resource.isNamespaced && selectedNamespace == null}lg:table-cell{/if}">{item.namespace}</td>
                       <td class="truncate hidden lg:table-cell">{item.name}</td>
-                      {#if resource.isPod}
-                        <td class="text-center hidden lg:table-cell">{item.countReadyContainers}/{item.container.size}</td>
-                        <td class="hidden lg:table-cell">{item.status}</td>
-                      {/if}
-                      {#for keyValue in item.itemSpecificValues}
+                      {#for keyValue in item.highlightedItemSpecificValues}
+                        <td class="hidden lg:table-cell">{keyValue.value}</td>
+                      {/for}
+                      {#for keyValue in item.secondaryItemSpecificValues}
                         <td class="hidden lg:table-cell">{keyValue.value}</td>
                       {/for}
                       <td class="w-8 sm:w-12 p-0">

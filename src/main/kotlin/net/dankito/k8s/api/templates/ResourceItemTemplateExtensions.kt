@@ -41,15 +41,15 @@ object ResourceItemTemplateExtensions {
     @JvmStatic
     fun getItemSpecificValuesNames(resource: KubernetesResource): List<String> =
         when (resource.kind) {
-            "Pod" -> listOf("IP", "Host", "CPU", "Mem")
+            "Pod" -> listOf("Ready", "Status", "CPU", "Mem", "IP", "Host")
             "Service" -> listOf("Type", "ClusterIP", "ExternalIPs", "Ports")
-            "Ingress" -> listOf("Class", "Hosts", "Address", "Ports")
+            "Ingress" -> listOf("Class", "Hosts", "Ports", "Address")
             "Deployment" -> listOf("Ready", "Up-to-date", "Available")
             "ConfigMap" -> listOf("Data")
             "Secret" -> listOf("Type", "Data")
-            "PersistentVolume" -> listOf("Capacity", "Access Modes", "Reclaim Policy", "Status", "Claim", "StorageClass", "Reason")
-            "PersistentVolumeClaim" -> listOf("Status", "Volume", "Used Mi", "Used %", "Capacity", "Access Modes", "StorageClass")
-            "Node" -> listOf("Status", "Taints", "Version", "Kernel", "CPU", "%CPU", "CPU/A", "Mem", "%Mem", "Mem/A", "Images", "Pods")
+            "PersistentVolume" -> listOf("Status", "Access Modes", "StorageClass", "Claim", "Capacity", "Reclaim Policy", "Reason")
+            "PersistentVolumeClaim" -> listOf("Status", "Access Modes", "StorageClass", "Volume", "Used Mi", "Used %", "Capacity")
+            "Node" -> listOf("Status", "CPU", "%CPU", "CPU/A", "Mem", "%Mem", "Mem/A", "Pods", "Images", "Taints", "Version", "Kernel")
             else -> emptyList()
         }
 

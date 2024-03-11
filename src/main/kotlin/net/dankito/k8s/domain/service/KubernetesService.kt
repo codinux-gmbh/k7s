@@ -258,7 +258,7 @@ class KubernetesService(
             // so check if stats already contains values for this recently created resource item
             if (resource.kind == "Node") {
                 stats[item.metadata.name] == null
-            } else if (resource.isPod) {
+            } else if (resource.kind == "Pod") {
                 stats.values.filterNotNull().any { it.pods.any { it.podRef.name == item.metadata.name && it.podRef.namespace == item.metadata.namespace } } == false
             } else {
                 true

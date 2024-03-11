@@ -6,7 +6,8 @@ open class ResourceItem(
     val name: String,
     val namespace: String? = null,
     val creationTimestamp: Instant,
-    val itemSpecificValues: Map<String, String?> = emptyMap()
+    val highlightedItemSpecificValues: Map<String, String?> = emptyMap(),
+    val secondaryItemSpecificValues: Map<String, String?> = emptyMap()
 ) {
 
     /**
