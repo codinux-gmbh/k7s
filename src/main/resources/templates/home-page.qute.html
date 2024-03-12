@@ -482,7 +482,7 @@
         }
 
         function getItemPath(resourceName, namespace, itemName) {
-          return `/k7s/resource/$\{resourceName}/$\{namespace}/$\{itemName}`
+          return `/k7s/resource/$\{resourceName}/$\{namespace || null}/$\{itemName}`
         }
 
         function showMenu(element, event) {
