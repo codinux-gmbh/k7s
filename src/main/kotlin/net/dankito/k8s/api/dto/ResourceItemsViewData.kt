@@ -1,11 +1,14 @@
 package net.dankito.k8s.api.dto
 
+import net.dankito.k8s.domain.model.ClusterStats
 import net.dankito.k8s.domain.model.KubernetesResource
 import net.dankito.k8s.domain.model.ResourceItem
 
 open class ResourceItemsViewData(
     val resource: KubernetesResource,
     resourceItems: List<ResourceItem> = emptyList(),
+    val stats: ClusterStats,
+    val defaultContext: String?,
     val selectedContext: String?,
     val selectedNamespace: String?,
     val resourceVersion: String? = null

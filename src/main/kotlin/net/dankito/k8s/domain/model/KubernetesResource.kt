@@ -39,6 +39,16 @@ data class KubernetesResource(
 
 
     @get:JsonIgnore
+    val displayName: String by lazy {
+        // name is the plural but it is lowercase whilst in kind all words start with an uppercase letter -> try to merge both
+        if (name.startsWith(kind.substring(0, kind.length - 1).lowercase())) {
+            "${kind.substring(0, kind.length - 1)}${name.substring(kind.length - 1)}"
+        } else {
+            kind
+        }
+    }
+
+    @get:JsonIgnore
     val isPod: Boolean by lazy { group == null && kind == "Pod" }
 
     @get:JsonIgnore

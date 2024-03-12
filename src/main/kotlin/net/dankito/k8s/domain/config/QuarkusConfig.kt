@@ -10,7 +10,7 @@ import net.dankito.k8s.domain.model.*
 @RegisterForReflection(
     targets = [
         // Quarkus won't find them in native mode otherwise
-        HomePageData::class, ResourceItemsViewData::class, ResourceItemRowViewData::class,
+        HomePageData::class, ResourceItemsViewData::class, ClusterStats::class, ResourceItemRowViewData::class,
         ItemModificationEvent::class,
         KubernetesResource::class, ResourceItems::class, ResourceItem::class, ItemValue::class, PodResourceItem::class, ContainerStatus::class
     ]

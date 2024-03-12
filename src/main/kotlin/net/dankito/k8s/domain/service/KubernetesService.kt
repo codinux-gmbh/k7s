@@ -229,7 +229,7 @@ class KubernetesService(
                 update(WatchAction.Added, mapper.mapResourceItem(item), insertionIndex) // stats retrieval is not senseful as for newly created resources there are no stats yet
             }  else if (action == Watcher.Action.MODIFIED) {
                 // TODO: stats are still retrieved too often. Add some "prell" duration till to combine multiple short following MODIFIED events?
-                val stats = if (isResourceWithStats(resource)) getStats(emptyList<Node>(), context, forceStatsRetrievalForItem(resource, item, context)) else null
+                val stats = if (isResourceWithStats(resource)) getStats(context, forceRetrieval = forceStatsRetrievalForItem(resource, item, context)) else null
                 update(WatchAction.Modified, mapper.mapResourceItem(item, stats), null)
             } else if (action == Watcher.Action.DELETED) {
                 update(WatchAction.Deleted, mapper.mapResourceItem(item), null)
@@ -329,7 +329,8 @@ class KubernetesService(
                 .list()
 
             val items = listable.items.let { it as List<T> }
-            val stats = if (isResourceWithStats(resource)) getStats(items, contextForStats) else null
+            val nodeNames = items.filterIsInstance<Node>().map { it.metadata.name }.takeUnless { it.isEmpty() }
+            val stats = if (isResourceWithStats(resource)) getStats(contextForStats, nodeNames) else null
             val mappedItems = items.map { mapper.mapResourceItem(it, stats) }
             ResourceItems(listable.metadata.resourceVersion, mappedItems)
         } catch (e: Exception) {
@@ -337,28 +338,44 @@ class KubernetesService(
             null
         }
 
-    private fun isResourceWithStats(resource: KubernetesResource): Boolean =
-        isResourceWithStats(resource.kind)
 
-    private fun isResourceWithStats(resourceKind: String): Boolean =
-        ResourcesWithStats.contains(resourceKind)
+    fun getClusterStats(context: String?): ClusterStats {
+        try {
+            getNodes(context)?.items?.let { nodes ->
+                val cpuPercentages = nodes.mapNotNull { it.secondaryItemSpecificValues.firstOrNull { it.name == "%CPU" }?.value?.toIntOrNull() }
+                val memoryPercentages = nodes.mapNotNull { it.secondaryItemSpecificValues.firstOrNull { it.name == "%Mem" }?.value?.toIntOrNull() }
 
-    private fun <T> getStats(items: List<T>, context: String?, forceRetrieval: Boolean = false): Map<String, StatsSummary?>? {
+                if (cpuPercentages.isNotEmpty() && memoryPercentages.isNotEmpty()) {
+                    return ClusterStats(
+                        cpuPercentages.sum() / cpuPercentages.size,
+                        memoryPercentages.sum() / memoryPercentages.size
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            log.error(e) { "Could not get ClusterStats" }
+        }
+
+        return ClusterStats(null, null)
+    }
+
+    private fun getStats(context: String?, nodeNames: Collection<String>? = null, forceRetrieval: Boolean = false): Map<String, StatsSummary?>? {
         if (forceRetrieval == false) {
             cachedStats.asMap()[context ?: defaultContext]?.let { statsFromCache ->
                 return statsFromCache
             }
         }
 
-        val stats = retrieveStats(items, context)
+        val stats = retrieveStats(context, nodeNames)
         cachedStats.put(context ?: defaultContext, stats)
 
         return stats
     }
 
-    private fun <T> retrieveStats(items: List<T>, context: String?): Map<String, StatsSummary?>? = runBlocking(Dispatchers.IO) {
-        val nodes = if (items.isNotEmpty() && items.all { it is Node }) items as List<Node> else getClient(context).nodes().list().items
-        val nodeNames = nodes.map { it.metadata.name }
+    private fun retrieveStats(context: String?, nodeNames: Collection<String>? = null): Map<String, StatsSummary?>? = runBlocking(Dispatchers.IO) {
+        log.info { "Retrieving stats for ${nodeNames?.size} nodes" } // TODO: remove again
+
+        val nodeNames = nodeNames ?: getClient(context).nodes().list().items.map { it.metadata.name }
 
         val stats = nodeNames.map { nodeName ->
             async(Dispatchers.IO) {
@@ -378,6 +395,12 @@ class KubernetesService(
 
         stats.takeUnless { it.isEmpty() || it.values.all { it == null } }
     }
+
+    private fun isResourceWithStats(resource: KubernetesResource): Boolean =
+        isResourceWithStats(resource.kind)
+
+    private fun isResourceWithStats(resourceKind: String): Boolean =
+        ResourcesWithStats.contains(resourceKind)
 
     fun patchResourceItem(resourceName: String, namespace: String?, itemName: String, context: String? = null, scaleTo: Int? = null): Boolean {
         val resource = getResourceByName(resourceName, context)

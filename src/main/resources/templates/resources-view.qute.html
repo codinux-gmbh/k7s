@@ -23,7 +23,7 @@
             {#for resource in highlightedResources}
               <tr class="cursor-pointer lg:hover:bg-[#326CE5] lg:hover:text-white" onclick="displayResourceItems('{resource.group}', '{resource.name}', event)">
                   <td class="resource-cell">
-                      {resource.kind}
+                      {resource.displayName}
                   </td>
               </tr>
             {/for}
@@ -39,7 +39,7 @@
             {#for resource in standardResources}
                 <tr class="cursor-pointer lg:hover:bg-[#326CE5] lg:hover:text-white" onclick="displayResourceItems('{resource.group}', '{resource.name}', event)">
                     <td class="resource-cell">
-                        {resource.kind}
+                        {resource.displayName}
                     </td>
                 </tr>
             {/for}
@@ -55,7 +55,7 @@
             {#for resource in customResourceDefinitions}
                 <tr class="cursor-pointer lg:hover:bg-[#326CE5] lg:hover:text-white" onclick="displayResourceItems('{resource.group}', '{resource.name}', event)">
                     <td class="resource-cell">
-                        {resource.kind} {resource.group}.{resource.version}
+                        {resource.displayName} {resource.group}.{resource.version}
                     </td>
                 </tr>
             {/for}

@@ -65,9 +65,10 @@ class K7sPage(
             service.getAllAvailableResourceTypes(context),
             service.getNamespaces(context)?.items.orEmpty(),
             service.contextsNames,
-            service.defaultContext.takeUnless { it == KubernetesService.NonNullDefaultContextName },
             service.podResource,
             defaultResource?.items.orEmpty(),
+            service.getClusterStats(context),
+            service.defaultContext.takeUnless { it == KubernetesService.NonNullDefaultContextName },
             context?.takeUnless { it == service.defaultContext },
             namespace,
             defaultResource?.resourceVersion
@@ -91,7 +92,8 @@ class K7sPage(
         val resourceItems = service.getResourceItems(resource, context, namespace)
 
         return homePage.getFragment("resourceItems")
-            .data(ResourceItemsViewData(resource, resourceItems?.items.orEmpty(), context.takeUnless { it == service.defaultContext }, namespace, resourceItems?.resourceVersion))
+            .data(ResourceItemsViewData(resource, resourceItems?.items.orEmpty(), service.getClusterStats(context), service.defaultContext.takeUnless { it == KubernetesService.NonNullDefaultContextName },
+                context.takeUnless { it == service.defaultContext }, namespace, resourceItems?.resourceVersion))
     }
 
     @Path("watch/resources/{group}/{name}")
