@@ -102,7 +102,7 @@
                 </div>
 
                 <div class="flex-1 flex flex-col items-center">
-                  <div class="grow"></div>
+                  <div class="grow">1: Po, 2: Svc, 3: Ing, 4: Dp, 5: Cm, 6: Sec, 7: No, 8: PVC, 9: PV</div>
                   <div class="font-medium">{resource.displayName}({#if resource.isNamespaced && selectedNamespace}{selectedNamespace}{#else}all{/if})[{resourceItems.size}]</div>
                 </div>
 
@@ -317,7 +317,8 @@
 
           executeHtmxRequest(path)
 
-          if (event.srcElement.classList.contains("mobile-command-item") || event.srcElement.id == "selectStandardResource" || event.srcElement.id == "selectCustomResourceDefinition") { // a mobile command item has been clicked ..
+          if (event.srcElement.classList.contains("mobile-command-item") || event.srcElement.id == "selectStandardResource" || event.srcElement.id == "selectCustomResourceDefinition" // a mobile command item has been clicked ..
+              || (event.type == "keydown" && parseInt(event.key) != NaN)) { // key 1 to 0 has been pressed
             commandsContainer.classList.add("hidden") // .. -> hide commandsContainer again
             event.preventDefault() // stop propagating so that it won't reach window.onclick listener which hides commandsContainer
           }
@@ -366,6 +367,26 @@
             commandInputContainer.classList.remove("hidden")
             commandInput.focus()
             event.preventDefault()
+          } else if (noModifierKeyPressed(event)) {
+            if (event.key == "1") {
+              displayResourceItems(null, "pods", event)
+            } else if (event.key == "2") {
+              displayResourceItems(null, "services", event)
+            } else if (event.key == "3") {
+              displayResourceItems("networking.k8s.io", "ingresses", event)
+            } else if (event.key == "4") {
+              displayResourceItems("apps", "deployments", event)
+            } else if (event.key == "5") {
+              displayResourceItems(null, "configmaps", event)
+            } else if (event.key == "6") {
+              displayResourceItems(null, "secrets", event)
+            } else if (event.key == "7") {
+              displayResourceItems(null, "nodes", event)
+            } else if (event.key == "8") {
+              displayResourceItems(null, "persistentvolumeclaims", event)
+            } else if (event.key == "9") {
+              displayResourceItems(null, "persistentvolumes", event)
+            }
           }
         }
 
