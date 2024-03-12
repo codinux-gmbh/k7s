@@ -202,7 +202,8 @@
 
         <div class="fixed w-12 h-12 right-1 bottom-1 p-[0.2rem] bg-primary text-2xl font-bold rounded-lg shadow-md select-none z-[999]"
              onclick="document.getElementById('commandsContainer').classList.toggle('hidden'); return false;">
-          <img alt="Kubernetes Logo" src="/k7s/assets/images/kubernetes-icon-color.svg">
+          {! Disable context menu so that no context menu to view / download image gets displayed !}
+          <img alt="Kubernetes Logo" src="/k7s/assets/images/kubernetes-icon-color.svg" oncontextmenu="return false;">
         </div>
         <div id="commandsContainer" class="fixed right-1 bottom-[3.5rem] max-md:left-1 md:max-w-[760px] bg-zinc-200 text-white rounded-2xl shadow-md z-[998] hidden">
           <div class="flex justify-evenly content-stretch mt-[0.15rem] p-[0.125rem]">
