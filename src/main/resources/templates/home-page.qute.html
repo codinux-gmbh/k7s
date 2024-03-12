@@ -87,10 +87,10 @@
             <div class="mb-2 p-2 bg-white text-zinc-700 shadow-md">
               {! mobile view !}
               <div class="lg:hidden flex flex-row h-4 text-xs">
-                {#if contexts}<div>Context: {selectedContext ?: defaultContext}</div>{/if}
+                <div class="flex-1 truncate">{resource.displayName}({#if resource.isNamespaced && selectedNamespace}{selectedNamespace}{#else}all{/if})[{resourceItems.size}]</div>
+                {#if contexts}<div class="ml-2">Context: {selectedContext ?: defaultContext}</div>{/if}
                 <div class="ml-2">CPU: {#if stats.cpuPercentage}{stats.cpuPercentage}%{#else}n/a{/if}</div>
                 <div class="ml-2">Mem: {#if stats.memoryPercentage}{stats.memoryPercentage}%{#else}n/a{/if}</div>
-                <div class="ml-2 flex-1 flex justify-end truncate">{resource.displayName}({#if resource.isNamespaced && selectedNamespace}{selectedNamespace}{#else}all{/if})[{resourceItems.size}]</div>
               </div>
 
               {! desktop view !}
