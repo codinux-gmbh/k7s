@@ -20,7 +20,7 @@ class HomePageData(
 ) : ResourceItemsViewData(resource, resourceItems, stats, defaultContext, selectedContext, selectedNamespace, resourceVersion) {
 
     companion object {
-        private val highlightedResourcesNames = hashSetOf("pods", "services", "ingresses")
+        private val highlightedResourcesNames = listOf("Pod", "Service", "Ingress", "Deployment", "ConfigMap", "Secret", "Node", "PersistentVolume", "PersistentVolumeClaim")
     }
 
 
@@ -29,7 +29,8 @@ class HomePageData(
 
     val highlightedResources = listableResources
         // TODO: there may exists two different Ingress resources: networking.k8s.io.ingresses.v1 and extensions.ingresses.v1beta1
-        .filter { highlightedResourcesNames.contains(it.name) && it.kind != "PodMetrics" }
+        .filter { highlightedResourcesNames.contains(it.kind) }
+        .sortedBy { highlightedResourcesNames.indexOf(it.kind) }
 
     val standardResources = listableResources.filter { it.isCustomResourceDefinition == false }
         .sortedBy { it.name }
