@@ -88,7 +88,8 @@
               <thead class="bg-zinc-200 text-zinc-500 border-b border-zinc-500 hidden lg:table-header-group">
                   <tr>
                     <th class="w-[5.5rem] md:w-[12rem] text-left {#if !resource.isNamespaced || selectedNamespace != null}hidden{/if}">Namespace</th>
-                    <th>Name</th>
+                    {! TODO: why doesn't min- and max-width work? !}
+                    <th class="w-[17.25rem]">Name</th>
                     {#for headerName in resource.getItemSpecificValuesNames()}
                       <th>{headerName}</th>
                     {/for}
