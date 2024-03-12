@@ -101,13 +101,13 @@
                 </div>
 
                 <div class="flex-2 flex flex-col items-center">
-                  <div>&lt;1&gt;: Pod, &lt;2&gt;: &lt;Svc, &lt;3&gt;: Ingr, &lt;4&gt;: Depl, &lt;5&gt;: Cm, &lt;6&gt;: Secr, &lt;7&gt;: Node, &lt;8&gt;: PVC, &lt;9&gt;: PV</div>
                   <div>
                     {#if resource.isLoggable}<span class="mr-2">&lt;l&gt;: Logs</span>{/if}
                     {#if resource.isScalable}<span class="mr-2">&lt;s&gt;: Scale</span>{/if}
                     {#if resource.isDeletable}<span class="mr-2">&lt;d&gt;: Delete</span>{/if}
                     {#if resource.allowDeletingWithoutConfirmation}<span class="mr-2">&lt;Ctrl&gt;+&lt;k&gt;: Kill</span>{/if}
                   </div>
+                  <div>&lt;1&gt;: Pods, &lt;2&gt;: Svc, &lt;3&gt;: Ingr, &lt;4&gt;: Depl, &lt;5&gt;: Cm, &lt;6&gt;: Secr, &lt;7&gt;: Node, &lt;8&gt;: PVC, &lt;9&gt;: PV</div>
                   <div class="text-primary-dark font-medium mt-1">{resource.displayName}({#if resource.isNamespaced && selectedNamespace}{selectedNamespace}{#else}all{/if})[{resourceItems.size}]</div>
                 </div>
 
