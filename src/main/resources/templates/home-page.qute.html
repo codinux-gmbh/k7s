@@ -93,16 +93,22 @@
               </div>
 
               {! desktop view !}
-              <div class="hidden lg:flex flex-row justify-evenly content-stretch h-[4rem] text-sm">
+              <div class="hidden lg:flex flex-row content-stretch h-[4rem] text-sm">
                 <div class="flex-1">
                   <div><span class="inline-block w-[3rem] sm:w-[3.75rem]">Context:</span>{selectedContext ?: defaultContext}</div>
                   <div><span class="inline-block w-[3rem] sm:w-[3.75rem]">CPU:</span>{#if stats.cpuPercentage}{stats.cpuPercentage}%{#else}n/a{/if}</div>
                   <div><span class="inline-block w-[3rem] sm:w-[3.75rem]">Mem:</span>{#if stats.memoryPercentage}{stats.memoryPercentage}%{#else}n/a{/if}</div>
                 </div>
 
-                <div class="flex-1 flex flex-col items-center">
-                  <div class="grow">1: Po, 2: Svc, 3: Ing, 4: Dp, 5: Cm, 6: Sec, 7: No, 8: PVC, 9: PV</div>
-                  <div class="text-primary-dark font-medium">{resource.displayName}({#if resource.isNamespaced && selectedNamespace}{selectedNamespace}{#else}all{/if})[{resourceItems.size}]</div>
+                <div class="flex-2 flex flex-col items-center">
+                  <div>&lt;1&gt;: Po, &lt;2&gt;: &lt;Svc, &lt;3&gt;: Ing, &lt;4&gt;: Dp, &lt;5&gt;: Cm, &lt;6&gt;: Sec, &lt;7&gt;: No, &lt;8&gt;: PVC, &lt;9&gt;: PV</div>
+                  <div>
+                    {#if resource.isLoggable}<span class="mr-2">&lt;l&gt;: Logs</span>{/if}
+                    {#if resource.isScalable}<span class="mr-2">&lt;s&gt;: Scale</span>{/if}
+                    {#if resource.isDeletable}<span class="mr-2">&lt;d&gt;: Delete</span>{/if}
+                    {#if resource.allowDeletingWithoutConfirmation}<span class="mr-2">&lt;Ctrl&gt;+&lt;k&gt;: Kill</span>{/if}
+                  </div>
+                  <div class="text-primary-dark font-medium mt-1">{resource.displayName}({#if resource.isNamespaced && selectedNamespace}{selectedNamespace}{#else}all{/if})[{resourceItems.size}]</div>
                 </div>
 
                 <div class="flex-1"></div>
