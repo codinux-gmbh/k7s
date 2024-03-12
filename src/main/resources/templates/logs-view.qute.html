@@ -4,7 +4,7 @@
     <table class="table-fixed w-full bg-white text-xs sm:text-sm py-4 pr-2 sm:pr-3 text-zinc-700 shadow-md bg-clip-border">
       <tbody>
         {#for entry in logs}
-          <tr class="block min-h-[4.5rem] max-h-[6rem] border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-[#326CE5] lg:hover:text-white">
+          <tr class="block min-h-[4.5rem] max-h-[6rem] border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200">
             <td class="p-2 sm:p-3 leading-5 sm:leading-6">
               {entry}
             </td>
@@ -25,7 +25,7 @@
       if (event.data) {
         // add table row for log line dynamically
         tableBody.innerHTML += `
-            <tr class="block min-h-[4.5rem] max-h-[6rem] border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-[#326CE5] lg:hover:text-white">
+            <tr class="block min-h-[4.5rem] max-h-[6rem] border-b border-zinc-200 even:bg-zinc-100/50 lg:hover:bg-zinc-200">
               <td class="p-2 sm:p-3 leading-5 sm:leading-6">
                 $\{event.data}
               </td>
