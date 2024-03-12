@@ -12,7 +12,7 @@ import net.dankito.k8s.domain.model.*
         // Quarkus won't find them in native mode otherwise
         HomePageData::class, ResourceItemsViewData::class, ResourceItemRowViewData::class,
         ItemModificationEvent::class,
-        KubernetesResource::class, ResourceItems::class, ResourceItem::class, PodResourceItem::class, ContainerStatus::class
+        KubernetesResource::class, ResourceItems::class, ResourceItem::class, ItemValue::class, PodResourceItem::class, ContainerStatus::class
     ]
 )
 class QuarkusConfig

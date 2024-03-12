@@ -139,107 +139,99 @@ class ModelMapper {
         return status.phase // else use PodStatus.phase (Pending, Running, Succeeded, Failed, Unknown) as default
     }
 
-    private fun <T> getItemSpecificValues(item: T, stats: Map<String, StatsSummary?>? = null): Pair<Map<String, String?>, Map<String, String?>> {
+    private fun <T> getItemSpecificValues(item: T, stats: Map<String, StatsSummary?>? = null): Pair<List<ItemValue>, List<ItemValue>> {
         return if (item is Pod) {
             val emptyValue = if (stats.isNullOrEmpty()) "n/a" else "0"
             val status = item.status
-            mapOf("Ready" to "${status.containerStatuses.filter { it.ready }.size}/${status.containerStatuses.size}", "Status" to mapPodStatus(status)) to
-            buildMap {
-                put("CPU", emptyValue)
-                put("Mem", emptyValue)
-                put("IP", item.status.podIP)
-                put("Host", item.status.hostIP)
-                if (stats.isNullOrEmpty() == false) {
-                    val podStats = stats.values.firstNotNullOfOrNull { it?.pods.orEmpty().firstOrNull { it.podRef.name == item.metadata.name && it.podRef.namespace == item.metadata.namespace } }
-                    if (podStats != null) {
-                        this["CPU"] = toDisplayValue(toMilliCore(podStats.containers.sumOf { it.cpu?.usageNanoCores ?: 0UL }))
-                        this["Mem"] = toDisplayValue(toMiByte(podStats.containers.sumOf { it.memory?.workingSetBytes ?: 0UL }), RoundingMode.DOWN)
+            val countReadyContainers = "${status.containerStatuses.filter { it.ready }.size}/${status.containerStatuses.size}"
+            val podStatus = mapPodStatus(status)
+            val podStats = stats?.values?.firstNotNullOfOrNull { it?.pods.orEmpty().firstOrNull { it.podRef.name == item.metadata.name && it.podRef.namespace == item.metadata.namespace } }
+            val nodeStats = stats?.values?.firstOrNull { it?.pods?.contains(podStats) == true }?.node
 
-                        val nodeStats = stats.values.firstOrNull { it?.pods?.contains(podStats) == true }?.node
-                        if (nodeStats != null) {
-                            this["Host"] = nodeStats.nodeName
-                        }
-                    }
-                }
-            }
+            listOf(ItemValue("Ready", countReadyContainers, countReadyContainers), ItemValue("Status", podStatus, podStatus)) to
+            listOf(
+                ItemValue("CPU", toDisplayValue(toMilliCore(podStats?.containers?.sumOf { it.cpu?.usageNanoCores ?: 0UL })) ?: emptyValue),
+                ItemValue("Mem", toDisplayValue(toMiByte(podStats?.containers?.sumOf { it.memory?.workingSetBytes ?: 0UL }), RoundingMode.DOWN) ?: emptyValue),
+                ItemValue("IP", item.status.podIP, item.status.podIP),
+                ItemValue("Host", nodeStats?.nodeName ?: item.status.hostIP)
+            )
         } else if (item is Service) {
             val spec = item.spec
-            (mapOf("Type" to spec.type) to mapOf("ClusterIP" to spec.clusterIP, "ExternalIPs" to spec.externalIPs.joinToString(), "Ports" to spec.ports.joinToString { "${it.name}: ${it.port}►${it.nodePort ?: 0}" }) )
+            (listOf(ItemValue("Type", spec.type, spec.type)) to listOf(ItemValue("ClusterIP", spec.clusterIP), ItemValue("ExternalIPs", spec.externalIPs.joinToString()), ItemValue("Ports", spec.ports.joinToString { "${it.name}: ${it.port}►${it.nodePort ?: 0}" })) )
         } else if (item is Ingress) {
             val spec = item.spec
-            mapOf("Class" to spec.ingressClassName) to
-            mapOf("Hosts" to spec.rules.joinToString { it.host }, "Ports" to spec.rules.joinToString { it.http.paths.joinToString { it.backend.service.port.number.toString() } }, "Address" to item.status.loadBalancer.ingress.joinToString { it.hostname })
+            val hosts = spec.rules.joinToString { it.host }
+            listOf(ItemValue("Class", spec.ingressClassName, spec.ingressClassName)) to
+            listOf(ItemValue("Hosts", hosts, hosts), ItemValue("Ports", spec.rules.joinToString { it.http.paths.joinToString { it.backend.service.port.number.toString() } }), ItemValue("Address", item.status.loadBalancer.ingress.joinToString { it.hostname }))
         } else if (item is Deployment) {
             val status = item.status
-            mapOf("Ready" to "${status.readyReplicas ?: 0}/${status.replicas ?: 0}") to
-            mapOf("Up-to-date" to "${status.updatedReplicas ?: 0}", "Available" to "${status.availableReplicas ?: 0}")
+            val countReadyReplicas = "${status.readyReplicas ?: 0}/${status.replicas ?: 0}"
+            val countUpdatedReplicas = "${status.updatedReplicas ?: 0}"
+            val countAvailableReplicas = "${status.availableReplicas ?: 0}"
+            listOf(ItemValue("Ready", countReadyReplicas, countReadyReplicas), ItemValue("Up-to-date", countUpdatedReplicas, "Updated: $countUpdatedReplicas"), ItemValue("Available", countAvailableReplicas, "Avail: $countAvailableReplicas")) to
+            listOf()
         } else if (item is ConfigMap) {
-            (mapOf("Data" to item.data.size.toString()) to emptyMap())
+            listOf(ItemValue("Data", item.data.size.toString(), "${item.data.size} data")) to emptyList()
         } else if (item is Secret) {
-            mapOf("Type" to item.type, "Data" to item.data.size.toString()) to emptyMap()
+            listOf(ItemValue("Type", item.type, item.type), ItemValue("Data", item.data.size.toString(), "${item.data.size} data")) to emptyList()
         } else if (item is Node) {
             val status = item.status
+
+            val nodeStatus = status.conditions.firstOrNull { it.status == "True" }?.type
             val availableCpu = toMilliCore(status.capacity?.get("cpu"))
             val availableMemory = toMiByte(status.capacity?.get("memory"))
             val emptyValue = if (stats.isNullOrEmpty()) "n/a" else "0"
 
-            mapOf("Status" to status.conditions.firstOrNull { it.status == "True" }?.type) to
-            buildMap { // TODO: where to get roles from, like for master: "control-plane,etcd,master"? -> they seem to be set as annotations (or labels)
-                put("CPU", emptyValue)
-                put("%CPU", emptyValue)
-                put("CPU/A", toDisplayValue(availableCpu))
-                put("Mem", emptyValue)
-                put("%Mem", emptyValue)
-                put("Mem/A", toDisplayValue(availableMemory))
-                put("Pods", "n/a")
-                put("Images", status.images.size.toString())
-                put("Taints", item.spec.taints.size.toString())
-                put("Version", status.nodeInfo?.kubeletVersion)
-                put("Kernel", status.nodeInfo?.kernelVersion)
+            val statsSummaryForNode = stats?.get(item.metadata.name)
+            val nodeStats = statsSummaryForNode?.node
+            val cpu = toMilliCore(nodeStats?.cpu?.usageNanoCores)
+            val cpuPercentage = if (cpu != null) toDisplayValue((cpu ?: BigDecimal.ZERO).multiply(BigDecimal.valueOf(100)).divide(availableCpu, 0, RoundingMode.DOWN)) else emptyValue
+            val memory = toMiByte(nodeStats?.memory?.workingSetBytes)
+            val memoryPercentage = if (memory != null)  toDisplayValue((memory?.let { BigDecimal(memory.toString()) } ?: BigDecimal.ZERO).multiply(BigDecimal.valueOf(100)).divide(availableMemory, 0, RoundingMode.DOWN)) else emptyValue
+            val countPods = statsSummaryForNode?.pods?.size
 
-                if (stats.isNullOrEmpty() == false) {
-                    val statsSummaryForNode = stats[item.metadata.name]
-                    if (statsSummaryForNode != null) {
-                        val nodeStats = statsSummaryForNode.node
-
-                        val cpu = toMilliCore(nodeStats.cpu?.usageNanoCores)
-                        this["CPU"] = toDisplayValue(cpu)
-                        this["%CPU"] = toDisplayValue((cpu ?: BigDecimal.ZERO).multiply(BigDecimal.valueOf(100)).divide(availableCpu, 0, RoundingMode.DOWN))
-
-                        val memory = toMiByte(nodeStats.memory?.workingSetBytes)
-                        this["Mem"] = toDisplayValue(memory) ?: "n/a"
-                        this["%Mem"] = toDisplayValue((memory?.let { BigDecimal(memory.toString()) } ?: BigDecimal.ZERO).multiply(
-                            BigDecimal.valueOf(100)).divide(availableMemory, 0, RoundingMode.DOWN))
-
-                        this["Pods"] = statsSummaryForNode.pods.size.toString()
-                    }
-                }
-            }
+            listOf(ItemValue("Status", nodeStatus, nodeStatus)) to
+            listOf( // TODO: where to get roles from, like for master: "control-plane,etcd,master"? -> they seem to be set as annotations (or labels)
+                ItemValue("CPU", toDisplayValue(cpu) ?: emptyValue),
+                ItemValue("%CPU", cpuPercentage),
+                ItemValue("CPU/A", toDisplayValue(availableCpu)),
+                ItemValue("Mem", toDisplayValue(memory) ?: "n/a"),
+                ItemValue("%Mem", memoryPercentage),
+                ItemValue("Mem/A", toDisplayValue(availableMemory)),
+                ItemValue("Pods",  countPods?.toString() ?: "n/a", countPods?.let { "$it pods" } ?: "# Pods n/a"),
+                ItemValue("Images", status.images.size.toString(), "${status.images.size} images"),
+                ItemValue("Taints", item.spec.taints.size.toString(), "${item.spec.taints.size} taints"),
+                ItemValue("Version", status.nodeInfo?.kubeletVersion, "K8s: ${status.nodeInfo?.kubeletVersion}"),
+                ItemValue("Kernel", status.nodeInfo?.kernelVersion)
+            )
         } else if (item is PersistentVolume) {
             val spec = item.spec
-            mapOf("Status" to item.status.phase, "Access Modes" to mapAccessModes(spec.accessModes)) to
-            mapOf(
-                "StorageClass" to spec.storageClassName,
-                "Claim" to "${spec.claimRef.namespace}/${spec.claimRef.name}",
-                "Capacity" to spec.capacity["storage"]?.toString(),
-                "Reclaim Policy" to spec.persistentVolumeReclaimPolicy,
-                "Reason" to (item.status.reason ?: "")
+            val accessModes = mapAccessModes(spec.accessModes)
+            val capacity = spec.capacity["storage"]?.toString()
+            val claim = "${spec.claimRef.namespace}/${spec.claimRef.name}"
+            listOf(ItemValue("Status", item.status.phase, item.status.phase), ItemValue("Access Modes", accessModes, accessModes), ItemValue("Capacity", capacity, capacity)) to
+            listOf(
+                ItemValue("StorageClass", spec.storageClassName, spec.storageClassName),
+                ItemValue("Claim", claim, claim),
+                ItemValue("Reclaim Policy", spec.persistentVolumeReclaimPolicy),
+                ItemValue("Reason", item.status.reason ?: "", "Reason ${item.status.reason ?: "-"}")
             )
         } else if (item is PersistentVolumeClaim) {
             val spec = item.spec
+            val accessModes = mapAccessModes(spec.accessModes)
             val volumeStats = if (stats.isNullOrEmpty()) null else stats.values.flatMap { it?.pods.orEmpty().flatMap { it.volume.filter { it.pvcRef != null } } }
                 ?.firstOrNull { it.pvcRef!!.name == item.metadata.name && it.pvcRef.namespace == item.metadata.namespace }
             val usedBytes = getUsedBytes(volumeStats)
-            mapOf("Status" to item.status.phase, "Access Modes" to mapAccessModes(spec.accessModes)) to
-            mapOf(
-                "StorageClass" to spec.storageClassName,
-                "Volume" to spec.volumeName,
-                "Used Mi" to (toDisplayValue(toMiByte(usedBytes)) ?: "n/a"),
-                "Used %" to (toUsagePercentage(usedBytes, volumeStats?.capacityBytes) ?: "n/a"),
-                "Capacity" to item.status.capacity["storage"]?.toString()
+            listOf(ItemValue("Status", item.status.phase, item.status.phase), ItemValue("Access Modes", accessModes, accessModes)) to
+            listOf(
+                ItemValue("StorageClass", spec.storageClassName, spec.storageClassName),
+                ItemValue("Volume", spec.volumeName, spec.volumeName),
+                ItemValue("Used Mi", (toDisplayValue(toMiByte(usedBytes)) ?: "n/a")),
+                ItemValue("Used %", (toUsagePercentage(usedBytes, volumeStats?.capacityBytes) ?: "n/a")),
+                ItemValue("Capacity", item.status.capacity["storage"]?.toString())
             )
         } else {
-            emptyMap<String, String?>() to emptyMap()
+            emptyList<ItemValue>() to emptyList()
         }
     }
 

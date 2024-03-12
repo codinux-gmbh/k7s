@@ -47,7 +47,7 @@ object ResourceItemTemplateExtensions {
             "Deployment" -> listOf("Ready", "Up-to-date", "Available")
             "ConfigMap" -> listOf("Data")
             "Secret" -> listOf("Type", "Data")
-            "PersistentVolume" -> listOf("Status", "Access Modes", "StorageClass", "Claim", "Capacity", "Reclaim Policy", "Reason")
+            "PersistentVolume" -> listOf("Status", "Access Modes", "Capacity", "StorageClass", "Claim", "Reclaim Policy", "Reason")
             "PersistentVolumeClaim" -> listOf("Status", "Access Modes", "StorageClass", "Volume", "Used Mi", "Used %", "Capacity")
             "Node" -> listOf("Status", "CPU", "%CPU", "CPU/A", "Mem", "%Mem", "Mem/A", "Pods", "Images", "Taints", "Version", "Kernel")
             else -> emptyList()

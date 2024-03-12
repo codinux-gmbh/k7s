@@ -9,8 +9,8 @@ class PodResourceItem(
     val status: String,
     val podIP: String?,
     val container: List<ContainerStatus>,
-    highlightedItemSpecificValues: Map<String, String?> = emptyMap(),
-    secondaryItemSpecificValues: Map<String, String?> = emptyMap()
+    highlightedItemSpecificValues: List<ItemValue> = emptyList(),
+    secondaryItemSpecificValues: List<ItemValue> = emptyList()
 ) : ResourceItem(name, namespace, creationTimestamp, highlightedItemSpecificValues, secondaryItemSpecificValues) {
 
     val countReadyContainers = container.count { it.ready }
