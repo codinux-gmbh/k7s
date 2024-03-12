@@ -116,7 +116,7 @@
                           {/for}
                         </div>
                         {#if item.secondaryItemSpecificValues}
-                          <div class="flex flex-wrap items-center mt-1">
+                          <div class="flex flex-wrap items-center mt-1 text-[0.675rem]">
                             {#for value in item.secondaryItemSpecificValues}
                               {#if value.showOnMobile}
                                 <div class="mr-1">{#if value.mobileValue}{value.mobileValue}{#else}{value.name}: {value.value}{/if}</div>
