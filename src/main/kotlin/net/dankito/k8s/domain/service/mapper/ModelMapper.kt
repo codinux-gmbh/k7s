@@ -190,15 +190,21 @@ class ModelMapper {
             val memoryPercentage = if (memory != null)  toDisplayValue((memory?.let { BigDecimal(memory.toString()) } ?: BigDecimal.ZERO).multiply(BigDecimal.valueOf(100)).divide(availableMemory, 0, RoundingMode.DOWN)) else emptyValue
             val countPods = statsSummaryForNode?.pods?.size
 
-            listOf(ItemValue("Status", nodeStatus, nodeStatus)) to
+            listOf(ItemValue(
+                "Status", nodeStatus, nodeStatus),
+                ItemValue("%CPU", null, "CPU ${cpuPercentage}%", showOnDesktop = false),
+                ItemValue("%Mem", null, "Mem ${memoryPercentage}%", showOnDesktop = false)
+            ) to
             listOf( // TODO: where to get roles from, like for master: "control-plane,etcd,master"? -> they seem to be set as annotations (or labels)
-                ItemValue("CPU", toDisplayValue(cpu) ?: emptyValue),
-                ItemValue("%CPU", cpuPercentage),
-                ItemValue("CPU/A", toDisplayValue(availableCpu)),
-                ItemValue("Mem", toDisplayValue(memory) ?: "n/a"),
-                ItemValue("%Mem", memoryPercentage),
-                ItemValue("Mem/A", toDisplayValue(availableMemory)),
-                ItemValue("Pods",  countPods?.toString() ?: "n/a", countPods?.let { "$it pods" } ?: "# Pods n/a"),
+                ItemValue("CPU", toDisplayValue(cpu) ?: emptyValue, showOnMobile = false),
+                ItemValue("%CPU", cpuPercentage, showOnMobile = false),
+                ItemValue("CPU/A", toDisplayValue(availableCpu), showOnMobile = false),
+                ItemValue("CPU", null, "CPU ${toDisplayValue(cpu) ?: emptyValue}, ${cpuPercentage}% of ${toDisplayValue(availableCpu)}", showOnDesktop = false),
+                ItemValue("Mem", toDisplayValue(memory) ?: emptyValue, showOnMobile = false),
+                ItemValue("%Mem", memoryPercentage, showOnMobile = false),
+                ItemValue("Mem/A", toDisplayValue(availableMemory), showOnMobile = false),
+                ItemValue("Mem", null, "Mem ${toDisplayValue(memory) ?: emptyValue}, ${memoryPercentage}% of ${toDisplayValue(availableMemory)}", showOnDesktop = false),
+                ItemValue("Pods",  countPods?.toString() ?: emptyValue, countPods?.let { "$it pods" } ?: "# Pods n/a"),
                 ItemValue("Images", status.images.size.toString(), "${status.images.size} images"),
                 ItemValue("Taints", item.spec.taints.size.toString(), "${item.spec.taints.size} taints"),
                 ItemValue("Version", status.nodeInfo?.kubeletVersion, "K8s: ${status.nodeInfo?.kubeletVersion}"),
@@ -222,13 +228,16 @@ class ModelMapper {
             val volumeStats = if (stats.isNullOrEmpty()) null else stats.values.flatMap { it?.pods.orEmpty().flatMap { it.volume.filter { it.pvcRef != null } } }
                 ?.firstOrNull { it.pvcRef!!.name == item.metadata.name && it.pvcRef.namespace == item.metadata.namespace }
             val usedBytes = getUsedBytes(volumeStats)
-            listOf(ItemValue("Status", item.status.phase, item.status.phase), ItemValue("Access Modes", accessModes, accessModes)) to
+            val usedMi = toDisplayValue(toMiByte(usedBytes)) ?: "n/a"
+            val usedPercentage = toUsagePercentage(usedBytes, volumeStats?.capacityBytes) ?: "n/a"
+            val capacity = item.status.capacity["storage"]?.toString()
+            listOf(ItemValue("Status", item.status.phase, item.status.phase), ItemValue("Access Modes", accessModes, accessModes), ItemValue("Used", null, "${usedMi}Mi, ${usedPercentage}% of $capacity", showOnDesktop = false)) to
             listOf(
                 ItemValue("StorageClass", spec.storageClassName, spec.storageClassName),
                 ItemValue("Volume", spec.volumeName, spec.volumeName),
-                ItemValue("Used Mi", (toDisplayValue(toMiByte(usedBytes)) ?: "n/a")),
-                ItemValue("Used %", (toUsagePercentage(usedBytes, volumeStats?.capacityBytes) ?: "n/a")),
-                ItemValue("Capacity", item.status.capacity["storage"]?.toString())
+                ItemValue("Used Mi", usedMi, showOnMobile = false),
+                ItemValue("Used %", usedPercentage, showOnMobile = false),
+                ItemValue("Capacity", capacity, showOnMobile = false)
             )
         } else {
             emptyList<ItemValue>() to emptyList()

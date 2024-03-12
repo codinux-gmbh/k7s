@@ -110,13 +110,17 @@
                           {#if resource.isNamespaced && selectedNamespace == null}<div class="max-w-[5.5rem] md:max-w-[12rem] mr-1 flex-[0_0_auto] font-medium truncate">{item.namespace}</div>{/if}
                           <div class="grow truncate">{item.name}</div>
                           {#for value in item.highlightedItemSpecificValues}
-                            <div class="ml-1 flex-[0_0_auto]">{#if value.mobileValue}{value.mobileValue}{#else}{value.name}: {value.value}{/if}</div>
+                            {#if value.showOnMobile}
+                              <div class="ml-1 flex-[0_0_auto]">{#if value.mobileValue}{value.mobileValue}{#else}{value.name}: {value.value}{/if}</div>
+                            {/if}
                           {/for}
                         </div>
                         {#if item.secondaryItemSpecificValues}
                           <div class="flex flex-wrap items-center mt-1">
                             {#for value in item.secondaryItemSpecificValues}
-                              <div class="mr-1">{#if value.mobileValue}{value.mobileValue}{#else}{value.name}: {value.value}{/if}</div>
+                              {#if value.showOnMobile}
+                                <div class="mr-1">{#if value.mobileValue}{value.mobileValue}{#else}{value.name}: {value.value}{/if}</div>
+                              {/if}
                             {/for}
                           </div>
                         {/if}
@@ -125,10 +129,14 @@
                       <td class="truncate hidden {#if resource.isNamespaced && selectedNamespace == null}lg:table-cell{/if}">{item.namespace}</td>
                       <td class="truncate hidden lg:table-cell">{item.name}</td>
                       {#for value in item.highlightedItemSpecificValues}
-                        <td class="hidden lg:table-cell">{value.value}</td>
+                        {#if value.showOnDesktop}
+                          <td class="hidden lg:table-cell">{value.value}</td>
+                        {/if}
                       {/for}
                       {#for value in item.secondaryItemSpecificValues}
-                        <td class="hidden lg:table-cell">{value.value}</td>
+                        {#if value.showOnDesktop}
+                          <td class="hidden lg:table-cell">{value.value}</td>
+                        {/if}
                       {/for}
                       <td class="w-8 sm:w-12 p-0">
                         <div class="menu-toggler flex justify-center items-center w-full h-full text-zinc-500 lg:hover:text-white text-3xl cursor-pointer" onclick="showMenu(this, event)">&#xFE19;</div>
