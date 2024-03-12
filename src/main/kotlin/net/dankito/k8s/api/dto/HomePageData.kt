@@ -9,7 +9,7 @@ import net.dankito.k8s.domain.model.Verb
 class HomePageData(
     val allResources: List<KubernetesResource>,
     val allNamespaces: List<ResourceItem>,
-    val contexts: List<String>,
+    contexts: List<String>,
     resource: KubernetesResource,
     resourceItems: List<ResourceItem> = emptyList(),
     stats: ClusterStats,
@@ -17,7 +17,7 @@ class HomePageData(
     selectedContext: String? = null,
     selectedNamespace: String? = null,
     resourceVersion: String? = null
-) : ResourceItemsViewData(resource, resourceItems, stats, defaultContext, selectedContext, selectedNamespace, resourceVersion) {
+) : ResourceItemsViewData(resource, resourceItems, stats, contexts, defaultContext, selectedContext, selectedNamespace, resourceVersion) {
 
     companion object {
         private val highlightedResourcesNames = listOf("Pod", "Service", "Ingress", "Deployment", "ConfigMap", "Secret", "Node", "PersistentVolume", "PersistentVolumeClaim")

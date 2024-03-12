@@ -92,7 +92,8 @@ class K7sPage(
         val resourceItems = service.getResourceItems(resource, context, namespace)
 
         return homePage.getFragment("resourceItems")
-            .data(ResourceItemsViewData(resource, resourceItems?.items.orEmpty(), service.getClusterStats(context), service.defaultContext.takeUnless { it == KubernetesService.NonNullDefaultContextName },
+            .data(ResourceItemsViewData(resource, resourceItems?.items.orEmpty(), service.getClusterStats(context), service.contextsNames,
+                service.defaultContext.takeUnless { it == KubernetesService.NonNullDefaultContextName },
                 context.takeUnless { it == service.defaultContext }, namespace, resourceItems?.resourceVersion))
     }
 

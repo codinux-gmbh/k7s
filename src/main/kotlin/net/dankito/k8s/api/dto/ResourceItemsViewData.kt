@@ -8,6 +8,7 @@ open class ResourceItemsViewData(
     val resource: KubernetesResource,
     resourceItems: List<ResourceItem> = emptyList(),
     val stats: ClusterStats,
+    val contexts: List<String>,
     val defaultContext: String?,
     val selectedContext: String?,
     val selectedNamespace: String?,
