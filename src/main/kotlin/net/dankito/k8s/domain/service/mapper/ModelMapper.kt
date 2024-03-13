@@ -192,9 +192,9 @@ class ModelMapper {
             val statsSummaryForNode = stats?.get(item.metadata.name)
             val nodeStats = statsSummaryForNode?.node
             val cpu = toMilliCore(nodeStats?.cpu?.usageNanoCores)
-            val cpuPercentage = if (cpu != null) toDisplayValue((cpu ?: BigDecimal.ZERO).multiply(BigDecimal.valueOf(100)).divide(availableCpu, 0, RoundingMode.DOWN)) else emptyValue
+            val cpuPercentage = cpuPercentage(cpu, availableCpu, emptyValue)
             val memory = toMiByte(nodeStats?.memory?.workingSetBytes)
-            val memoryPercentage = if (memory != null)  toDisplayValue((memory?.let { BigDecimal(memory.toString()) } ?: BigDecimal.ZERO).multiply(BigDecimal.valueOf(100)).divide(availableMemory, 0, RoundingMode.DOWN)) else emptyValue
+            val memoryPercentage = memoryPercentage(memory, availableMemory, emptyValue)
             val countPods = statsSummaryForNode?.pods?.size
 
             listOf(ItemValue(
@@ -256,6 +256,20 @@ class ModelMapper {
             .replace("ReadWriteMany", "RWM").replace("ReadWriteOncePod", "RWOP")
     }
 
+    private fun cpuPercentage(cpu: BigDecimal?, availableCpu: BigDecimal?, emptyValue: String): String =
+        if (cpu != null && availableCpu != null && availableCpu != BigDecimal.ZERO) {
+            toDisplayValue(cpu.multiply(BigDecimal.valueOf(100)).divide(availableCpu, 0, RoundingMode.DOWN))
+        } else {
+            emptyValue
+        }
+
+    private fun memoryPercentage(memory: BigDecimal?, availableMemory: BigDecimal?, emptyValue: String) =
+        if (memory != null && availableMemory != null && availableMemory != BigDecimal.ZERO) {
+            toDisplayValue(memory.multiply(BigDecimal.valueOf(100)).divide(availableMemory, 0, RoundingMode.DOWN))
+        } else {
+            emptyValue
+        }
+
     private fun toMilliCore(usageNanoCores: ULong?): BigDecimal? = usageNanoCores?.let {
         BigDecimal(usageNanoCores.toString()).divide(BigDecimal.valueOf(1_000_000L))
     }
@@ -294,8 +308,12 @@ class ModelMapper {
         }
     }
 
+    @JvmName("toDisplayValueNullable")
     private fun toDisplayValue(metricValue: BigDecimal?, roundingMode: RoundingMode = RoundingMode.UP): String? = metricValue?.let {
-        metricValue.setScale(0, roundingMode).toString()
+        toDisplayValue(metricValue, roundingMode)
     }
+
+    private fun toDisplayValue(metricValue: BigDecimal, roundingMode: RoundingMode = RoundingMode.UP): String =
+        metricValue.setScale(0, roundingMode).toString()
 
 }
