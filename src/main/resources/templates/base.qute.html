@@ -24,6 +24,23 @@
         .bg-primary {
             background-color: #326CE5;
         }
+
+
+        .dialog-content {
+            animation-name: animatetop;
+            animation-duration: 0.4s
+        }
+
+        @keyframes animatetop {
+            from {
+                top:-300px;
+                opacity:0
+            }
+            to {
+                top:0;
+                opacity:1
+            }
+        }
     </style>
 </head>
 <body class="bg-zinc-100 min-h-screen">

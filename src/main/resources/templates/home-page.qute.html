@@ -106,6 +106,7 @@
                     {#if resource.isScalable}<span class="mr-2">&lt;s&gt;: Scale</span>{/if}
                     {#if resource.isDeletable}<span class="mr-2">&lt;d&gt;: Delete</span>{/if}
                     {#if resource.allowDeletingWithoutConfirmation}<span class="mr-2">&lt;Ctrl&gt;+&lt;k&gt;: Kill</span>{/if}
+                    <span>&lt;y&gt;: Yaml</span>
                   </div>
                   <div>&lt;1&gt;: Pods, &lt;2&gt;: Svc, &lt;3&gt;: Ingr, &lt;4&gt;: Depl, &lt;5&gt;: Cm, &lt;6&gt;: Secr, &lt;7&gt;: Node, &lt;8&gt;: PVC, &lt;9&gt;: PV</div>
                   <div class="text-primary-dark font-medium mt-1">{resource.displayName}({#if resource.isNamespaced && selectedNamespace}{selectedNamespace}{#else}all{/if})[{resourceItems.size}]</div>
@@ -177,6 +178,7 @@
                             {#if resource.isScalable}<li class="menu-item" onclick="scaleTo(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}')">Scale</li>{/if}
                             {#if resource.isDeletable}<li class="menu-item" onclick="deleteItem(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}')">Delete</li>{/if}
                             {#if resource.allowDeletingWithoutConfirmation}<li class="menu-item" onclick="killItem(event, '{resource.name}', '{item.namespace}', '{item.name}')">Kill</li>{/if}
+                            <li class="menu-item" onclick="showYaml(event, '{resource.name}', '{resource.kind}', '{item.namespace}', '{item.name}')">Yaml</li>
                           </ul>
                         </div>
                       </td>
@@ -279,6 +281,21 @@
         </div>
       </div>
 
+      <div id="dialog" class="fixed top-0 left-0 w-full h-full bg-[rgba(0,0,0,0.4)] z-[1000] overflow-auto hidden">
+
+        <div class="dialog-content max-w-[1140px] w-[98vw] lg:w-[85vw] lg:max-h-[96vh] m-1 lg:mx-auto lg:my-4 border-[#888] shadow-xl">
+          <div class="flex items-center h-12 bg-primary text-white">
+            <div class="dialog-title flex-1 px-4 truncate"></div>
+            <div class="dialog-close-button w-12 h-12 flex justify-center items-center text-3xl font-bold hover:text-zinc-600 select-none">&times;</div>
+          </div>
+
+          <div class="dialog-body min-h-12 px-4 py-1 bg-white">
+
+          </div>
+        </div>
+
+      </div>
+
       <script type="text/javascript">
         var selectedContext = {#if selectedContext}"{selectedContext}"{#else}null{/if}
         var selectedNamespace = {#if selectedNamespace}"{selectedNamespace}"{#else}null{/if}
@@ -292,6 +309,12 @@
         const commandInput = commandInputContainer.querySelector("input")
         const commandsContainer = document.getElementById("commandsContainer")
         const resourceItemsContainer = document.getElementById("resourceItemsContainer")
+
+        const dialog = document.getElementById("dialog")
+        const dialogBody = dialog.querySelector(".dialog-body")
+        const dialogTitle = dialog.querySelector(".dialog-title")
+        dialog.querySelector(".dialog-close-button").onclick = (event) => hideDialog(event)
+
         var selectedItem = null
         var previousFocusedElement = null
         const isTouchDevice = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0)
@@ -366,6 +389,13 @@
           htmx.ajax(verb || "GET", path, "#resourceItemsContainer")
         }
 
+        window.onclick = (event) => {
+          // When the user clicks anywhere outside of the modal dialog, close it
+          if (event.target == dialog) {
+            hideDialog(event)
+          }
+        }
+
         window.onkeydown = (event) => {
           if (event.key == ":" && document.activeElement != commandInput) { // show and focus commandInput on ':'
             previousFocusedElement = document.activeElement // store current focused element to restore focus when hiding commandInput
@@ -426,6 +456,8 @@
               }
             } else if (isScalable && event.code == "KeyS") {
               scaleTo(event, resourceName, resourceKind, namespace, itemName)
+            } else if (event.code == "KeyY") {
+              showYaml(event, resourceName, resourceKind, namespace, itemName)
             }
           }
           else if (ctrlIsTheOnlyPressedModifierKey(event)) {
@@ -445,6 +477,21 @@
             const path = appendContextAndNamespaceToPath(event.srcElement.dataset.logsUrl, null)
             window.open(path, "_blank", "popup=true,toolbar=true")
           }
+        }
+
+        function showYaml(event, resourceName, resourceKind, namespace, itemName) {
+          closeMenu(event) // in case a menu item has been clicked, close menu again
+          event.preventDefault() // prevent key 'Y' from bubbling on
+
+          setTimeout(async () => { // so that menu first gets hidden and isn't still visible when modal dialog gets shown wait 1 millisecond
+              const itemPath = getItemPath(resourceName, namespace, itemName)
+              const response = await fetch(itemPath + "/yaml")
+              const yaml = await response.text()
+
+              const element = `<div class="w-full max-h-[92vh] md:max-h-[94vh] overflow-auto whitespace-pre-wrap">$\{yaml}</div>`
+
+              showDialog(element, `$\{resourceKind} $\{namespace}/$\{itemName}`)
+          }, 1)
         }
 
         function scaleTo(event, resourceName, resourceKind, namespace, itemName) {
@@ -514,6 +561,19 @@
           document.querySelectorAll(".menu").forEach((menu) =>
             menu.classList.add("hidden")
           )
+        }
+
+        function showDialog(content, title) {
+          dialogBody.innerHTML = content
+          dialogTitle.textContent = title || ""
+
+          dialog.classList.remove("hidden")
+        }
+
+        function hideDialog(event) {
+          dialog.classList.add("hidden")
+
+          event?.preventDefault()
         }
 
         function setFocusTo(event, item) {

@@ -17,6 +17,13 @@ class K7sResource(
     fun getAllAvailableResourceTypes(@RestQuery("context") context: String? = null) =
         service.getAllAvailableResourceTypes(context)
 
+    @Path("resource/{resourceName}/{namespace}/{itemName}/yaml")
+    @GET
+    @Produces("application/yaml")
+    fun getResourceItemYaml(@RestPath("resourceName") resourceName: String, @RestPath("namespace") namespace: String?, @RestPath("itemName") itemName: String, @RestQuery("context") context: String? = null): String? {
+        return service.getResourceItemYaml(resourceName, namespace?.takeUnless { it.isBlank() || it == "null" }, itemName, context)
+    }
+
     @Path("resource/{resourceName}/{namespace}/{itemName}") // TODO: why doesn't "resources/{namespace}/{itemName}" work?
     @DELETE
     fun deleteResourceItem(@RestPath("resourceName") resourceName: String, @RestPath("namespace") namespace: String?, @RestPath("itemName") itemName: String, @RestQuery("context") context: String? = null) {

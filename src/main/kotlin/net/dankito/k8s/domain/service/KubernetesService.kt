@@ -10,6 +10,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder
 import io.fabric8.kubernetes.client.*
 import io.fabric8.kubernetes.client.dsl.*
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext
+import io.fabric8.kubernetes.client.utils.Serialization
 import jakarta.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -401,6 +402,18 @@ class KubernetesService(
 
     private fun isResourceWithStats(resourceKind: String): Boolean =
         ResourcesWithStats.contains(resourceKind)
+
+
+    fun getResourceItemYaml(resourceName: String, namespace: String?, itemName: String, context: String? = null): String? {
+        val resource = getResourceByName(resourceName, context)
+        if (resource != null) {
+            val item = getGenericResources(resource, context, namespace).withName(itemName).get()
+
+            return Serialization.asYaml(item)
+        }
+
+        return null
+    }
 
     fun patchResourceItem(resourceName: String, namespace: String?, itemName: String, context: String? = null, scaleTo: Int? = null): Boolean {
         val resource = getResourceByName(resourceName, context)
