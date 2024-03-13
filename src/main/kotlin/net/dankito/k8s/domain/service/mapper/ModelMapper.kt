@@ -177,7 +177,14 @@ class ModelMapper {
         } else if (item is Node) {
             val status = item.status
 
-            val nodeStatus = status.conditions.firstOrNull { it.status == "True" }?.type
+            // other statuses are: DiskPressure, MemoryPressure, PIDPressure, NetworkUnavailable. See https://kubernetes.io/docs/reference/node/node-status/#condition
+            val readyStatus = status.conditions.firstOrNull { it.type == "Ready" }
+            val nodeStatus = when (readyStatus?.status) {
+                "True" -> "Ready"
+                "False" -> "Not Ready"
+                null -> readyStatus?.reason ?: "Unknown"
+                else -> readyStatus.reason ?: readyStatus.status
+            }
             val availableCpu = toMilliCore(status.capacity?.get("cpu"))
             val availableMemory = toMiByte(status.capacity?.get("memory"))
             val emptyValue = if (stats.isNullOrEmpty()) "n/a" else "0"
