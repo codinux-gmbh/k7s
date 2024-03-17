@@ -18,16 +18,18 @@ class KubernetesConfig {
 
     @Produces
     fun kubeConfigs(): KubeConfigs {
-        // the default config loading mechanism in some cases doesn't load all contexts that kubectl sees, e.g. when KUBECONFIG
-        // environment variable is set -> try to get all contexts from kubectl and if kubectl is not installed from KUBECONFIG environment variable
-        val kubeCtlConfigs = loadConfigsFromKubectl()
-        if (kubeCtlConfigs != null) {
-            return kubeCtlConfigs
-        }
+        if (isRunningInKubernetes() == false) { // loading contexts from kubectl or KUBECONFIG is only senseful when running outside Kubernetes
+            // the default config loading mechanism in some cases doesn't load all contexts that kubectl sees, e.g. when KUBECONFIG
+            // environment variable is set -> try to get all contexts from kubectl and if kubectl is not installed from KUBECONFIG environment variable
+            val kubeCtlConfigs = loadConfigsFromKubectl()
+            if (kubeCtlConfigs != null) {
+                return kubeCtlConfigs
+            }
 
-        val kubeConfigsFromEnvironmentVariable = loadConfigsFromKubeConfigEnvironmentVariable()
-        if (kubeConfigsFromEnvironmentVariable != null) {
-            return kubeConfigsFromEnvironmentVariable
+            val kubeConfigsFromEnvironmentVariable = loadConfigsFromKubeConfigEnvironmentVariable()
+            if (kubeConfigsFromEnvironmentVariable != null) {
+                return kubeConfigsFromEnvironmentVariable
+            }
         }
 
         val defaultConfig = Config.autoConfigure(null)
@@ -39,6 +41,21 @@ class KubernetesConfig {
                 emptyMap()
             }
         )
+    }
+
+    private fun isRunningInKubernetes(): Boolean {
+        try {
+            val kubernetesSecretsFolder = File("/var/run/secrets/kubernetes.io/serviceaccount")
+
+            if (kubernetesSecretsFolder.exists()) {
+                val files = kubernetesSecretsFolder.list().orEmpty()
+                return files.size >= 3 && files.contains("ca.crt") && files.contains("namespace") && files.contains("token")
+            }
+        } catch (e: Throwable) {
+            log.error(e) { "Could not determine if application is running in Kubernetes" }
+        }
+
+        return false
     }
 
     private fun loadConfigsFromKubectl(): KubeConfigs? {
