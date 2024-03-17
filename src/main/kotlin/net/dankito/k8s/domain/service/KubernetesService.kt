@@ -107,9 +107,15 @@ class KubernetesService(
     }
 
     fun getCustomResourceDefinitions(context: String? = null): List<KubernetesResource> {
-        val crds = getClient(context).apiextensions().v1().customResourceDefinitions().list().items
+        try {
+            val crds = getClient(context).apiextensions().v1().customResourceDefinitions().list().items
 
-        return mapper.mapCustomResourceDefinitions(crds)
+            return mapper.mapCustomResourceDefinitions(crds)
+        } catch (e: Throwable) {
+            log.error(e) { "Could not retrieve CustomResourceDefinitions" }
+        }
+
+        return emptyList()
     }
 
     fun getAllAvailableResourceTypes(context: String? = null): List<KubernetesResource> =
