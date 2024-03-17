@@ -22,6 +22,11 @@ WORKDIR /work/
 RUN chown 1001 /work \
     && chmod "g+rwX" /work \
     && chown 1001:root /work
+
+# for this kubectl has to be downloaded and extracted to build/apps first, see create-native-docker-image.sh
+COPY --chown=1001:root build/apps/kubectl /bin/
+RUN chmod a+x /bin/kubectl
+
 COPY --chown=1001:root build/*-runner /work/application
 
 EXPOSE 8080
