@@ -18,6 +18,7 @@ import net.dankito.k8s.api.dto.HomePageData
 import net.dankito.k8s.api.dto.ItemModificationEvent
 import net.dankito.k8s.api.dto.ResourceItemRowViewData
 import net.dankito.k8s.api.dto.ResourceItemsViewData
+import net.dankito.k8s.domain.model.KubernetesResource
 import net.dankito.k8s.domain.model.ResourceItem
 import net.dankito.k8s.domain.model.WatchAction
 import net.dankito.k8s.domain.service.KubernetesService
@@ -102,7 +103,7 @@ class K7sPage(
     @Blocking
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @RestStreamElementType(MediaType.TEXT_HTML)
-    fun watchResources(
+    fun watchResource(
         @RestPath("group") group: String,
         @RestPath("name") name: String,
         @RestQuery("context") context: String? = null,
@@ -118,9 +119,11 @@ class K7sPage(
             return // a not watchable resource like Binding, ComponentStatus, NodeMetrics, PodMetrics, ...
         }
 
-        val resourceItemsFragment = homePage.getFragment("resourceItems")
+        watchResource(resource, context, namespace, resourceVersion, sseEventSink)
+    }
+
+    private fun watchResource(resource: KubernetesResource, context: String?, namespace: String?, resourceVersion: String?, sseEventSink: SseEventSink) {
         val resourceItemTableRowFragment = homePage.getFragment("resourceItemTableRow")
-        val contextValue = context.takeUnless { it == service.defaultContext }
 
         val watch = service.watchResourceItems(resource, context, namespace, resourceVersion?.takeUnless { it.isBlank() || it == "null" }) { action, item, insertionIndex ->
             if (sseEventSink.isClosed) {
