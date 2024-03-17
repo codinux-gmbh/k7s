@@ -89,7 +89,7 @@ class ModelMapper {
     fun <T : HasMetadata> mapResourceItem(item: T, stats: Map<String, StatsSummary?>? = null): ResourceItem {
         val name = item.metadata.name
         val namespace = item.metadata.namespace?.takeUnless { it.isBlank() }
-        val creationTimestamp = Instant.parse(item.metadata.creationTimestamp)
+        val creationTimestamp = item.metadata.creationTimestamp?.let { Instant.parse(it) }
         val (highlightedItemSpecificValues, secondaryItemSpecificValues) = getItemSpecificValues(item, stats)
 
         return if (item is Pod) {

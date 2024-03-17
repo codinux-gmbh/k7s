@@ -5,7 +5,7 @@ import java.time.Instant
 open class ResourceItem(
     val name: String,
     val namespace: String? = null,
-    val creationTimestamp: Instant,
+    val creationTimestamp: Instant?,
     val highlightedItemSpecificValues: List<ItemValue> = emptyList(),
     val secondaryItemSpecificValues: List<ItemValue> = emptyList()
 ) {

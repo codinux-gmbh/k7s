@@ -5,7 +5,7 @@ import java.time.Instant
 class PodResourceItem(
     name: String,
     namespace: String?,
-    creationTimestamp: Instant,
+    creationTimestamp: Instant?,
     val status: String,
     val podIP: String?,
     val container: List<ContainerStatus>,
