@@ -219,7 +219,7 @@
               <select id="selectCustomResourceDefinition" class="w-full h-[2.75rem] ml-1 pl-1 bg-white text-primary rounded-lg" aria-label="Select custom resource definition"
                       onchange="displayResourceItemsFromSelectBox(JSON.parse(this.value), event)">
                 {#for resource in customResourceDefinitions}
-                  <option value='{ "group": "{resource.group}", "name": "{resource.name}" }'>{resource.kind}</option>
+                  <option value='{ "group": "{resource.group}", "name": "{resource.name}" }'>{resource.displayName}</option>
                 {/for}
               </select>
             </div>
@@ -228,7 +228,7 @@
               <select id="selectStandardResource" class="w-full h-[2.75rem] ml-1 pl-1 bg-white text-primary rounded-lg" aria-label="Select standard resource"
                       onchange="displayResourceItemsFromSelectBox(JSON.parse(this.value), event)">
                 {#for resource in standardResources}
-                  <option value='{ "group": "{resource.group}", "name": "{resource.name}" }'>{resource.kind}</option>
+                  <option value='{ "group": "{resource.group}", "name": "{resource.name}" }'>{resource.displayName}</option>
                 {/for}
               </select>
             </div>
