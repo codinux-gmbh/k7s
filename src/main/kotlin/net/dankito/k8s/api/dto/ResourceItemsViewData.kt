@@ -16,10 +16,14 @@ open class ResourceItemsViewData(
 ) {
 
     companion object {
-        fun sort(items: List<ResourceItem>): List<ResourceItem> =
-            items.sortedWith(compareBy( { it.namespace }, { it.name } ))
+        fun sort(resource: KubernetesResource, items: List<ResourceItem>): List<ResourceItem> =
+            if (resource.kind == "PersistentVolume") {
+                items.sortedBy { it.secondaryItemSpecificValues.firstOrNull { it.name == "Claim" }?.value }
+            } else {
+                items.sortedWith(compareBy({ it.namespace }, { it.name }))
+            }
     }
 
-    val resourceItems: List<ResourceItem> = sort(resourceItems)
+    val resourceItems: List<ResourceItem> = sort(resource, resourceItems)
 
 }
