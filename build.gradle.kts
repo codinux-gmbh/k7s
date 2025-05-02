@@ -29,9 +29,9 @@ dependencies {
     implementation(enforcedPlatform("io.quarkus:quarkus-bom:$quarkusVersion"))
 
     implementation("io.quarkus:quarkus-kotlin")
-    implementation("io.quarkus:quarkus-resteasy-reactive")
-    implementation("io.quarkus:quarkus-resteasy-reactive-jackson")
-    implementation("io.quarkus:quarkus-resteasy-reactive-qute")
+    implementation("io.quarkus:quarkus-rest")
+    implementation("io.quarkus:quarkus-rest-jackson")
+    implementation("io.quarkus:quarkus-rest-qute")
     implementation("io.quarkus:quarkus-scheduler")
     implementation("io.quarkus:quarkus-cache")
 
