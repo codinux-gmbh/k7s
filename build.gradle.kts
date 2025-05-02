@@ -22,7 +22,7 @@ repositories {
 
 val quarkusVersion: String by project
 
-val kmpLogVersion: String by project
+val klfVersion: String by project
 val lokiLogAppenderVersion: String by project
 
 dependencies {
@@ -42,7 +42,7 @@ dependencies {
     implementation("io.quarkus:quarkus-micrometer-registry-prometheus")
     implementation("io.quarkus:quarkus-smallrye-openapi")
 
-    implementation("net.codinux.log:kmp-log:$kmpLogVersion")
+    implementation("net.codinux.log:klf:$klfVersion")
     implementation("net.codinux.log:quarkus-loki-log-appender:$lokiLogAppenderVersion")
     implementation("net.codinux.log.kubernetes:codinux-kubernetes-info-retriever:$lokiLogAppenderVersion")
 
