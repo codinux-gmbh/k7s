@@ -30,8 +30,9 @@ dependencies {
 
     implementation("io.quarkus:quarkus-kotlin")
     implementation("io.quarkus:quarkus-rest")
-    implementation("io.quarkus:quarkus-rest-jackson")
     implementation("io.quarkus:quarkus-rest-qute")
+    implementation("io.quarkus:quarkus-rest-jackson")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.quarkus:quarkus-scheduler")
     implementation("io.quarkus:quarkus-cache")
 
