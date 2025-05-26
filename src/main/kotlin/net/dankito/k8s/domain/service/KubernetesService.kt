@@ -374,7 +374,9 @@ class KubernetesService(
         }
 
         val stats = retrieveStats(context, nodeNames)
-        cachedStats.put(context ?: defaultContext, stats)
+        if (stats != null) {
+            cachedStats.put(context ?: defaultContext, stats) // due to Cache interface value now has to be non-null
+        }
 
         return stats
     }
