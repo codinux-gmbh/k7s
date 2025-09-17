@@ -12,11 +12,13 @@ import io.fabric8.kubernetes.client.dsl.*
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext
 import io.fabric8.kubernetes.client.utils.Serialization
 import jakarta.inject.Singleton
+import jakarta.ws.rs.NotFoundException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import net.codinux.log.logger
+import net.dankito.k8s.api.dto.ResourceParameter
 import net.dankito.k8s.domain.model.*
 import net.dankito.k8s.domain.model.KubernetesResource
 import net.dankito.k8s.domain.model.stats.StatsSummary
@@ -139,6 +141,23 @@ class KubernetesService(
 
         if (resources.isEmpty()) {
             log.error { "Could not find resource for group = $group and name = $name. Should never happen." }
+            return null
+        }
+
+        return findBestAvailableResource(resources)
+    }
+
+    fun getResourceByKindOrThrow(group: String?, kind: String, context: String? = null): KubernetesResource =
+        getResourceByKindOrNull(group, kind, context)
+            ?: throw NotFoundException("Resource for group '$group' and kind '$kind' not found in Kubernetes cluster")
+
+    // TODO: this should be the actual used method, not getResource(), as name may not be unique
+    fun getResourceByKindOrNull(group: String?, kind: String, context: String? = null): KubernetesResource? {
+        val resources = getAllAvailableResourceTypes(context).filter { it.group == group && it.kind.equals(kind, true) }
+
+        if (resources.isEmpty()) {
+            log.error { "Could not find resource for group = $group and kind = $kind. Should never happen." }
+            return null
         }
 
         return findBestAvailableResource(resources)
@@ -160,6 +179,14 @@ class KubernetesService(
         }
 
         return resources.first { it.version == it.storageVersion }
+    }
+
+
+    fun getResourceItems(params: ResourceParameter): ResourceItems? {
+        params.fixValues()
+        val resource = getResourceByKindOrThrow(params.group, params.kind, params.context)
+
+        return getResourceItems(resource, params.context, params.namespace)
     }
 
     fun getResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null): ResourceItems? =
@@ -423,7 +450,7 @@ class KubernetesService(
         return null
     }
 
-    fun patchResourceItem(resourceName: String, namespace: String?, itemName: String, context: String? = null, scaleTo: Int? = null): Boolean {
+    fun scaleResourceItem(resourceName: String, namespace: String?, itemName: String, context: String? = null, scaleTo: Int? = null): Boolean {
         val resource = getResourceByName(resourceName, context)
         if (resource != null) {
             if (scaleTo != null && scaleTo > -1 && resource.isScalable) {

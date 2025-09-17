@@ -2,6 +2,8 @@ package net.dankito.k8s.api
 
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
+import net.dankito.k8s.api.dto.ResourceParameter
+import net.dankito.k8s.domain.model.ResourceItems
 import net.dankito.k8s.domain.service.KubernetesService
 import org.jboss.resteasy.reactive.RestPath
 import org.jboss.resteasy.reactive.RestQuery
@@ -15,6 +17,11 @@ class K7sResource(
     @GET
     fun getAllAvailableResourceTypes(@RestQuery("context") context: String? = null) =
         service.getAllAvailableResourceTypes(context)
+
+    @GET
+    @Path("/{group}/{kind}")
+    fun getResourceItems(@BeanParam params: ResourceParameter): ResourceItems? =
+        service.getResourceItems(params)
 
     @GET
     @Path("/{resourceName}/{namespace}/{itemName}/yaml")
