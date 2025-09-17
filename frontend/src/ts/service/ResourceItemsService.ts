@@ -1,12 +1,12 @@
 import {K7sApiClient} from "../clients/k7sApi/k7sApiClient"
 import {ResourcesState} from "../ui/state/ResourcesState.svelte"
 import {KubernetesResource} from "../model/KubernetesResource"
-import {Cache} from "./cache/Cache"
 import {ResourceItems} from "../model/ResourceItems"
+import {TimeBasedCache} from "./cache/TimeBasedCache"
 
 export class ResourceItemsService {
 
-  private itemsCache = new Cache<ResourceItems>()
+  private itemsCache = new TimeBasedCache<KubernetesResource, ResourceItems>(5 * 60 * 1000) // remove cached resource items after 5 min
 
   constructor(private readonly resourcesState: ResourcesState,
               private readonly client: K7sApiClient) { }
@@ -27,7 +27,7 @@ export class ResourceItemsService {
   }
 
   selectedResourceChanged(resource: KubernetesResource) {
-    const previousItems = this.itemsCache.get(resource.identifier)
+    const previousItems = this.itemsCache.get(resource)
     if (previousItems) { // so there's no delay in showing selected resource's items, show previously fetched items if available
       this.resourcesState.selectedResource = resource
       this.resourcesState.selectedResourceItems = previousItems
@@ -37,7 +37,7 @@ export class ResourceItemsService {
       .then(items => {
         this.resourcesState.selectedResource = resource
         this.resourcesState.selectedResourceItems = items
-        this.itemsCache.put(resource.identifier, items)
+        this.itemsCache.put(resource, items)
       })
   }
 
