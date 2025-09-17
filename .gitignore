@@ -37,3 +37,9 @@ nb-configuration.xml
 
 # Plugin directory
 /.quarkus/cli/plugins/
+
+
+**/node_modules
+# auto-generated Svelte files
+src/main/webapp/dist
+src/main/resources/META-INF/resources
