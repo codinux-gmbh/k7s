@@ -22,11 +22,11 @@
 
     standardResources = resourcesState.resourceTypes
       .filter(res => res.isCustomResourceDefinition == false)
-      .sort(res => res.name)
+      .sort((a, b) => a.name.localeCompare(b.name))
 
     customResourceDefinitions = resourcesState.resourceTypes
       .filter(res => res.isCustomResourceDefinition)
-      .sort(res => res.identifier)
+      .sort((a, b) => a.identifier.localeCompare(b.identifier))
   })
 </script>
 
