@@ -42,5 +42,5 @@ nb-configuration.xml
 
 **/node_modules
 # auto-generated Svelte files
-webapp/dist
+frontend/dist
 src/main/resources/META-INF/resources
