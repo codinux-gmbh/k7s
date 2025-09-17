@@ -1,8 +1,12 @@
+import com.github.gradle.node.npm.task.NpxTask
+
 plugins {
     kotlin("jvm")
     kotlin("plugin.allopen")
 
     id("io.quarkus")
+
+    id("com.github.node-gradle.node") version "7.1.0"
 }
 
 
@@ -68,4 +72,20 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 tasks.withType<Test> {
     systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+}
+
+
+val buildWebAppTask = tasks.register<NpxTask>("buildWebApp") {
+    dependsOn("yarnSetup")
+    group = "frontend"
+    description = "Transpiles Svelte components to standard JavaScript and CSS files and copies them to src/resources/META-INF/resources"
+
+    workingDir.set(File("$projectDir/src/main/webapp"))
+
+    command.set("bun")
+    args.addAll("run", "buildQuarkusDist")
+}
+
+tasks.named("quarkusBuild") {
+    dependsOn(buildWebAppTask)
 }
