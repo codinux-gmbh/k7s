@@ -5,8 +5,51 @@ export class KubernetesResource {
   constructor(readonly group: string | undefined, readonly storageVersion: string,
               readonly name: string, readonly kind: string, readonly isNamespaced: boolean,
               readonly isCustomResourceDefinition: boolean,
+              readonly displayName: string, readonly identifier: string,
               readonly singularName: string | undefined, readonly shortNames: string[] = [],
               readonly verbs: Verb[] = [], readonly servedVersions: string[]
   ) { }
+
+
+  get version(): string { // to be better readable
+    return this.storageVersion
+  }
+
+  get isPod(): boolean {
+    return this.group === undefined && this.kind === "Pod"
+  }
+
+  get isLoggable(): boolean {
+    return KubernetesResource.LoggableResourceKinds.includes(this.kind)
+  }
+
+  get isScalable(): boolean {
+    return this.kind === "Deployment" || this.kind === "StatefulSet"
+  }
+
+  get isDeletable(): boolean {
+    return this.containsVerb(Verb.delete)
+  }
+
+  get isWatchable(): boolean {
+    return this.containsVerb(Verb.watch)
+  }
+
+  get allowDeletingWithoutConfirmation(): boolean {
+    return this.isPod
+  }
+
+  containsVerb(verb: Verb): boolean {
+    return this.verbs.includes(verb)
+  }
+
+
+  static LoggableResourceKinds = [
+    "Pod", "Deployment", "StatefulSet", "DaemonSet", "ReplicaSet", "Job"
+  ]
+
+  static ResourcesWithStats = [
+    "Pod", "Node", "PersistentVolumeClaim"
+  ]
 
 }
