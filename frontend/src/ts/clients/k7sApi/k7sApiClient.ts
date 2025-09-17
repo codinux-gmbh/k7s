@@ -1,5 +1,5 @@
 import type {WebClient} from "../web/WebClient"
-import type {KubernetesResource} from "../../model/KubernetesResource"
+import {KubernetesResource} from "../../model/KubernetesResource"
 
 export class K7sApiClient {
 
@@ -8,6 +8,8 @@ export class K7sApiClient {
 
   async getAllAvailableResourceTypes(context?: string): Promise<KubernetesResource[]> {
     return this.webClient.get("/resources" + (context ? `?context=${context}` : ""))
+      .then(jsObject => (jsObject as KubernetesResource[])
+        .map(res => KubernetesResource.fromJsObject(res)))
   }
 
 }

@@ -52,4 +52,13 @@ export class KubernetesResource {
     "Pod", "Node", "PersistentVolumeClaim"
   ]
 
+  // obj has only the shape of KubernetesResource, but not e.g. its methods, getters and setters.
+  static fromJsObject(obj: KubernetesResource): KubernetesResource {
+    return new KubernetesResource(obj.group, obj.storageVersion, obj.name, obj.kind, obj.isNamespaced,
+      obj.isCustomResourceDefinition, obj.displayName, obj.identifier, obj.singularName, obj.shortNames,
+      // @ts-ignore
+      (obj.verbs as string[]).map((v: string) => Verb[v as keyof typeof Verb]),
+      obj.servedVersions)
+  }
+
 }
