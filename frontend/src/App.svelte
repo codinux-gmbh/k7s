@@ -2,7 +2,7 @@
   import MainScreen from "./components/MainScreen.svelte"
 </script>
 
-<main class="w-full h-full">
+<main class="">
   <MainScreen />
 </main>
 

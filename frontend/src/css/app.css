@@ -1,1 +1,7 @@
 @import "./tailwind.css";
+
+
+button {
+    background: transparent;
+    cursor: pointer;
+}
