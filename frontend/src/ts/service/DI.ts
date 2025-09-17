@@ -7,7 +7,7 @@ export class DI {
 
   static readonly log: LogService = new LogService()
 
-  static readonly webClient: WebClient = new FetchWebClient(DI.getBaseUrl(), DI.log, `Access Log Visualizer client; ${navigator.userAgent}`)
+  static readonly webClient: WebClient = new FetchWebClient(DI.getBaseUrl(), DI.log, `k7s client; ${navigator.userAgent}`)
 
   static readonly apiClient: K7sApiClient = new K7sApiClient(DI.webClient)
 
