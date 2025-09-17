@@ -80,7 +80,7 @@ val buildWebAppTask = tasks.register<NpxTask>("buildWebApp") {
     group = "frontend"
     description = "Transpiles Svelte components to standard JavaScript and CSS files and copies them to src/resources/META-INF/resources"
 
-    workingDir.set(File("$projectDir/src/main/webapp"))
+    workingDir.set(File("$projectDir/webapp"))
 
     command.set("bun")
     args.addAll("run", "buildQuarkusDist")
