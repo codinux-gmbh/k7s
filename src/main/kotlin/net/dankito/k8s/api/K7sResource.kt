@@ -6,7 +6,7 @@ import net.dankito.k8s.domain.service.KubernetesService
 import org.jboss.resteasy.reactive.RestPath
 import org.jboss.resteasy.reactive.RestQuery
 
-@Path("")
+@Path("/api/v1")
 @Produces(MediaType.APPLICATION_JSON)
 class K7sResource(
     private val service: KubernetesService
