@@ -1,11 +1,9 @@
 <script lang="ts">
-
+  import MainScreen from "./components/MainScreen.svelte"
 </script>
 
-<main>
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
+<main class="w-full h-full">
+  <MainScreen />
 </main>
 
 <style>
