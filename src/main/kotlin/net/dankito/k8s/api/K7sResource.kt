@@ -12,27 +12,27 @@ class K7sResource(
     private val service: KubernetesService
 ) {
 
+    @GET
     @Path("resources")
-    @GET // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
     fun getAllAvailableResourceTypes(@RestQuery("context") context: String? = null) =
         service.getAllAvailableResourceTypes(context)
 
-    @Path("resources/{resourceName}/{namespace}/{itemName}/yaml")
     @GET
+    @Path("resources/{resourceName}/{namespace}/{itemName}/yaml")
     @Produces("application/yaml")
     fun getResourceItemYaml(@RestPath("resourceName") resourceName: String, @RestPath("namespace") namespace: String?, @RestPath("itemName") itemName: String, @RestQuery("context") context: String? = null): String? {
         return service.getResourceItemYaml(resourceName, namespace?.takeUnless { it.isBlank() || it == "null" }, itemName, context)
     }
 
-    @Path("resources/{resourceName}/{namespace}/{itemName}") // TODO: why doesn't "resources/{namespace}/{itemName}" work?
     @DELETE
+    @Path("resources/{resourceName}/{namespace}/{itemName}") // TODO: why doesn't "resources/{namespace}/{itemName}" work?
     fun deleteResourceItem(@RestPath("resourceName") resourceName: String, @RestPath("namespace") namespace: String?, @RestPath("itemName") itemName: String, @RestQuery("context") context: String? = null) {
         service.deleteResourceItem(resourceName, namespace?.takeUnless { it.isBlank() || it == "null" }, itemName, context)
     }
 
-    @Path("resources/{resourceName}/{namespace}/{itemName}")
     @PATCH
-    fun deleteResourceItem(@RestPath("resourceName") resourceName: String, @RestPath("namespace") namespace: String?, @RestPath("itemName") itemName: String, @RestQuery("context") context: String? = null, @RestQuery("scaleTo") scaleTo: Int? = null) {
+    @Path("resources/{resourceName}/{namespace}/{itemName}")
+    fun patchResourceItem(@RestPath("resourceName") resourceName: String, @RestPath("namespace") namespace: String?, @RestPath("itemName") itemName: String, @RestQuery("context") context: String? = null, @RestQuery("scaleTo") scaleTo: Int? = null) {
         service.patchResourceItem(resourceName, namespace?.takeUnless { it.isBlank() || it == "null" }, itemName, context, scaleTo)
     }
 
