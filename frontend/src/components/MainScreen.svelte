@@ -8,14 +8,9 @@
 
   let resourcesState = ResourcesState.state
 
-  const apiClient = DI.apiClient
+  const service = DI.resourceItemsService
 
-  onMount(updateResourceTypes)
-
-  function updateResourceTypes() {
-    apiClient.getAllAvailableResourceTypes(resourcesState.context)
-      .then(response => resourcesState.resourceTypes = response)
-  }
+  onMount(() => service.selectedContextChanged(undefined))
 </script>
 
 

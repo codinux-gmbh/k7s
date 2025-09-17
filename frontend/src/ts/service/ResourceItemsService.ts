@@ -8,6 +8,19 @@ export class ResourceItemsService {
               private readonly client: K7sApiClient) { }
 
 
+  selectedContextChanged(context?: string) {
+    this.client.getAllAvailableResourceTypes(context)
+      .then(response => {
+        this.resourcesState.context = context
+        this.resourcesState.resourceTypes = response
+
+        // we switched context, now load the default resource (pods)
+        const pods = response.find(res => res.isPod)
+        if (pods) {
+          this.selectedResourceChanged(pods)
+        }
+    })
+  }
 
   selectedResourceChanged(resource: KubernetesResource) {
     this.resourcesState.selectedResource = resource
