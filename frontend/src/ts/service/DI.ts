@@ -1,12 +1,15 @@
 import type {WebClient} from "../clients/web/WebClient"
 import {FetchWebClient} from "../clients/web/FetchWebClient"
 import {LogService} from "./LogService"
+import {K7sApiClient} from "../clients/k7sApi/k7sApiClient"
 
 export class DI {
 
   static readonly log: LogService = new LogService()
 
   static readonly webClient: WebClient = new FetchWebClient(DI.getBaseUrl(), DI.log, `Access Log Visualizer client; ${navigator.userAgent}`)
+
+  static readonly apiClient: K7sApiClient = new K7sApiClient(DI.webClient)
 
 
   private static getBaseUrl(): string {
@@ -17,7 +20,7 @@ export class DI {
       baseUrl += ":" + port
     }
 
-    baseUrl += "/access-log/api/v1"
+    baseUrl += "/k7s/api/v1"
 
     return baseUrl
   }
