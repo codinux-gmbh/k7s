@@ -1,7 +1,7 @@
 import type {WebClient} from "../web/WebClient"
 import {KubernetesResource} from "../../model/KubernetesResource"
 import {ResourceItems} from "../../model/ResourceItems"
-import {ResourcesState} from "../../ui/state/ResourcesState.svelte"
+import {ResourceParameter} from "./ResourceParameter"
 
 export class K7sApiClient {
 
@@ -14,9 +14,9 @@ export class K7sApiClient {
         .map(res => KubernetesResource.fromJsObject(res)))
   }
 
-  async getResourceItems(state: ResourcesState): Promise<ResourceItems> {
-    const url = "/resources" + this.createPathParams(state.selectedResource.group, state.selectedResource.kind)
-      + this.createQueryParams(state.context, state.namespace)
+  async getResourceItems(params: ResourceParameter): Promise<ResourceItems> {
+    const url = "/resources" + this.createPathParams(params.group, params.kind)
+      + this.createQueryParams(params.context, params.namespace)
 
     return this.webClient.get(url)
   }

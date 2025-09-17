@@ -23,10 +23,9 @@ export class ResourceItemsService {
   }
 
   selectedResourceChanged(resource: KubernetesResource) {
-    this.resourcesState.selectedResource = resource
-
-    this.client.getResourceItems(this.resourcesState)
+    this.client.getResourceItems(this.resourcesState.toResourceParameter(resource))
       .then(items => {
+        this.resourcesState.selectedResource = resource
         this.resourcesState.selectedResourceItems = items
       })
   }

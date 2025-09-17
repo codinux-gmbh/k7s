@@ -1,5 +1,6 @@
 import {KubernetesResource} from "../../model/KubernetesResource"
 import {ResourceItems} from "../../model/ResourceItems"
+import {ResourceParameter} from "../../clients/k7sApi/ResourceParameter"
 
 export class ResourcesState {
 
@@ -15,5 +16,11 @@ export class ResourcesState {
   context: string | undefined = $state(undefined)
 
   namespace: string | undefined = $state(undefined)
+
+
+  toResourceParameter(resource: KubernetesResource): ResourceParameter {
+    return new ResourceParameter(resource.group, resource.kind,
+      this.context, this.namespace)
+  }
 
 }
