@@ -4,12 +4,21 @@
   import {onMount} from "svelte"
   import {ResourcesState} from "../ts/ui/state/ResourcesState.svelte"
   import ResourceSelectionSidebar from "./resourceSelection/sidebar/ResourceSelectionSidebar.svelte"
+  import ResourceItemsList from "./resourceItems/ResourceItemsList.svelte"
 
   let resourcesState = ResourcesState.state
 
   const apiClient = DI.apiClient
 
   onMount(updateResourceTypes)
+
+  $effect(() => {
+    if (resourcesState.selectedResource) { // only to show Svelte that it should trigger on selectedResource changes
+      apiClient.getResourceItems(resourcesState)
+        .then(items => resourcesState.selectedResourceItems = items)
+    }
+  })
+
 
   function updateResourceTypes() {
     apiClient.getAllAvailableResourceTypes(resourcesState.context)
@@ -21,5 +30,9 @@
 <div class="w-full h-dvh p-2 flex">
   <div class="shrink-0 max-md:hidden">
     <ResourceSelectionSidebar {resourcesState} />
+  </div>
+
+  <div class="flex-1">
+    <ResourceItemsList {resourcesState} />
   </div>
 </div>

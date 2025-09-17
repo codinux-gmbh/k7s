@@ -5,3 +5,11 @@ button {
     background: transparent;
     cursor: pointer;
 }
+
+
+.row > div {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    padding: 0 0 0 8px;
+}

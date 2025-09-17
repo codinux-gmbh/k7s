@@ -7,7 +7,7 @@ export class KubernetesResource {
               readonly isCustomResourceDefinition: boolean,
               readonly displayName: string, readonly identifier: string,
               readonly singularName: string | undefined, readonly shortNames: string[] = [],
-              readonly verbs: Verb[] = [], readonly servedVersions: string[]
+              readonly verbs: Verb[] = [], readonly servedVersions: string[] = []
   ) { }
 
 
