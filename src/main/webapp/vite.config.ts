@@ -8,4 +8,7 @@ export default defineConfig({
     svelte(),
     tailwindcss(),
   ],
+  server: {
+    host: true,
+  },
 })
