@@ -39,7 +39,7 @@
       {/each}
 
 
-      <ResourceListSectionHeader title="Standard resources" onClick={() => expandStandardResources = !expandStandardResources} />
+      <ResourceListSectionHeader title="Standard resources" bind:isExpanded={expandStandardResources} />
       {#if expandStandardResources}
         {#each standardResources as resource}
           <ResourceListItem {resource} />
@@ -47,7 +47,7 @@
       {/if}
 
 
-      <ResourceListSectionHeader title="CRDs" onClick={() => expandCustomResourceDefinitions = !expandCustomResourceDefinitions} />
+      <ResourceListSectionHeader title="CRDs" bind:isExpanded={expandCustomResourceDefinitions} />
       {#if expandCustomResourceDefinitions}
         {#each customResourceDefinitions as crd}
           <ResourceListItem resource={crd} title={`${crd.displayName} ${crd.group}.${crd.version}`} />
