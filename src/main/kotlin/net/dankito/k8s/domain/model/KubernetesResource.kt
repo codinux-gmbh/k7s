@@ -57,6 +57,7 @@ data class KubernetesResource(
     @get:JsonIgnore
     val version: String = storageVersion // to be better readable
 
+    @get:JsonIgnore
     val isLoggable by lazy { KubernetesService.LoggableResourceKinds.contains(kind) }
 
     @get:JsonIgnore
