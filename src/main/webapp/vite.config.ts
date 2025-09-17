@@ -12,6 +12,7 @@ export default defineConfig({
     }),
     tailwindcss(),
   ],
+  base: "/k7s",
   server: {
     host: true,
   },
