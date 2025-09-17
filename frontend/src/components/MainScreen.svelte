@@ -12,14 +12,6 @@
 
   onMount(updateResourceTypes)
 
-  $effect(() => {
-    if (resourcesState.selectedResource) { // only to show Svelte that it should trigger on selectedResource changes
-      apiClient.getResourceItems(resourcesState)
-        .then(items => resourcesState.selectedResourceItems = items)
-    }
-  })
-
-
   function updateResourceTypes() {
     apiClient.getAllAvailableResourceTypes(resourcesState.context)
       .then(response => resourcesState.resourceTypes = response)

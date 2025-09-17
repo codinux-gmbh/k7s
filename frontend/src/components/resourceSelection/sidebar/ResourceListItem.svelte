@@ -1,12 +1,14 @@
 <script lang="ts">
   import {KubernetesResource} from "../../../ts/model/KubernetesResource"
-  import {ResourcesState} from "../../../ts/ui/state/ResourcesState.svelte"
+  import {DI} from "../../../ts/service/DI"
 
-  let { resourcesState, resource, title = resource.displayName }: { resourcesState: ResourcesState, resource: KubernetesResource, title?: string } = $props()
+  let { resource, title = resource.displayName }: { resource: KubernetesResource, title?: string } = $props()
+
+  const service = DI.resourceItemsService
 </script>
 
 <li class="min-h-8 p-1 pl-6 pr-0 leading-6 cursor-pointer lg:hover:bg-zinc-200">
-  <button class="text-start" onclick={() => resourcesState.selectedResource = resource}>
+  <button class="text-start" onclick={() => service.selectedResourceChanged(resource)}>
     { title }
   </button>
 </li>

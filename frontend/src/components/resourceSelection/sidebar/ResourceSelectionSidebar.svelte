@@ -35,14 +35,14 @@
   <nav>
     <ul>
       {#each highlightedResources as resource}
-        <ResourceListItem {resourcesState} {resource} />
+        <ResourceListItem {resource} />
       {/each}
 
 
       <ResourceListSectionHeader title="Standard resources" bind:isExpanded={expandStandardResources} />
       {#if expandStandardResources}
         {#each standardResources as resource}
-          <ResourceListItem {resourcesState} {resource} />
+          <ResourceListItem {resource} />
         {/each}
       {/if}
 
@@ -50,7 +50,7 @@
       <ResourceListSectionHeader title="CRDs" bind:isExpanded={expandCustomResourceDefinitions} />
       {#if expandCustomResourceDefinitions}
         {#each customResourceDefinitions as crd}
-          <ResourceListItem {resourcesState} resource={crd} title={`${crd.displayName} ${crd.group}.${crd.version}`} />
+          <ResourceListItem resource={crd} title={`${crd.displayName} ${crd.group}.${crd.version}`} />
         {/each}
       {/if}
     </ul>

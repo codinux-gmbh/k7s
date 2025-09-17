@@ -2,6 +2,8 @@ import type {WebClient} from "../clients/web/WebClient"
 import {FetchWebClient} from "../clients/web/FetchWebClient"
 import {LogService} from "./LogService"
 import {K7sApiClient} from "../clients/k7sApi/k7sApiClient"
+import {ResourceItemsService} from "./ResourceItemsService"
+import {ResourcesState} from "../ui/state/ResourcesState.svelte"
 
 export class DI {
 
@@ -10,6 +12,8 @@ export class DI {
   static readonly webClient: WebClient = new FetchWebClient(DI.getBaseUrl(), DI.log, `k7s client; ${navigator.userAgent}`)
 
   static readonly apiClient: K7sApiClient = new K7sApiClient(DI.webClient)
+
+  static readonly resourceItemsService: ResourceItemsService = new ResourceItemsService(ResourcesState.state, DI.apiClient, DI.log)
 
 
   private static getBaseUrl(): string {
