@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+
+@theme {
+    /* Kubernetes' official color, see https://github.com/kubernetes/kubernetes/blob/master/logo/colors.md */
+    --color-primary: #326CE5;
+}

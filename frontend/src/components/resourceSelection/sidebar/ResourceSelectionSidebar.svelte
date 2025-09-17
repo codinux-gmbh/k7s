@@ -12,6 +12,9 @@
   let standardResources: KubernetesResource[] = $state([])
   let customResourceDefinitions: KubernetesResource[] = $state([])
 
+  let expandStandardResources: boolean = $state(false)
+  let expandCustomResourceDefinitions: boolean = $state(false)
+
   $effect(() => {
     highlightedResources = resourcesState.resourceTypes
       .filter(res => highlightedResourceKinds.includes(res.kind))
@@ -36,16 +39,20 @@
       {/each}
 
 
-      <ResourceListSectionHeader title="Standard resources" />
-      {#each standardResources as resource}
-        <ResourceListItem {resource} />
-      {/each}
+      <ResourceListSectionHeader title="Standard resources" onClick={() => expandStandardResources = !expandStandardResources} />
+      {#if expandStandardResources}
+        {#each standardResources as resource}
+          <ResourceListItem {resource} />
+        {/each}
+      {/if}
 
 
-      <ResourceListSectionHeader title="CRDs" />
-      {#each customResourceDefinitions as crd}
-        <ResourceListItem resource={crd} title={`${crd.displayName} ${crd.group}.${crd.version}`} />
-      {/each}
+      <ResourceListSectionHeader title="CRDs" onClick={() => expandCustomResourceDefinitions = !expandCustomResourceDefinitions} />
+      {#if expandCustomResourceDefinitions}
+        {#each customResourceDefinitions as crd}
+          <ResourceListItem resource={crd} title={`${crd.displayName} ${crd.group}.${crd.version}`} />
+        {/each}
+      {/if}
     </ul>
   </nav>
 </aside>
