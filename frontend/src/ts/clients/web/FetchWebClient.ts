@@ -8,7 +8,7 @@ export class FetchWebClient implements WebClient {
 
     constructor(private readonly baseUrl: String | null = null,
                 private readonly log: LogService = DI.log,
-                private readonly userAgent: String | null = null) {
+                private readonly userAgent: string | null = null) {
     }
 
 
