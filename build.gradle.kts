@@ -16,6 +16,10 @@ version = "1.0.0-SNAPSHOT"
 
 kotlin {
     jvmToolchain(17)
+
+    compilerOptions {
+        javaParameters = true
+    }
 }
 
 
@@ -64,10 +68,6 @@ allOpen {
     annotation("jakarta.enterprise.context.ApplicationScoped")
     annotation("jakarta.persistence.Entity")
     annotation("io.quarkus.test.junit.QuarkusTest")
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.javaParameters = true
 }
 
 tasks.withType<Test> {
