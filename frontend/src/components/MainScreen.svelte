@@ -15,14 +15,14 @@
 </script>
 
 
-<div class="w-full h-dvh p-2 flex">
+<div class="w-full h-dvh p-2 flex box-border">
   {#if Constants.isDesktop}
     <div class="shrink-0">
       <ResourceSelectionSidebar {resourcesState} />
     </div>
   {/if}
 
-  <div class="flex-1">
+  <div class="flex-1 w-full max-w-full h-full max-h-full">
     <ResourceItemsList {resourcesState} />
   </div>
 </div>
