@@ -2,16 +2,22 @@ import type {WebClient} from "../web/WebClient"
 import {KubernetesResource} from "../../model/KubernetesResource"
 import {ResourceItems} from "../../model/ResourceItems"
 import {ResourceParameter} from "./ResourceParameter"
+import {KubeContextResources} from "../../model/KubeContextResources"
 
 export class K7sApiClient {
 
   constructor(private readonly webClient: WebClient) { }
 
 
-  async getAllAvailableResourceTypes(context?: string): Promise<KubernetesResource[]> {
+  async getAllAvailableResourceTypes(context?: string): Promise<KubeContextResources> {
     return this.webClient.get("/resources" + this.createQueryParams(context))
-      .then(jsObject => (jsObject as KubernetesResource[])
-        .map(res => KubernetesResource.fromJsObject(res)))
+      .then(jsObject => (jsObject as KubeContextResources))
+      .then(obj => new KubeContextResources(
+          obj.resources.map(res => KubernetesResource.fromJsObject(res)),
+          obj.namespaces,
+          obj.contexts, obj.defaultContext
+        )
+      )
   }
 
   async getResourceItems(params: ResourceParameter): Promise<ResourceItems> {

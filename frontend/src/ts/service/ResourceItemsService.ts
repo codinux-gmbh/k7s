@@ -15,11 +15,14 @@ export class ResourceItemsService {
   selectedContextChanged(context?: string) {
     this.client.getAllAvailableResourceTypes(context)
       .then(response => {
+        this.resourcesState.contexts = response.contexts
+        this.resourcesState.defaultContext = response.defaultContext
+        this.resourcesState.namespaces = response.namespaces
+        this.resourcesState.resourceTypes = response.resources
         this.resourcesState.context = context
-        this.resourcesState.resourceTypes = response
 
         // we switched context, now load the default resource (pods)
-        const pods = response.find(res => res.isPod)
+        const pods = response.resources.find(res => res.isPod)
         if (pods) {
           this.selectedResourceChanged(pods)
         }

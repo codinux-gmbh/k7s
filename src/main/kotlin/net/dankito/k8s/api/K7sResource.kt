@@ -2,6 +2,7 @@ package net.dankito.k8s.api
 
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
+import net.dankito.k8s.api.dto.KubeContextResources
 import net.dankito.k8s.api.dto.ResourceParameter
 import net.dankito.k8s.domain.model.ResourceItems
 import net.dankito.k8s.domain.service.KubernetesService
@@ -15,8 +16,16 @@ class K7sResource(
 ) {
 
     @GET
-    fun getAllAvailableResourceTypes(@RestQuery("context") context: String? = null) =
-        service.getAllAvailableResourceTypes(context)
+    fun getContextResources(@RestQuery("context") context: String? = null): KubeContextResources {
+        val resources = service.getAllAvailableResourceTypes(context)
+
+        return KubeContextResources(
+            resources,
+            service.getNamespaces(context)?.items.orEmpty().map { it.name },
+            service.contextsNames,
+            service.defaultContext.takeUnless { it == KubernetesService.NonNullDefaultContextName },
+        )
+    }
 
     @GET
     @Path("/{group}/{kind}")

@@ -7,6 +7,12 @@ export class ResourcesState {
   static state = new ResourcesState()
 
 
+  contexts: string[] = $state([])
+
+  defaultContext?: string = $state(undefined)
+
+  namespaces: string[] = $state([])
+
   resourceTypes: KubernetesResource[] = $state([])
 
   selectedResource: KubernetesResource = $state(new KubernetesResource(null, "v1", "pods", "Pod", true, false, "Pod", "pods"))
