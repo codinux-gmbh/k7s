@@ -18,7 +18,7 @@
   $effect(() => {
     highlightedResources = resourcesState.resourceTypes
       .filter(res => highlightedResourceKinds.includes(res.kind))
-      .sort(res => highlightedResourceKinds.indexOf(res.kind))
+      .sort((a, b) => highlightedResourceKinds.indexOf(a.kind) - highlightedResourceKinds.indexOf(b.kind))
 
     standardResources = resourcesState.resourceTypes
       .filter(res => res.isCustomResourceDefinition == false)
