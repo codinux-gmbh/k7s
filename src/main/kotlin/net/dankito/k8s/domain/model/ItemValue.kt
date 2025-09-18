@@ -5,5 +5,6 @@ data class ItemValue(
     val value: String?,
     val mobileValue: String? = null,
     val showOnMobile: Boolean = true,
-    val showOnDesktop: Boolean = true
+    val showOnDesktop: Boolean = true,
+    val useRemainingSpace: Boolean = false,
 )

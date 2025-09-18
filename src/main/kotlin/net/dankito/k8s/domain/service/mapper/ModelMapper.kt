@@ -178,7 +178,7 @@ class ModelMapper {
                     ItemValue("CPU", toDisplayValue(toMilliCore(podStats?.containers?.sumOf { it.cpu?.usageNanoCores ?: 0UL })) ?: emptyValue),
                     ItemValue("Mem", toDisplayValue(toMiByte(podStats?.containers?.sumOf { it.memory?.workingSetBytes ?: 0UL }), RoundingMode.DOWN) ?: emptyValue),
                     ItemValue("IP", item.status.podIP, item.status.podIP),
-                    ItemValue("Host", nodeStats?.nodeName ?: item.status.hostIP)
+                    ItemValue("Host", nodeStats?.nodeName ?: item.status.hostIP, useRemainingSpace = true)
                 )
     }
 

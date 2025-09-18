@@ -15,7 +15,7 @@
 </script>
 
 
-<div class="h-full bg-white text-xs sm:text-sm shadow-md">
+<div class="h-full bg-white text-sm shadow-md">
 
   {#if Constants.isDesktop}
     <ResourceItemsListDesktop {resourcesState} {showNamespace} />
