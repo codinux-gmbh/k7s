@@ -5,6 +5,7 @@
   import {ResourcesState} from "../ts/ui/state/ResourcesState.svelte"
   import ResourceSelectionSidebar from "./resourceSelection/sidebar/ResourceSelectionSidebar.svelte"
   import ResourceItemsList from "./resourceItems/ResourceItemsList.svelte"
+  import {Constants} from "../ts/service/Constants"
 
   let resourcesState = ResourcesState.state
 
@@ -15,9 +16,11 @@
 
 
 <div class="w-full h-dvh p-2 flex">
-  <div class="shrink-0 max-md:hidden">
-    <ResourceSelectionSidebar {resourcesState} />
-  </div>
+  {#if Constants.isDesktop}
+    <div class="shrink-0">
+      <ResourceSelectionSidebar {resourcesState} />
+    </div>
+  {/if}
 
   <div class="flex-1">
     <ResourceItemsList {resourcesState} />

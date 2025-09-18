@@ -7,7 +7,7 @@
 </script>
 
 
-<div class="grid grid-rows-[auto_1fr] w-full h-full max-md:hidden">
+<div class="grid grid-rows-[auto_1fr] w-full h-full">
   <div class="thead sticky top-0 z-2">
     <div class={[ "row grid h-12 font-bold bg-zinc-200 text-zinc-500 border-b border-zinc-500",
                     showNamespace ? "grid-cols-[9rem_1fr]" : "grid-cols-[1fr]"]}>

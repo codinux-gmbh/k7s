@@ -6,7 +6,7 @@
 </script>
 
 
-<div class="overflow-y-auto lg:hidden">
+<div class="overflow-y-auto">
   {#each resourcesState.selectedResourceItems.items as item}
     <div class="flex flex-col justify-center min-h-[3.25rem] px-2 border-b first:border-t border-zinc-200 even:bg-zinc-100/50 hover:bg-zinc-200/50">
       <div class="flex items-center">

@@ -2,6 +2,7 @@
   import {ResourcesState} from "../../ts/ui/state/ResourcesState.svelte"
   import ResourceItemsListDesktop from "./ResourceItemsListDesktop.svelte"
   import ResourceItemsListMobile from "./ResourceItemsListMobile.svelte"
+  import {Constants} from "../../ts/service/Constants"
 
   let { resourcesState }: { resourcesState: ResourcesState } = $props()
 
@@ -16,8 +17,12 @@
 
 <div class="h-full bg-white text-xs sm:text-sm shadow-md">
 
-  <ResourceItemsListDesktop {resourcesState} {showNamespace} />
+  {#if Constants.isDesktop}
+    <ResourceItemsListDesktop {resourcesState} {showNamespace} />
+  {/if}
 
-  <ResourceItemsListMobile {resourcesState} {showNamespace} />
+  {#if Constants.isMobile}
+    <ResourceItemsListMobile {resourcesState} {showNamespace} />
+  {/if}
 
 </div>
