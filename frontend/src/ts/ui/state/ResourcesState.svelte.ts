@@ -29,7 +29,7 @@ export class ResourcesState {
       this.context, this.namespace)
   }
 
-  toResourceParameterForNamespace(namespace: string): ResourceParameter {
+  toResourceParameterForNamespace(namespace: string | undefined): ResourceParameter {
     return new ResourceParameter(this.selectedResource.group, this.selectedResource.kind,
       this.context, namespace)
   }

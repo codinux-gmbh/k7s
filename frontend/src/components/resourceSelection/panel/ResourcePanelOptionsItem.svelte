@@ -1,8 +1,9 @@
 <script lang="ts">
   import ComboBox from "../../common/form/ComboBox.svelte"
+  import {Option} from "../../common/form/Option"
 
   let { label, options, selectedOption, selectedOptionChanged }:
-    { label: string, options: string[], selectedOption?: string, selectedOptionChanged: (option: string) => void } = $props()
+    { label: string, options: Option[], selectedOption?: string, selectedOptionChanged: (option: string | undefined) => void } = $props()
 
 </script>
 

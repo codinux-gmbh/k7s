@@ -5,11 +5,21 @@
   import ResourcePanelPlaceholder from "./ResourcePanelPlaceholder.svelte"
   import ResourcePanelOptionsItem from "./ResourcePanelOptionsItem.svelte"
   import {DI} from "../../../ts/service/DI"
+  import {Option} from "../../common/form/Option"
 
   let { uiState, resourcesState }: { uiState: UiState, resourcesState: ResourcesState } = $props()
 
-  function selectedNamespaceChanged(newNamespace: string) {
+
+  function namespaceOptions(): Option[] {
+    return [
+      new Option(undefined, "all"),
+      ...resourcesState.namespaces.map(ns => new Option(ns))
+    ]
+  }
+
+  function selectedNamespaceChanged(newNamespace: string | undefined) {
     DI.resourceItemsService.selectedNamespaceChanged(newNamespace)
+    uiState.showResourceSelectionPanel = false
   }
 </script>
 
@@ -21,7 +31,7 @@
     {#if resourcesState.contexts.length < 2}
       <ResourcePanelPlaceholder />
     {/if}
-    <ResourcePanelOptionsItem label="ns" options={resourcesState.namespaces} selectedOption={resourcesState.namespace}
+    <ResourcePanelOptionsItem label="ns" options={namespaceOptions()} selectedOption={resourcesState.namespace}
                               selectedOptionChanged={selectedNamespaceChanged} />
 
 

@@ -44,7 +44,7 @@ export class ResourceItemsService {
       })
   }
 
-  selectedNamespaceChanged(namespace: string) {
+  selectedNamespaceChanged(namespace: string | undefined) {
     this.client.getResourceItems(this.resourcesState.toResourceParameterForNamespace(namespace))
       .then(items => {
         this.resourcesState.namespace = namespace
