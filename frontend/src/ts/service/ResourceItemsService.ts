@@ -15,17 +15,28 @@ export class ResourceItemsService {
   selectedContextChanged(context?: string) {
     this.client.getAllAvailableResourceTypes(context)
       .then(response => {
-        this.resourcesState.contexts = response.contexts
-        this.resourcesState.defaultContext = response.defaultContext
-        this.resourcesState.namespaces = response.namespaces
-        this.resourcesState.resourceTypes = response.resources
-        this.resourcesState.context = context
+        const resources = response.resources
+        const state = this.resourcesState
+
+        state.contexts = response.contexts
+        state.defaultContext = response.defaultContext
+        state.namespaces = response.namespaces
+        state.resourceTypes = resources
+        state.context = context
 
         // we switched context, now load the default resource (pods)
         const pods = response.resources.find(res => res.isPod)
         if (pods) {
           this.selectedResourceChanged(pods)
         }
+
+        state.standardResources = resources
+          .filter(res => res.isCustomResourceDefinition == false)
+          .sort((a, b) => a.name.localeCompare(b.name))
+
+        state.customResourceDefinitions = resources
+          .filter(res => res.isCustomResourceDefinition)
+          .sort((a, b) => a.identifier.localeCompare(b.identifier))
     })
   }
 

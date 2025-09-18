@@ -12,7 +12,7 @@
 
 
 <div class="flex items-center w-full h-full">
-  <label for={label} class="shrink-0 min-w-6 mr-1">{ label }</label>
+  <label for={label} class="shrink-0 w-8 mr-1">{ label }</label>
   <select id={label} class="flex-1 min-w-0 h-full px-1 truncate bg-white text-primary rounded-lg" onchange={e => selectedItemChanged(e)}>
     {#each options as option}
       <option value={option.value} selected={option.value === selectedOption}>{ option.label }</option>

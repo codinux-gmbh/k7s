@@ -9,8 +9,6 @@
   const highlightedResourceKinds = [ "Pod", "Service", "Ingress", "Deployment", "ConfigMap", "Secret", "Node", "PersistentVolume", "PersistentVolumeClaim" ]
 
   let highlightedResources: KubernetesResource[] = $state([])
-  let standardResources: KubernetesResource[] = $state([])
-  let customResourceDefinitions: KubernetesResource[] = $state([])
 
   let expandStandardResources: boolean = $state(false)
   let expandCustomResourceDefinitions: boolean = $state(false)
@@ -19,14 +17,6 @@
     highlightedResources = resourcesState.resourceTypes
       .filter(res => highlightedResourceKinds.includes(res.kind))
       .sort((a, b) => highlightedResourceKinds.indexOf(a.kind) - highlightedResourceKinds.indexOf(b.kind))
-
-    standardResources = resourcesState.resourceTypes
-      .filter(res => res.isCustomResourceDefinition == false)
-      .sort((a, b) => a.name.localeCompare(b.name))
-
-    customResourceDefinitions = resourcesState.resourceTypes
-      .filter(res => res.isCustomResourceDefinition)
-      .sort((a, b) => a.identifier.localeCompare(b.identifier))
   })
 </script>
 
@@ -41,7 +31,7 @@
 
       <ResourceListSectionHeader title="Standard resources" bind:isExpanded={expandStandardResources} />
       {#if expandStandardResources}
-        {#each standardResources as resource}
+        {#each resourcesState.standardResources as resource}
           <ResourceListItem {resource} />
         {/each}
       {/if}
@@ -49,7 +39,7 @@
 
       <ResourceListSectionHeader title="CRDs" bind:isExpanded={expandCustomResourceDefinitions} />
       {#if expandCustomResourceDefinitions}
-        {#each customResourceDefinitions as crd}
+        {#each resourcesState.customResourceDefinitions as crd}
           <ResourceListItem resource={crd} title={`${crd.displayName} ${crd.group}.${crd.version}`} />
         {/each}
       {/if}

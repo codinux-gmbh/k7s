@@ -6,8 +6,15 @@
   import ResourcePanelOptionsItem from "./ResourcePanelOptionsItem.svelte"
   import {DI} from "../../../ts/service/DI"
   import {Option} from "../../common/form/Option"
+  import {KubernetesResource} from "../../../ts/model/KubernetesResource"
 
   let { uiState, resourcesState }: { uiState: UiState, resourcesState: ResourcesState } = $props()
+
+  let selectedResourceJson: string = $state("")
+
+  $effect(() => {
+    selectedResourceJson = resourceJson(resourcesState.selectedResource)
+  })
 
 
   function namespaceOptions(): Option[] {
@@ -30,12 +37,50 @@
     DI.resourceItemsService.selectedContextChanged(newContext)
     uiState.showResourceSelectionPanel = false
   }
+
+  function standardResourceOptions(): Option[] {
+    return [ ...resourcesState.standardResources.map(res => new Option(resourceJson(res), res.displayName)) ]
+  }
+
+  function customResourceDefinitionsOptions(): Option[] {
+    return [ ...resourcesState.customResourceDefinitions.map(res => new Option(resourceJson(res), res.displayName)) ]
+  }
+
+  function selectedResourceChanged(newResourceJson: string | undefined) {
+    uiState.showResourceSelectionPanel = false
+
+    if (newResourceJson) {
+      const groupAndKind = JSON.parse(newResourceJson)
+      const newResource = resourcesState.resourceTypes.find(res => res.group == groupAndKind.group && res.kind == groupAndKind.kind)
+      if (newResource) {
+        DI.resourceItemsService.selectedResourceChanged(newResource)
+      } else {
+        DI.log.warn(`Could not find resource for group=${groupAndKind.group} and kind=${groupAndKind.kind}`)
+      }
+    }
+  }
+
+  function resourceJson(resource: KubernetesResource): string {
+    if (resource.group) {
+      return `{ "group": "${resource.group}", "kind": "${resource.kind}" }`
+    } else {
+      return `{ "kind": "${resource.kind}" }`
+    }
+  }
 </script>
 
 
 <div class="fixed bottom-[3.5rem] right-1 lg:right-[1px] max-md:left-1 md:max-w-[764px] bg-zinc-300 text-white rounded-2xl shadow-md z-[998]">
 
   <div class="flex justify-evenly flex-wrap p-[0.125rem]">
+    <!-- Custom Resource Definitions and Standard Resources -->
+    <ResourcePanelPlaceholder />
+    <ResourcePanelOptionsItem label="CRD" options={customResourceDefinitionsOptions()} selectedOption={selectedResourceJson}
+                              selectedOptionChanged={selectedResourceChanged} />
+    <ResourcePanelOptionsItem label="Std Res" options={standardResourceOptions()} selectedOption={selectedResourceJson}
+                              selectedOptionChanged={selectedResourceChanged} />
+
+    <!-- namespace and context -->
     <ResourcePanelPlaceholder />
     {#if resourcesState.contexts.length < 2}
       <ResourcePanelPlaceholder />

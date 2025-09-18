@@ -15,6 +15,10 @@ export class ResourcesState {
 
   resourceTypes: KubernetesResource[] = $state([])
 
+  standardResources: KubernetesResource[] = $state([])
+
+  customResourceDefinitions: KubernetesResource[] = $state([])
+
   selectedResource: KubernetesResource = $state(new KubernetesResource(null, "v1", "pods", "Pod", true, false, "Pod", "pods"))
 
   selectedResourceItems: ResourceItems = $state(new ResourceItems(undefined, []))
