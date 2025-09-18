@@ -44,4 +44,13 @@ export class ResourceItemsService {
       })
   }
 
+  selectedNamespaceChanged(namespace: string) {
+    this.client.getResourceItems(this.resourcesState.toResourceParameterForNamespace(namespace))
+      .then(items => {
+        this.resourcesState.namespace = namespace
+        this.resourcesState.selectedResourceItems = items
+        this.itemsCache.put(this.resourcesState.selectedResource, items)
+      })
+  }
+
 }
