@@ -11,7 +11,7 @@
 </script>
 
 
-<div class="flex items-center h-full">
+<div class="flex items-center w-full h-full">
   <label for={label} class="shrink-0 min-w-6 mr-1">{ label }</label>
   <select id={label} class="flex-1 min-w-0 h-full px-1 truncate bg-white text-primary rounded-lg" onchange={e => selectedItemChanged(e)}>
     {#each options as option}

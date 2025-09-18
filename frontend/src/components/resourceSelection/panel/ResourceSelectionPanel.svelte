@@ -21,6 +21,15 @@
     DI.resourceItemsService.selectedNamespaceChanged(newNamespace)
     uiState.showResourceSelectionPanel = false
   }
+
+  function contextOptions(): Option[] {
+    return [ ...resourcesState.contexts.map(ctx => new Option(ctx)) ]
+  }
+
+  function selectedContextChanged(newContext: string | undefined) {
+    DI.resourceItemsService.selectedContextChanged(newContext)
+    uiState.showResourceSelectionPanel = false
+  }
 </script>
 
 
@@ -30,6 +39,9 @@
     <ResourcePanelPlaceholder />
     {#if resourcesState.contexts.length < 2}
       <ResourcePanelPlaceholder />
+    {:else}
+      <ResourcePanelOptionsItem label="ctx" options={contextOptions()} selectedOption={resourcesState.context}
+                                selectedOptionChanged={selectedContextChanged} />
     {/if}
     <ResourcePanelOptionsItem label="ns" options={namespaceOptions()} selectedOption={resourcesState.namespace}
                               selectedOptionChanged={selectedNamespaceChanged} />

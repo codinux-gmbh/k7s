@@ -8,6 +8,6 @@
 </script>
 
 
-<div class="flex grow justify-center items-center w-[25vw] max-w-[15.5rem] h-[4rem] m-[0.15rem] px-0.5 py-1.5 bg-primary rounded-xl select-none">
+<div class="flex grow justify-center items-center w-[25vw] max-w-[15.5rem] h-[4rem] m-[0.15rem] p-1.5 bg-primary rounded-xl select-none box-border">
   <ComboBox {label} {options} {selectedOption} {selectedOptionChanged} />
 </div>
