@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LogsIcon from "../../assets/icons/subject_24dp_zinc-700.svg"
   import ScaleIcon from "../../assets/icons/scale_24dp_zinc-700.svg"
   import DeleteIcon from "../../assets/icons/delete_24dp_red-700.svg"
   import MenuItem from "../common/menu/MenuItem.svelte"
@@ -94,7 +95,11 @@
     <ul bind:this={menuRef} role="menu" class="context-menu absolute right-0 w-48 bg-white shadow-2xl z-100"
          class:top-[100%]={!placeAbove} class:bottom-[100%]={placeAbove} use:clickOutside={closeMenu}>
 
-      {#if resource.isLoggable}<MenuItem label="Logs" onClick={showLogs} />{/if}
+      {#if resource.isLoggable}
+        <MenuItem label="Logs" onClick={showLogs}>
+          <img class="h-[24px]" alt="Show resource's logs" src={LogsIcon} />
+        </MenuItem>
+      {/if}
 
       {#if resource.isScalable}
         <MenuItem label="Scale" onClick={scaleItem}>
