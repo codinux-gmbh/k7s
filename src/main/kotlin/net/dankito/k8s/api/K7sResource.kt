@@ -45,10 +45,15 @@ class K7sResource(
         service.getLogs(params, containerName, since)
 
     @GET
-    @Path("/{group}/{kind}/{namespace}/{itemName}/yaml")
+    @Path("/{group}/{kind}/{namespace}/{itemName}")
     @Produces("application/yaml")
     fun getResourceItemYaml(@BeanParam params: ResourceItemParameter): String? =
         service.getResourceItemYaml(params)
+
+    @GET
+    @Path("/{group}/{kind}/{namespace}/{itemName}")
+    fun getResourceItemJson(@BeanParam params: ResourceItemParameter): String? =
+        service.getResourceItemJson(params)
 
     @PATCH
     @Path("/{group}/{kind}/{namespace}/{itemName}")

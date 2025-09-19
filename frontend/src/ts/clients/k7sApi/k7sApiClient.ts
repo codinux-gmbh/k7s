@@ -37,9 +37,16 @@ export class K7sApiClient {
   }
 
   async getItemYaml(item: ResourceItem, resource: KubernetesResource, context?: string): Promise<string> {
-    const url = this.createResourceItemUrl(item, resource, context, "/yaml")
+    const url = this.createResourceItemUrl(item, resource, context, )
 
     return this.webClient.get(new WebRequest(url, null, null, "application/yaml"))
+  }
+
+  async getItemJson(item: ResourceItem, resource: KubernetesResource, context?: string): Promise<string> {
+    const url = this.createResourceItemUrl(item, resource, context)
+
+    return this.webClient.get(new WebRequest(url, null, null, "application/json"))
+      .then(obj => JSON.stringify(obj, undefined, 2))
   }
 
   async scaleItem(item: ResourceItem, resource: KubernetesResource, context: string | undefined, scaleTo: number): Promise<boolean> {
