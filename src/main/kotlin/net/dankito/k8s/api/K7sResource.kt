@@ -40,6 +40,15 @@ class K7sResource(
     fun getResourceItemYaml(@BeanParam params: ResourceItemParameter): String? =
         service.getResourceItemYaml(params)
 
+    @DELETE
+    @Path("/{group}/{kind}/{namespace}/{itemName}")
+    @Produces("application/yaml")
+    fun deleteResourceItem(
+        @BeanParam params: ResourceItemParameter,
+        @QueryParam("gracePeriod") gracePeriodSeconds: Long? = null
+    ): Boolean =
+        service.deleteResourceItem(params, gracePeriodSeconds)
+
 
     // TODO: remove, resourceName may not be unique
     @GET

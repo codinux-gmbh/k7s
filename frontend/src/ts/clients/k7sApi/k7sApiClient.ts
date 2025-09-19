@@ -36,6 +36,12 @@ export class K7sApiClient {
     return this.webClient.get(new WebRequest(url, null, null, "application/yaml"))
   }
 
+  async deleteItem(item: ResourceItem, resource: KubernetesResource, context?: string): Promise<boolean> {
+    const url = this.createResourceItemUrl(item, resource, context)
+
+    return this.webClient.delete(url)
+  }
+
 
   private createResourceItemUrl(item: ResourceItem, resource: KubernetesResource, context?: string, pathSuffix?: string) {
     let path = `/resources/${this.createPathParams(resource.group, resource.kind)}/${item.namespace ?? "null"}/${item.name}`

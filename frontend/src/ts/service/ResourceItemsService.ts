@@ -75,4 +75,11 @@ export class ResourceItemsService {
       })
   }
 
+  deleteItem(item: ResourceItem, resource: KubernetesResource) {
+    this.client.deleteItem(item, resource, this.resourcesState.context)
+      .then(success => {
+        console.log("Successfully deleted item?", success)
+      })
+  }
+
 }

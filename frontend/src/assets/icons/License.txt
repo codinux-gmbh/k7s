@@ -1,0 +1,4 @@
+All icons in this folder have been downloaded from
+https://fonts.google.com/icons
+
+under the Apache License Version 2.0.

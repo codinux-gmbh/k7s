@@ -233,12 +233,12 @@ class KubernetesService(
         }
     }
 
-    fun getResourceItemOrThrow(params: ResourceItemParameter): GenericKubernetesResource? {
+    fun getResourceItemOrThrow(params: ResourceItemParameter): Resource<GenericKubernetesResource?>? {
         params.fixValues()
 
         val resource = getResourceByKindOrThrow(params.group, params.kind, params.context)
 
-        return getGenericResources(resource, params.context, params.namespace).withName(params.itemName).get()
+        return getGenericResources(resource, params.context, params.namespace).withName(params.itemName)
     }
 
 
@@ -450,11 +450,9 @@ class KubernetesService(
 
 
     fun getResourceItemYaml(params: ResourceItemParameter): String? {
-        params.fixValues()
-
         val item = getResourceItemOrThrow(params)
 
-        return item?.let { return Serialization.asYaml(item) }
+        return item?.get()?.let { return Serialization.asYaml(item) }
     }
 
     fun getResourceItemYaml(resourceName: String, namespace: String?, itemName: String, context: String? = null): String? {
@@ -487,6 +485,22 @@ class KubernetesService(
 
                 return result != null
             }
+        }
+
+        return false
+    }
+
+    fun deleteResourceItem(params: ResourceItemParameter, gracePeriodSeconds: Long? = null): Boolean {
+        val item = getResourceItemOrThrow(params)
+
+        if (item != null) {
+            val statuses = if (gracePeriodSeconds != null && gracePeriodSeconds >= 0) {
+                item.withGracePeriod(gracePeriodSeconds).delete()
+            } else {
+                item.delete()
+            }
+
+            return statuses.all { it.causes.isNullOrEmpty() }
         }
 
         return false

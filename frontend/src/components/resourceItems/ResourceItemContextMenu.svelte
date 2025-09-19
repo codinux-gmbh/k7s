@@ -1,5 +1,7 @@
 <script lang="ts">
+  import DeleteIcon from "../../assets/icons/delete_24dp_red-700.svg"
   import MenuItem from "../common/menu/MenuItem.svelte"
+  import MenuItemSeparator from "../common/menu/MenuItemSeparator.svelte"
   import {ResourceItem} from "../../ts/model/ResourceItem"
   import {KubernetesResource} from "../../ts/model/KubernetesResource"
   import { clickOutside } from "../../ts/ui/clickOutside"
@@ -23,6 +25,12 @@
     preventFurtherActionsAndCloseMenu(event)
 
     DI.resourceItemsService.showYaml(item, resource)
+  }
+
+  function deleteItem(event: MouseEvent) {
+    preventFurtherActionsAndCloseMenu(event)
+
+    DI.resourceItemsService.deleteItem(item, resource)
   }
 
   function handleContextMenuTriggerClick(event: MouseEvent) {
@@ -73,6 +81,14 @@
 
       {#if resource.isLoggable}<MenuItem label="Logs" onClick={showLogs} />{/if}
       <MenuItem label="YAML" onClick={showYaml} />
+
+      <MenuItemSeparator />
+
+      {#if resource.isDeletable}
+        <MenuItem label="Delete" classes="text-red-700 hover:!bg-red-200" onClick={deleteItem}>
+          <img class="h-[24px]" alt="Delete resource" src={DeleteIcon} />
+        </MenuItem>
+      {/if}
     </ul>
   {/if}
 </div>
