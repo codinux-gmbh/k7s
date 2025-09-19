@@ -8,7 +8,7 @@ export class ResourceItemsFormatter {
   getGridColumns(resource: KubernetesResource, showNamespace: boolean): string {
     const gridColumnsBase = `grid-template-columns: ${showNamespace ? "9rem " : ""}1fr `
 
-    return gridColumnsBase + this.getResourceSpecificColumnWidths(resource) + ";"
+    return gridColumnsBase + this.getResourceSpecificColumnWidths(resource) + " 2.75rem;"
   }
 
   private getResourceSpecificColumnWidths(resource: KubernetesResource): string {

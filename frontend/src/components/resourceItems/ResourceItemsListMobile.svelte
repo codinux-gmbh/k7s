@@ -1,5 +1,6 @@
 <script lang="ts">
   import {ResourcesState} from "../../ts/ui/state/ResourcesState.svelte"
+  import ResourceItemContextMenu from "./ResourceItemContextMenu.svelte"
 
   let { resourcesState, showNamespace }: { resourcesState: ResourcesState, showNamespace: boolean } = $props()
 
@@ -8,30 +9,36 @@
 
 <div class="w-full h-full overflow-y-auto">
   {#each resourcesState.selectedResourceItems.items as item}
-    <div class="w-full flex flex-col justify-center min-h-[3.25rem] p-2 box-border border-b first:border-t border-zinc-200 even:bg-zinc-100/50 hover:bg-zinc-200/50">
-      <div class="flex items-center">
-        {#if showNamespace}<div class="flex-none max-w-[5.5rem] md:max-w-[12rem] mr-1 font-medium truncate">{item.namespace}</div>{/if}
-        <div class="flex-1 truncate">{item.name}</div>
+    <div class="w-full flex items-stretch min-h-[3.25rem] box-border border-b first:border-t border-zinc-200 even:bg-zinc-100/50 hover:bg-zinc-200/50">
+      <div class="grow p-2 pr-0 flex flex-col justify-center overflow-hidden">
+        <div class="flex items-center">
+          {#if showNamespace}<div class="flex-none max-w-[5.5rem] md:max-w-[12rem] mr-1 font-medium truncate">{item.namespace}</div>{/if}
+          <div class="flex-1 truncate">{item.name}</div>
 
-        {#each item.highlightedItemSpecificValues as value}
-          {#if value.showOnMobile}
-            <div class="flex-none max-w-[8rem] ml-1 truncate">{#if value.mobileValue}{value.mobileValue}{:else}{value.name}: {value.value}{/if}</div>
-          {/if}
-        {/each}
-      </div>
-
-      {#if item.secondaryItemSpecificValues}
-        <div class="w-full max-w-full flex items-center mt-2 text-xs box-border">
-          {#each item.secondaryItemSpecificValues as value}
+          {#each item.highlightedItemSpecificValues as value}
             {#if value.showOnMobile}
-              <div class={[ value.useRemainingSpace ? "flex-1" : "flex-none max-w-[8rem]", "mr-1 truncate" ]}>
-                {#if value.mobileValue}{value.mobileValue}
-                {:else}<span class="font-medium">{value.name}</span>: {value.value}{/if}
-              </div>
+              <div class="flex-none max-w-[8rem] ml-1 truncate">{#if value.mobileValue}{value.mobileValue}{:else}{value.name}: {value.value}{/if}</div>
             {/if}
           {/each}
         </div>
-      {/if}
+
+        {#if item.secondaryItemSpecificValues}
+          <div class="w-full flex items-center mt-2 text-xs box-border">
+            {#each item.secondaryItemSpecificValues as value}
+              {#if value.showOnMobile}
+                <div class={[ value.useRemainingSpace ? "flex-1" : "flex-none max-w-[8rem]", "mr-1 truncate" ]}>
+                  {#if value.mobileValue}{value.mobileValue}
+                  {:else}<span class="font-medium">{value.name}</span>: {value.value}{/if}
+                </div>
+              {/if}
+            {/each}
+          </div>
+        {/if}
+      </div>
+
+      <div class="shrink-0 w-9 ml-1 p-0 flex items-center">
+        <ResourceItemContextMenu {item} resource={resourcesState.selectedResource} />
+      </div>
     </div>
   {/each}
 </div>
