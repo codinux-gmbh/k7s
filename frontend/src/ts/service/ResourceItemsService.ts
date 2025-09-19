@@ -6,6 +6,7 @@ import {TimeBasedCache} from "./cache/TimeBasedCache"
 import {ResourceItem} from "../model/ResourceItem"
 import {UiState} from "../ui/state/UiState.svelte"
 import {ShowYamlDialogOptions} from "../../components/dialogs/resourceItem/ShowYamlDialogOptions"
+import {ItemLogsDialogOptions} from "../../components/dialogs/resourceItem/ItemLogsDialogOptions"
 
 export class ResourceItemsService {
 
