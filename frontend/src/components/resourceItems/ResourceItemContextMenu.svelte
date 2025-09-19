@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ScaleIcon from "../../assets/icons/scale_24dp_zinc-700.svg"
   import DeleteIcon from "../../assets/icons/delete_24dp_red-700.svg"
   import MenuItem from "../common/menu/MenuItem.svelte"
   import MenuItemSeparator from "../common/menu/MenuItemSeparator.svelte"
@@ -25,6 +26,12 @@
     preventFurtherActionsAndCloseMenu(event)
 
     DI.resourceItemsService.showYaml(item, resource)
+  }
+
+  function scaleItem(event: MouseEvent) {
+    preventFurtherActionsAndCloseMenu(event)
+
+    DI.resourceItemsService.scaleItem(item, resource)
   }
 
   function deleteItem(event: MouseEvent) {
@@ -86,6 +93,13 @@
          class:top-[100%]={!placeAbove} class:bottom-[100%]={placeAbove} use:clickOutside={closeMenu}>
 
       {#if resource.isLoggable}<MenuItem label="Logs" onClick={showLogs} />{/if}
+
+      {#if resource.isScalable}
+        <MenuItem label="Scale" onClick={scaleItem}>
+          <img class="h-[24px]" alt="Scale resource" src={ScaleIcon} />
+        </MenuItem>
+      {/if}
+
       <MenuItem label="YAML" onClick={showYaml} />
 
       <MenuItemSeparator />

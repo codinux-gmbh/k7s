@@ -36,6 +36,19 @@ export class K7sApiClient {
     return this.webClient.get(new WebRequest(url, null, null, "application/yaml"))
   }
 
+  async scaleItem(item: ResourceItem, resource: KubernetesResource, context: string | undefined, scaleTo: number): Promise<boolean> {
+    let url = this.createResourceItemUrl(item, resource, context)
+    if (url.includes("?")) {
+      url += `&scaleTo=${scaleTo}`
+    } else {
+      url += `?scaleTo=${scaleTo}`
+    }
+
+    console.log("Calling URL", url)
+
+    return this.webClient.patch(url)
+  }
+
   async deleteItem(item: ResourceItem, resource: KubernetesResource, context?: string, gracePeriodSeconds?: number): Promise<boolean> {
     let url = this.createResourceItemUrl(item, resource, context)
     if (gracePeriodSeconds) {

@@ -40,6 +40,11 @@ class K7sResource(
     fun getResourceItemYaml(@BeanParam params: ResourceItemParameter): String? =
         service.getResourceItemYaml(params)
 
+    @PATCH
+    @Path("/{group}/{kind}/{namespace}/{itemName}")
+    fun scaleResourceItem(@BeanParam params: ResourceItemParameter, @QueryParam("scaleTo") scaleTo: Int): Boolean =
+        service.scaleResourceItem(params, scaleTo)
+
     @DELETE
     @Path("/{group}/{kind}/{namespace}/{itemName}")
     @Produces("application/yaml")

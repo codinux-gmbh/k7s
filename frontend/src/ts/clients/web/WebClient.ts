@@ -8,6 +8,8 @@ export interface WebClient {
 
     post<T>(request: WebRequest): Promise<T>
 
+    patch<T>(url: string): Promise<T>
+
     delete<T>(url: string): Promise<T>
 
 }

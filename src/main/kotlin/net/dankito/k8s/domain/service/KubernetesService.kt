@@ -466,6 +466,31 @@ class KubernetesService(
         return null
     }
 
+    fun scaleResourceItem(params: ResourceItemParameter, scaleTo: Int): Boolean {
+        if (scaleTo >= 0) {
+            val item = getResourceItemOrThrow(params)
+
+            if (item != null) {
+                // TODO: check for older versions e.g. extensions/deployment
+                val result = if (params.kind == "Deployment") {
+                    getClient(params.context).apps().deployments().inNamespace(params.namespace).withName(params.itemName).edit { item ->
+                        DeploymentBuilder(item).editSpec().withReplicas(scaleTo).endSpec().build()
+                    }
+                } else if (params.kind == "StatefulSet") {
+                    getClient(params.context).apps().statefulSets().inNamespace(params.namespace).withName(params.itemName).edit { item ->
+                        StatefulSetBuilder(item).editSpec().withReplicas(scaleTo).endSpec().build()
+                    }
+                } else {
+                    null
+                }
+
+                return result != null
+            }
+        }
+
+        return false
+    }
+
     fun scaleResourceItem(resourceName: String, namespace: String?, itemName: String, context: String? = null, scaleTo: Int? = null): Boolean {
         val resource = getResourceByName(resourceName, context)
         if (resource != null) {

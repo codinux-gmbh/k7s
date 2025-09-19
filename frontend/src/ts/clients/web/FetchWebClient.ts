@@ -24,8 +24,12 @@ export class FetchWebClient implements WebClient {
         return this.fetch("POST", request)
     }
 
-    async delete<T>(request: string): Promise<T> {
-        return this.fetch("DELETE", new WebRequest(request))
+    async patch<T>(url: string): Promise<T> {
+      return this.fetch("PATCH", new WebRequest(url))
+    }
+
+    async delete<T>(url: string): Promise<T> {
+        return this.fetch("DELETE", new WebRequest(url))
     }
 
 

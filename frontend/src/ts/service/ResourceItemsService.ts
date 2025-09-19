@@ -75,6 +75,18 @@ export class ResourceItemsService {
       })
   }
 
+  scaleItem(item: ResourceItem, resource: KubernetesResource) {
+    const countReplicaString = window.prompt(`Scale ${resource.kind} ${item.namespace}/${item.name}? Replicas:`)
+    const countReplica = Number.parseInt(countReplicaString ?? "")
+
+    if (Number.isNaN(countReplica) === false) {
+      this.client.scaleItem(item, resource, this.resourcesState.context, countReplica)
+        .then(success => {
+          console.log("Successfully scaled item?", success)
+        })
+    }
+  }
+
   deleteItem(item: ResourceItem, resource: KubernetesResource) {
     this.client.deleteItem(item, resource, this.resourcesState.context)
       .then(success => {
