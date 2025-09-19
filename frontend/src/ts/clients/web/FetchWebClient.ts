@@ -63,7 +63,8 @@ export class FetchWebClient implements WebClient {
 
         const contentType = response.headers.get("content-type") || ""
 
-        if (contentType.includes('text/') || contentType.includes('application/xml')) {
+        if (contentType.includes("text/") || contentType.includes("application/xml")
+          || contentType.includes("application/yaml")) {
             const text = await response.text()
             return text as unknown as T
         } else {

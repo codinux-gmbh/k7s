@@ -3,6 +3,8 @@ import {KubernetesResource} from "../../model/KubernetesResource"
 import {ResourceItems} from "../../model/ResourceItems"
 import {ResourceParameter} from "./ResourceParameter"
 import {KubeContextResources} from "../../model/KubeContextResources"
+import {ResourceItem} from "../../model/ResourceItem"
+import {WebRequest} from "../web/WebRequest"
 
 export class K7sApiClient {
 
@@ -27,6 +29,23 @@ export class K7sApiClient {
     return this.webClient.get(url)
   }
 
+
+  async getYaml(item: ResourceItem, resource: KubernetesResource, context?: string): Promise<string> {
+    const url = this.createResourceItemUrl(item, resource, context, "/yaml")
+
+    return this.webClient.get(new WebRequest(url, null, null, "application/yaml"))
+  }
+
+
+  private createResourceItemUrl(item: ResourceItem, resource: KubernetesResource, context?: string, pathSuffix?: string) {
+    let path = `/resources/${this.createPathParams(resource.group, resource.kind)}/${item.namespace ?? "null"}/${item.name}`
+
+    if (pathSuffix) {
+      path += pathSuffix
+    }
+
+    return path + this.createQueryParams(context)
+  }
 
   private createPathParams(group: string | undefined, kind: string) {
     return `/${group ?? "null"}/${kind}`

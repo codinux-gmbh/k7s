@@ -3,6 +3,9 @@ import {ResourcesState} from "../ui/state/ResourcesState.svelte"
 import {KubernetesResource} from "../model/KubernetesResource"
 import {ResourceItems} from "../model/ResourceItems"
 import {TimeBasedCache} from "./cache/TimeBasedCache"
+import {ResourceItem} from "../model/ResourceItem"
+import {UiState} from "../ui/state/UiState.svelte"
+import {ShowYamlDialogOptions} from "../../components/dialogs/resourceItem/ShowYamlDialogOptions"
 
 export class ResourceItemsService {
 
@@ -61,6 +64,14 @@ export class ResourceItemsService {
         this.resourcesState.namespace = namespace
         this.resourcesState.selectedResourceItems = items
         this.itemsCache.put(this.resourcesState.selectedResource, items)
+      })
+  }
+
+
+  showYaml(item: ResourceItem, resource: KubernetesResource) {
+    this.client.getYaml(item, resource, this.resourcesState.context)
+      .then(yaml => {
+        UiState.state.showYamlDialog = new ShowYamlDialogOptions(yaml, item, resource)
       })
   }
 

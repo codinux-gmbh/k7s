@@ -9,6 +9,7 @@
   import ResourceSelectionPanelTogglerButton from "./resourceSelection/panel/ResourceSelectionPanelTogglerButton.svelte"
   import ResourceSelectionPanel from "./resourceSelection/panel/ResourceSelectionPanel.svelte"
   import { clickOutside } from "../ts/ui/clickOutside"
+  import Dialogs from "./dialogs/Dialogs.svelte"
 
   let uiState = UiState.state
   let resourcesState = ResourcesState.state
@@ -41,3 +42,6 @@
     <ResourceSelectionPanel {uiState} {resourcesState} />
   </div>
 </div>
+
+
+<Dialogs {uiState} />

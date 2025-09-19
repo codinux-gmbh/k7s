@@ -3,6 +3,7 @@
   import {ResourceItem} from "../../ts/model/ResourceItem"
   import {KubernetesResource} from "../../ts/model/KubernetesResource"
   import { clickOutside } from "../../ts/ui/clickOutside"
+  import {DI} from "../../ts/service/DI"
 
   let { item, resource }: { item: ResourceItem, resource: KubernetesResource } = $props()
 
@@ -14,12 +15,14 @@
   let menuRef: HTMLElement | undefined = $state()
 
 
-  function showYaml(event: MouseEvent) {
+  function showLogs(event: MouseEvent) {
     preventFurtherActionsAndCloseMenu(event)
   }
 
-  function showLogs(event: MouseEvent) {
+  function showYaml(event: MouseEvent) {
     preventFurtherActionsAndCloseMenu(event)
+
+    DI.resourceItemsService.showYaml(item, resource)
   }
 
   function handleContextMenuTriggerClick(event: MouseEvent) {

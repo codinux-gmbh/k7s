@@ -18,6 +18,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import net.codinux.log.logger
+import net.dankito.k8s.api.dto.ResourceItemParameter
 import net.dankito.k8s.api.dto.ResourceParameter
 import net.dankito.k8s.domain.model.*
 import net.dankito.k8s.domain.model.KubernetesResource
@@ -232,6 +233,15 @@ class KubernetesService(
         }
     }
 
+    fun getResourceItemOrThrow(params: ResourceItemParameter): GenericKubernetesResource? {
+        params.fixValues()
+
+        val resource = getResourceByKindOrThrow(params.group, params.kind, params.context)
+
+        return getGenericResources(resource, params.context, params.namespace).withName(params.itemName).get()
+    }
+
+
     fun watchResourceItems(resource: KubernetesResource, context: String? = null, namespace: String? = null, resourceVersion: String? = null, update: (WatchAction, ResourceItem, Int?) -> Boolean): Closeable? {
         if (resource.isWatchable == false) {
             return null // a not watchable resource like Binding, ComponentStatus, NodeMetrics, PodMetrics, ...
@@ -438,6 +448,14 @@ class KubernetesService(
     private fun isResourceWithStats(resourceKind: String): Boolean =
         ResourcesWithStats.contains(resourceKind)
 
+
+    fun getResourceItemYaml(params: ResourceItemParameter): String? {
+        params.fixValues()
+
+        val item = getResourceItemOrThrow(params)
+
+        return item?.let { return Serialization.asYaml(item) }
+    }
 
     fun getResourceItemYaml(resourceName: String, namespace: String?, itemName: String, context: String? = null): String? {
         val resource = getResourceByName(resourceName, context)

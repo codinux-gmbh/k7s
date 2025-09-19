@@ -3,6 +3,7 @@ package net.dankito.k8s.api
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import net.dankito.k8s.api.dto.KubeContextResources
+import net.dankito.k8s.api.dto.ResourceItemParameter
 import net.dankito.k8s.api.dto.ResourceParameter
 import net.dankito.k8s.domain.model.ResourceItems
 import net.dankito.k8s.domain.service.KubernetesService
@@ -32,6 +33,15 @@ class K7sResource(
     fun getResourceItems(@BeanParam params: ResourceParameter): ResourceItems? =
         service.getResourceItems(params)
 
+
+    @GET
+    @Path("/{group}/{kind}/{namespace}/{itemName}/yaml")
+    @Produces("application/yaml")
+    fun getResourceItemYaml(@BeanParam params: ResourceItemParameter): String? =
+        service.getResourceItemYaml(params)
+
+
+    // TODO: remove, resourceName may not be unique
     @GET
     @Path("/{resourceName}/{namespace}/{itemName}/yaml")
     @Produces("application/yaml")
