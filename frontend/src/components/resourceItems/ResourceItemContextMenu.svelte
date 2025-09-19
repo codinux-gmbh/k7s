@@ -33,6 +33,12 @@
     DI.resourceItemsService.deleteItem(item, resource)
   }
 
+  function killItem(event: MouseEvent) {
+    preventFurtherActionsAndCloseMenu(event)
+
+    DI.resourceItemsService.killItem(item, resource)
+  }
+
   function handleContextMenuTriggerClick(event: MouseEvent) {
     preventFurtherActions(event)
 
@@ -88,6 +94,12 @@
         <MenuItem label="Delete" classes="text-red-700 hover:!bg-red-200" onClick={deleteItem}>
           <img class="h-[24px]" alt="Delete resource" src={DeleteIcon} />
         </MenuItem>
+
+        {#if resource.isPod}
+          <MenuItem label="Kill" classes="text-red-700 hover:!bg-red-200" onClick={killItem}>
+            <img class="h-[24px]" alt="Delete resource" src={DeleteIcon} />
+          </MenuItem>
+        {/if}
       {/if}
     </ul>
   {/if}

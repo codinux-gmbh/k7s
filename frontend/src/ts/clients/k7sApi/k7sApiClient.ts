@@ -36,8 +36,15 @@ export class K7sApiClient {
     return this.webClient.get(new WebRequest(url, null, null, "application/yaml"))
   }
 
-  async deleteItem(item: ResourceItem, resource: KubernetesResource, context?: string): Promise<boolean> {
-    const url = this.createResourceItemUrl(item, resource, context)
+  async deleteItem(item: ResourceItem, resource: KubernetesResource, context?: string, gracePeriodSeconds?: number): Promise<boolean> {
+    let url = this.createResourceItemUrl(item, resource, context)
+    if (gracePeriodSeconds) {
+      if (url.includes("?")) {
+        url += `&gracePeriod=${gracePeriodSeconds}`
+      } else {
+        url += `?gracePeriod=${gracePeriodSeconds}`
+      }
+    }
 
     return this.webClient.delete(url)
   }
