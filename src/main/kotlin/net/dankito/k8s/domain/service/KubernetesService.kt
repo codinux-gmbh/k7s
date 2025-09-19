@@ -543,6 +543,10 @@ class KubernetesService(
     }
 
 
+    fun getLogs(params: ResourceItemParameter, containerName: String? = null, since: ZonedDateTime? = null): List<String> =
+        // all loggable resources are namespaced
+        getLogs(params.kind, params.namespace!!, params.itemName, containerName, params.context, since)
+
     fun getLogs(resourceKind: String, namespace: String, itemName: String, containerName: String? = null, context: String? = null, sinceTimeUtc: ZonedDateTime? = null): List<String> =
         getLoggable(resourceKind, namespace, itemName, containerName, context)
             .sinceTime((sinceTimeUtc ?: Instant.now().atOffset(ZoneOffset.UTC).minusMinutes(10)).toString())
@@ -574,12 +578,13 @@ class KubernetesService(
 
     //private fun <E, L : KubernetesResourceList<E>, T> getLoggableForResource(resourceKind: String): MixedOperation<out E, out L, out T> where T : Resource<E>, T : Loggable = when (resourceKind) {
     private fun getLoggableForResource(resourceKind: String, context: String? = null): Namespaceable<*> = when (resourceKind) {
-        "pods" -> getClient(context).pods()
-        "deployments" -> getClient(context).apps().deployments()
-        "statefulsets" -> getClient(context).apps().statefulSets()
-        "daemonsets" -> getClient(context).apps().daemonSets()
-        "replicasets" -> getClient(context).apps().replicaSets()
-        "jobs" -> getClient(context).batch().v1().jobs()
+        // TODO: only the first value is the resource kind, the second is the . Remove the latter one
+        "Pod", "pods" -> getClient(context).pods()
+        "Deployment", "deployments" -> getClient(context).apps().deployments()
+        "StatefulSet", "statefulsets" -> getClient(context).apps().statefulSets()
+        "DaemonSet", "daemonsets" -> getClient(context).apps().daemonSets()
+        "ReplicaSet", "replicasets" -> getClient(context).apps().replicaSets()
+        "Job", "jobs" -> getClient(context).batch().v1().jobs()
         else -> throw IllegalArgumentException("Trying to get Loggable for resource '$resourceKind' which is not loggable")
     } as Namespaceable<*>
 

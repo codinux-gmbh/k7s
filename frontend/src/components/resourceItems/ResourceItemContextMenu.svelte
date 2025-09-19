@@ -20,6 +20,8 @@
 
   function showLogs(event: MouseEvent) {
     preventFurtherActionsAndCloseMenu(event)
+
+    DI.resourceItemsService.showLogs(item, resource)
   }
 
   function showYaml(event: MouseEvent) {

@@ -9,6 +9,7 @@ import net.dankito.k8s.domain.model.ResourceItems
 import net.dankito.k8s.domain.service.KubernetesService
 import org.jboss.resteasy.reactive.RestPath
 import org.jboss.resteasy.reactive.RestQuery
+import java.time.ZonedDateTime
 
 @Path("/api/v1/resources")
 @Produces(MediaType.APPLICATION_JSON)
@@ -33,6 +34,15 @@ class K7sResource(
     fun getResourceItems(@BeanParam params: ResourceParameter): ResourceItems? =
         service.getResourceItems(params)
 
+
+    @GET
+    @Path("/{group}/{kind}/{namespace}/{itemName}/logs")
+    fun getResourceItemLogs(
+        @BeanParam params: ResourceItemParameter,
+        @QueryParam("containerName") containerName: String? = null,
+        @QueryParam("since") since: ZonedDateTime? = null,
+    ): List<String> =
+        service.getLogs(params, containerName, since)
 
     @GET
     @Path("/{group}/{kind}/{namespace}/{itemName}/yaml")

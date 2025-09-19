@@ -1,4 +1,5 @@
 import {ShowYamlDialogOptions} from "../../../components/dialogs/resourceItem/ShowYamlDialogOptions"
+import {ItemLogsDialogOptions} from "../../../components/dialogs/resourceItem/ItemLogsDialogOptions"
 
 export class UiState {
 
@@ -6,6 +7,8 @@ export class UiState {
 
 
   showResourceSelectionPanel: boolean = $state(false)
+
+  showLogsDialog: ItemLogsDialogOptions | undefined = $state()
 
   showYamlDialog: ShowYamlDialogOptions | undefined = $state()
 

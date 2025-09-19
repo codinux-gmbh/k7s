@@ -68,8 +68,15 @@ export class ResourceItemsService {
   }
 
 
+  showLogs(item: ResourceItem, resource: KubernetesResource) {
+    this.client.getItemLogs(item, resource, this.resourcesState.context)
+      .then(logs => {
+        UiState.state.showLogsDialog = new ItemLogsDialogOptions(logs, item, resource)
+      })
+  }
+
   showYaml(item: ResourceItem, resource: KubernetesResource) {
-    this.client.getYaml(item, resource, this.resourcesState.context)
+    this.client.getItemYaml(item, resource, this.resourcesState.context)
       .then(yaml => {
         UiState.state.showYamlDialog = new ShowYamlDialogOptions(yaml, item, resource)
       })

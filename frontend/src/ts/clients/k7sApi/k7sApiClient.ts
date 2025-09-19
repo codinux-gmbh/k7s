@@ -30,7 +30,13 @@ export class K7sApiClient {
   }
 
 
-  async getYaml(item: ResourceItem, resource: KubernetesResource, context?: string): Promise<string> {
+  async getItemLogs(item: ResourceItem, resource: KubernetesResource, context?: string): Promise<string[]> {
+    const url = this.createResourceItemUrl(item, resource, context, "/logs")
+
+    return this.webClient.get(url)
+  }
+
+  async getItemYaml(item: ResourceItem, resource: KubernetesResource, context?: string): Promise<string> {
     const url = this.createResourceItemUrl(item, resource, context, "/yaml")
 
     return this.webClient.get(new WebRequest(url, null, null, "application/yaml"))
