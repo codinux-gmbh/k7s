@@ -1,0 +1,45 @@
+
+type Callback = (event: Event) => void
+
+const registered = new Map<HTMLElement, Callback>()
+
+function handleDocumentClick(event: MouseEvent) {
+  for (const [node, callback] of registered) {
+    if (!node.contains(event.target as Node)) {
+      callback(event)
+    }
+  }
+}
+
+function handleDocumentKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    for (const callback of registered.values()) {
+      callback(event)
+    }
+  }
+}
+
+// Register listeners once
+let initialized = false
+function init() {
+  if (initialized) return
+  document.addEventListener('click', handleDocumentClick, true)
+  document.addEventListener('keydown', handleDocumentKeydown, true)
+  initialized = true
+}
+
+export function clickOutside(node: HTMLElement, callback: Callback) {
+  init()
+  registered.set(node, callback)
+
+  return {
+    destroy() {
+      registered.delete(node)
+      if (registered.size === 0) {
+        document.removeEventListener('click', handleDocumentClick, true)
+        document.removeEventListener('keydown', handleDocumentKeydown, true)
+        initialized = false
+      }
+    }
+  }
+}

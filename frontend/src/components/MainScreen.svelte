@@ -1,5 +1,4 @@
 <script lang="ts">
-
   import {DI} from "../ts/service/DI"
   import {onMount} from "svelte"
   import {ResourcesState} from "../ts/ui/state/ResourcesState.svelte"
@@ -9,6 +8,7 @@
   import {UiState} from "../ts/ui/state/UiState.svelte"
   import ResourceSelectionPanelTogglerButton from "./resourceSelection/panel/ResourceSelectionPanelTogglerButton.svelte"
   import ResourceSelectionPanel from "./resourceSelection/panel/ResourceSelectionPanel.svelte"
+  import { clickOutside } from "../ts/ui/clickOutside"
 
   let uiState = UiState.state
   let resourcesState = ResourcesState.state
@@ -16,6 +16,10 @@
   const service = DI.resourceItemsService
 
   onMount(() => service.selectedContextChanged(undefined))
+
+  function closePanel() {
+    uiState.showResourceSelectionPanel = false
+  }
 </script>
 
 
@@ -33,7 +37,7 @@
 
   <ResourceSelectionPanelTogglerButton {uiState} />
 
-  <div class={[ uiState.showResourceSelectionPanel ? "" : "hidden" ]}>
+  <div class={[ uiState.showResourceSelectionPanel ? "" : "hidden" ]} use:clickOutside={closePanel}>
     <ResourceSelectionPanel {uiState} {resourcesState} />
   </div>
 </div>
