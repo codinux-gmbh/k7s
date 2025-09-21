@@ -55,6 +55,6 @@
 
 
   <div bind:this={menuContainer} class="h-full">
-    <ResourceItemContextMenu {item} {resource} bind:showContextMenu={showContextMenu} top={contextMenuTop} bottom={contextMenuBottom} />
+    <ResourceItemContextMenu {item} {resource} bind:showContextMenu={showContextMenu} top={contextMenuTop} bottom={contextMenuBottom} right="0" />
   </div>
 </div>

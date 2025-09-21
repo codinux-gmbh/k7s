@@ -12,10 +12,16 @@ function handleDocumentClick(event: MouseEvent) {
 }
 
 function handleDocumentKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
+  if (event.key === "Escape") {
     for (const callback of registered.values()) {
       callback(event)
     }
+  }
+}
+
+function handleOnContextMenu(event: MouseEvent) {
+  for (const callback of registered.values()) {
+    callback(event)
   }
 }
 
@@ -23,8 +29,9 @@ function handleDocumentKeydown(event: KeyboardEvent) {
 let initialized = false
 function init() {
   if (initialized) return
-  document.addEventListener('click', handleDocumentClick, true)
-  document.addEventListener('keydown', handleDocumentKeydown, true)
+  document.addEventListener("mousedown", handleDocumentClick, true)
+  document.addEventListener("keydown", handleDocumentKeydown, true)
+  document.addEventListener("contextmenu", handleOnContextMenu, true)
   initialized = true
 }
 
@@ -36,8 +43,9 @@ export function clickOutside(node: HTMLElement, callback: Callback) {
     destroy() {
       registered.delete(node)
       if (registered.size === 0) {
-        document.removeEventListener('click', handleDocumentClick, true)
-        document.removeEventListener('keydown', handleDocumentKeydown, true)
+        document.removeEventListener("mousedown", handleDocumentClick, true)
+        document.removeEventListener("keydown", handleDocumentKeydown, true)
+        document.removeEventListener("contextmenu", handleOnContextMenu, true)
         initialized = false
       }
     }

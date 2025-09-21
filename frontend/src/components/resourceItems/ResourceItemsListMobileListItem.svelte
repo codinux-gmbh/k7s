@@ -3,8 +3,14 @@
   import {ResourceItem} from "../../ts/model/ResourceItem"
   import {DI} from "../../ts/service/DI"
   import {KubernetesResource} from "../../ts/model/KubernetesResource"
+  import ResourceItemContextMenu from "./ResourceItemContextMenu.svelte"
 
   let { item, resource, showNamespace }: { item: ResourceItem, resource: KubernetesResource, showNamespace: boolean } = $props()
+
+  let showContextMenu = $state(false)
+
+  let contextMenuTop: string | undefined = $state(undefined)
+  let contextMenuLeft: string | undefined = $state(undefined)
 
   const itemsFormatter = DI.itemsFormatter
 
@@ -12,11 +18,20 @@
   function getItemStyle(item: ResourceItem): string {
     return itemsFormatter.getItemStyle(item) ?? ""
   }
+
+  function openContextMenu(event: MouseEvent) {
+    event.preventDefault() // block the browser’s default menu
+
+    contextMenuTop = `${event.clientY}px`
+    contextMenuLeft = `${event.clientX}px`
+
+    showContextMenu = true
+  }
 </script>
 
 
 <div class={[ "w-full flex items-stretch min-h-[3.25rem] box-border border-b first:border-t border-zinc-200 even:bg-zinc-100/50 hover:bg-zinc-200/50",
-               getItemStyle(item) ]}>
+               getItemStyle(item) ]} role="listitem" oncontextmenu={e => openContextMenu(e)}>
   <div class="grow p-2 pr-0 flex flex-col justify-center overflow-hidden">
     <div class="flex items-center">
       {#if showNamespace}<div class="flex-none max-w-[5.5rem] md:max-w-[12rem] mr-1 font-medium truncate">{item.namespace}</div>{/if}
@@ -46,4 +61,6 @@
   <div class="shrink-0 w-9 ml-1 p-0 flex items-center">
     <ResourceItemsListContextMenu {item} {resource} />
   </div>
+
+  <ResourceItemContextMenu {item} {resource} bind:showContextMenu={showContextMenu} top={contextMenuTop} left={contextMenuLeft} />
 </div>

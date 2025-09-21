@@ -9,9 +9,18 @@
   import { clickOutside } from "../../ts/ui/clickOutside"
   import {DI} from "../../ts/service/DI"
 
-  let { item, resource, showContextMenu = $bindable(false), top, bottom }:
-    { item: ResourceItem, resource: KubernetesResource, showContextMenu: boolean, top?: string, bottom?: string } = $props()
+  let { item, resource, showContextMenu = $bindable(false), top, bottom, left, right }:
+    { item: ResourceItem, resource: KubernetesResource, showContextMenu: boolean, top?: string, bottom?: string, left?: string, right?: string } = $props()
 
+
+  function getStyle(): string {
+    return [
+      top ? `top:${top};` : '',
+      bottom ? `bottom:${bottom};` : '',
+      left ? `left:${left};` : '',
+      right ? `right:${right};` : ''
+    ].join(" ")
+  }
 
   function showLogs(event: MouseEvent) {
     preventFurtherActionsAndCloseMenu(event)
@@ -59,8 +68,7 @@
 
 
 {#if showContextMenu}
-  <ul role="menu" use:clickOutside={closeMenu}
-      class={[ "context-menu absolute right-0 w-48 bg-white shadow-2xl z-100", top ? `top-[${top}]` : "", bottom ? `bottom-[${bottom}]` : "" ]} >
+  <ul role="menu" use:clickOutside={closeMenu} class={[ "context-menu absolute w-48 bg-white shadow-2xl z-100" ]} style={getStyle()} >
 
     {#if resource.isLoggable}
       <MenuItem label="Logs" onClick={showLogs}>
