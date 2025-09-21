@@ -12,6 +12,8 @@ export class ResourceItemsService {
 
   private itemsCache = new TimeBasedCache<KubernetesResource, ResourceItems>(5 * 60 * 1000) // remove cached resource items after 5 min
 
+  private autoUpdateTimeoutId: number | undefined = undefined
+
   constructor(private readonly resourcesState: ResourcesState,
               private readonly client: K7sApiClient) { }
 
@@ -45,12 +47,22 @@ export class ResourceItemsService {
   }
 
   selectedResourceChanged(resource: KubernetesResource) {
+    if (this.autoUpdateTimeoutId) {
+      clearInterval(this.autoUpdateTimeoutId)
+    }
+
     const previousItems = this.itemsCache.get(resource)
     if (previousItems) { // so there's no delay in showing selected resource's items, show previously fetched items if available
       this.resourcesState.selectedResource = resource
       this.resourcesState.selectedResourceItems = previousItems
     }
 
+    this.getResourceItems(resource)
+
+    this.autoUpdateTimeoutId = setInterval(() => this.getResourceItems(resource), 5000)
+  }
+
+  private getResourceItems(resource: KubernetesResource) {
     this.client.getResourceItems(this.resourcesState.toResourceParameter(resource))
       .then(items => {
         this.resourcesState.selectedResource = resource
