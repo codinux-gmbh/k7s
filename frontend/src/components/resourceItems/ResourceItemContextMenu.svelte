@@ -9,14 +9,8 @@
   import { clickOutside } from "../../ts/ui/clickOutside"
   import {DI} from "../../ts/service/DI"
 
-  let { item, resource }: { item: ResourceItem, resource: KubernetesResource } = $props()
-
-  let showContextMenu = $state(false)
-
-  let placeAbove = $state(false)
-
-  let triggerButtonRef: HTMLElement
-  let menuRef: HTMLElement | undefined = $state()
+  let { item, resource, showContextMenu = $bindable(false), top, bottom }:
+    { item: ResourceItem, resource: KubernetesResource, showContextMenu: boolean, top?: string, bottom?: string } = $props()
 
 
   function showLogs(event: MouseEvent) {
@@ -49,26 +43,6 @@
     DI.resourceItemsService.killItem(item, resource)
   }
 
-  function handleContextMenuTriggerClick(event: MouseEvent) {
-    preventFurtherActions(event)
-
-    showContextMenu = !showContextMenu
-
-    if (showContextMenu) {
-      // Wait for menu to render
-      requestAnimationFrame(() => {
-        if (menuRef) { // menuRef should now be set
-          const buttonRect = triggerButtonRef.getBoundingClientRect()
-          const menuHeight = menuRef.offsetHeight
-          const spaceBelow = window.innerHeight - buttonRect.bottom
-          const spaceAbove = buttonRect.top
-
-          placeAbove = spaceBelow < menuHeight && spaceAbove >= menuHeight
-        }
-      })
-    }
-  }
-
   function preventFurtherActions(event: Event) {
     event.stopPropagation()
   }
@@ -84,44 +58,36 @@
 </script>
 
 
-<div class="w-full h-full relative inline-block">
-  <button bind:this={triggerButtonRef} class="dots-button w-full h-full flex items-center justify-center text-3xl text-zinc-500"
-          onclick={handleContextMenuTriggerClick}>
-    &#xFE19;
-  </button>
+{#if showContextMenu}
+  <ul role="menu" use:clickOutside={closeMenu}
+      class={[ "context-menu absolute right-0 w-48 bg-white shadow-2xl z-100", top ? `top-[${top}]` : "", bottom ? `bottom-[${bottom}]` : "" ]} >
 
+    {#if resource.isLoggable}
+      <MenuItem label="Logs" onClick={showLogs}>
+        <img class="h-[24px]" alt="Show resource's logs" src={LogsIcon} />
+      </MenuItem>
+    {/if}
 
-  {#if showContextMenu}
-    <ul bind:this={menuRef} role="menu" class="context-menu absolute right-0 w-48 bg-white shadow-2xl z-100"
-         class:top-[100%]={!placeAbove} class:bottom-[100%]={placeAbove} use:clickOutside={closeMenu}>
+    {#if resource.isScalable}
+      <MenuItem label="Scale" onClick={scaleItem}>
+        <img class="h-[24px]" alt="Scale resource" src={ScaleIcon} />
+      </MenuItem>
+    {/if}
 
-      {#if resource.isLoggable}
-        <MenuItem label="Logs" onClick={showLogs}>
-          <img class="h-[24px]" alt="Show resource's logs" src={LogsIcon} />
-        </MenuItem>
-      {/if}
+    <MenuItem label="YAML" onClick={showYaml} />
 
-      {#if resource.isScalable}
-        <MenuItem label="Scale" onClick={scaleItem}>
-          <img class="h-[24px]" alt="Scale resource" src={ScaleIcon} />
-        </MenuItem>
-      {/if}
+    <MenuItemSeparator />
 
-      <MenuItem label="YAML" onClick={showYaml} />
+    {#if resource.isDeletable}
+      <MenuItem label="Delete" classes="text-red-700 hover:!bg-red-200" onClick={deleteItem}>
+        <img class="h-[24px]" alt="Delete resource" src={DeleteIcon} />
+      </MenuItem>
 
-      <MenuItemSeparator />
-
-      {#if resource.isDeletable}
-        <MenuItem label="Delete" classes="text-red-700 hover:!bg-red-200" onClick={deleteItem}>
+      {#if resource.isPod}
+        <MenuItem label="Kill" classes="text-red-700 hover:!bg-red-200" onClick={killItem}>
           <img class="h-[24px]" alt="Delete resource" src={DeleteIcon} />
         </MenuItem>
-
-        {#if resource.isPod}
-          <MenuItem label="Kill" classes="text-red-700 hover:!bg-red-200" onClick={killItem}>
-            <img class="h-[24px]" alt="Delete resource" src={DeleteIcon} />
-          </MenuItem>
-        {/if}
       {/if}
-    </ul>
-  {/if}
-</div>
+    {/if}
+  </ul>
+{/if}

@@ -1,6 +1,6 @@
 <script lang="ts">
   import {ResourcesState} from "../../ts/ui/state/ResourcesState.svelte"
-  import ResourceItemContextMenu from "./ResourceItemContextMenu.svelte"
+  import ResourceItemsListContextMenu from "./ResourceItemsListContextMenu.svelte"
   import {ResourceItem} from "../../ts/model/ResourceItem"
   import {DI} from "../../ts/service/DI"
 
@@ -46,7 +46,7 @@
       </div>
 
       <div class="shrink-0 w-9 ml-1 p-0 flex items-center">
-        <ResourceItemContextMenu {item} resource={resourcesState.selectedResource} />
+        <ResourceItemsListContextMenu {item} resource={resourcesState.selectedResource} />
       </div>
     </div>
   {/each}

@@ -4,6 +4,7 @@
   import {ItemValue} from "../../ts/model/ItemValue"
   import {DI} from "../../ts/service/DI"
   import {KubernetesResource} from "../../ts/model/KubernetesResource"
+  import ResourceItemsListContextMenu from "./ResourceItemsListContextMenu.svelte"
   import ResourceItemContextMenu from "./ResourceItemContextMenu.svelte"
 
   let { resourcesState, showNamespace }: { resourcesState: ResourcesState, showNamespace: boolean } = $props()
@@ -67,7 +68,7 @@
 
 
         <div class="h-full ml-1 p-0">
-          <ResourceItemContextMenu {item} {resource} />
+          <ResourceItemsListContextMenu {item} {resource} />
         </div>
       </div>
     {/each}
