@@ -34,7 +34,7 @@ export class ResourceItemsFormatter {
   }
 
   private static ResourceSpecificColumnsWidths: Record<string, string> = {
-    Pod: "53px 70px 48px 48px 120px 220px",
+    Pod: "53px 70px 48px 48px 120px 250px",
     Service: "70px 120px 86px 270px",
     Ingress: "70px 270px 120px 180px",
     Deployment: "60px 80px 65px",
