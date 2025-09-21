@@ -1,6 +1,14 @@
 import {KubernetesResource} from "../../model/KubernetesResource"
+import {ResourceItem} from "../../model/ResourceItem"
 
 export class ResourceItemsFormatter {
+
+  static PendingStateStyle = "text-orange-500 "
+
+  static CompletedStateStyle = "text-gray-400 "
+
+  static ErrorStateStyle = "text-red-700 "
+
 
   constructor() { }
 
@@ -18,6 +26,37 @@ export class ResourceItemsFormatter {
 
   getResourceSpecificColumnNames(resource: KubernetesResource): string[] {
     return ResourceItemsFormatter.ResourceSpecificColumns[resource.kind] ?? []
+  }
+
+
+  getItemStyle(item: ResourceItem): string | undefined {
+    switch (item.status) {
+      case "Creating":
+      case "PodInitializing":
+      case "ContainerCreating":
+      case "Pending":
+        return ResourceItemsFormatter.PendingStateStyle;
+
+      case "Succeeded":
+      case "Completed":
+        return ResourceItemsFormatter.CompletedStateStyle;
+
+      case "Failed":
+      case "Error":
+      case "CrashLoopBackOff":
+      case "ImagePullBackOff":
+      case "CreateContainerConfigError":
+      case "InvalidImageName":
+      case "ErrImageNeverPull":
+      case "CreateContainerError":
+      case "OOMKilled":
+      case "ContainerCannotRun":
+      case "DeadlineExceeded":
+        return ResourceItemsFormatter.ErrorStateStyle;
+
+      default:
+        return undefined
+    }
   }
   
   

@@ -1,15 +1,24 @@
 <script lang="ts">
   import {ResourcesState} from "../../ts/ui/state/ResourcesState.svelte"
   import ResourceItemContextMenu from "./ResourceItemContextMenu.svelte"
+  import {ResourceItem} from "../../ts/model/ResourceItem"
+  import {DI} from "../../ts/service/DI"
 
   let { resourcesState, showNamespace }: { resourcesState: ResourcesState, showNamespace: boolean } = $props()
 
+  const itemsFormatter = DI.itemsFormatter
+
+
+  function getItemStyle(item: ResourceItem): string {
+    return itemsFormatter.getItemStyle(item) ?? ""
+  }
 </script>
 
 
 <div class="w-full h-full overflow-y-auto">
   {#each resourcesState.selectedResourceItems.items as item}
-    <div class="w-full flex items-stretch min-h-[3.25rem] box-border border-b first:border-t border-zinc-200 even:bg-zinc-100/50 hover:bg-zinc-200/50">
+    <div class={[ "w-full flex items-stretch min-h-[3.25rem] box-border border-b first:border-t border-zinc-200 even:bg-zinc-100/50 hover:bg-zinc-200/50",
+                   getItemStyle(item) ]}>
       <div class="grow p-2 pr-0 flex flex-col justify-center overflow-hidden">
         <div class="flex items-center">
           {#if showNamespace}<div class="flex-none max-w-[5.5rem] md:max-w-[12rem] mr-1 font-medium truncate">{item.namespace}</div>{/if}

@@ -29,6 +29,10 @@
     return [ ...item.highlightedItemSpecificValues, ...item.secondaryItemSpecificValues ]
       .filter(value => value.showOnDesktop)
   }
+
+  function getItemStyle(item: ResourceItem): string {
+    return itemsFormatter.getItemStyle(item) ?? ""
+  }
 </script>
 
 
@@ -50,7 +54,8 @@
 
   <div class="tbody overflow-y-auto">
     {#each resourcesState.selectedResourceItems.items as item}
-      <div class="grid items-center h-12 pl-2 border-b border-zinc-200 even:bg-zinc-100/50 hover:bg-zinc-200/50" style={getGridColumns()}>
+      <div class={[ "grid items-center h-12 pl-2 border-b border-zinc-200 even:bg-zinc-100/50 hover:bg-zinc-200/50",
+            getItemStyle(item) ]} style={getGridColumns()}>
         {#if showNamespace}
           <div class="truncate mr-1" title={ item.namespace }>{ item.namespace }</div>
         {/if}
