@@ -1,4 +1,5 @@
 import {ItemValue} from "./ItemValue"
+import {ContainerStatus} from "./ContainerStatus"
 
 export class ResourceItem {
 
@@ -8,6 +9,11 @@ export class ResourceItem {
     readonly highlightedItemSpecificValues: ItemValue[] = [],
     readonly secondaryItemSpecificValues: ItemValue[] = [],
     readonly htmlSafeId: string = "", // TODO: required?
+
+    // Pod only fields
+    readonly status?: string,
+    readonly podIP?: string,
+    readonly container: ContainerStatus[] = [],
   ) { }
 
 }
