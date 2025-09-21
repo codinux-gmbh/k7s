@@ -200,7 +200,7 @@ class ModelMapper {
         return listOf(ItemValue("Class", spec.ingressClassName, spec.ingressClassName)) to
             listOf(
                 ItemValue("Hosts", hosts, hosts),
-                ItemValue("Ports", spec.rules.joinToString { it.http.paths.joinToString { it.backend.service.port.number.toString() } }),
+                ItemValue("Ports", spec.rules.joinToString { it.http.paths.joinToString { it.backend.service.port.let { it.number?.toString() ?: it.name } } }),
                 ItemValue("Address", item.status.loadBalancer.ingress.joinToString { it.hostname })
             )
     }
