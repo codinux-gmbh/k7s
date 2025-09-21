@@ -54,6 +54,14 @@ export class ResourceItemsFormatter {
       case "DeadlineExceeded":
         return ResourceItemsFormatter.ErrorStateStyle;
 
+      case "Running":
+        const countReadyContainers = item.container.filter(container => container.ready).length
+        if (countReadyContainers != item.container.length) {
+          return ResourceItemsFormatter.ErrorStateStyle
+        } else {
+          return undefined
+        }
+
       default:
         return undefined
     }
