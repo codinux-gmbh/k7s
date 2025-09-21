@@ -19,8 +19,8 @@
 
   function namespaceOptions(): Option[] {
     return [
+      ...resourcesState.namespaces.map(ns => new Option(ns)),
       new Option(undefined, "all"),
-      ...resourcesState.namespaces.map(ns => new Option(ns))
     ]
   }
 
