@@ -1,4 +1,8 @@
-All icons in this folder have been downloaded from
+The Kubernetes icon kubernetes-icon-color.svg is under Apache License v2 and has been copied from:
+https://raw.githubusercontent.com/cncf/artwork/main/projects/kubernetes/icon/color/kubernetes-icon-color.svg
+
+
+All other icons in this folder have been downloaded from
 https://fonts.google.com/icons
 
 under the Apache License Version 2.0.

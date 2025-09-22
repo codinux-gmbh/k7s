@@ -1,5 +1,5 @@
 <script lang="ts">
-  import KubernetesImage from "../../../assets/images/kubernetes-icon-color.svg"
+  import KubernetesImage from "../../../assets/icons/kubernetes-icon-color.svg"
   import {UiState} from "../../../ts/ui/state/UiState.svelte"
 
   let { uiState }: { uiState: UiState } = $props()
