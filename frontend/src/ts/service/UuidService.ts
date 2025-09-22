@@ -32,6 +32,7 @@ export class UuidService {
 }
 
 
+// @ts-ignore
 interface CryptoWithUuid extends Crypto {
     randomUUID() : string
 }
