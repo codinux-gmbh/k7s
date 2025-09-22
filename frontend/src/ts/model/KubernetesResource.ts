@@ -19,6 +19,10 @@ export class KubernetesResource {
     return this.group === undefined && this.kind === "Pod"
   }
 
+  get isDeployment(): boolean {
+    return this.group === "apps" && this.kind === "Deployment"
+  }
+
   get isLoggable(): boolean {
     return KubernetesResource.LoggableResourceKinds.includes(this.kind)
   }

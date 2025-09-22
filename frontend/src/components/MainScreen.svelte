@@ -45,7 +45,7 @@
     <ResourceSelectionPanel {uiState} {resourcesState} />
   </div>
 
-  <CommandInputPanel {uiState} />
+  <CommandInputPanel {uiState} {resourcesState} />
 </div>
 
 
