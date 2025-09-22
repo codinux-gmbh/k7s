@@ -5,7 +5,7 @@
   import {KubernetesResource} from "../../ts/model/KubernetesResource"
   import ResourceItemContextMenu from "./ResourceItemContextMenu.svelte"
 
-  let { item, resource, showNamespace }: { item: ResourceItem, resource: KubernetesResource, showNamespace: boolean } = $props()
+  let { item, resource, showNamespace, index }: { item: ResourceItem, resource: KubernetesResource, showNamespace: boolean, index: number } = $props()
 
   let showContextMenu = $state(false)
 
@@ -31,7 +31,7 @@
 
 
 <div class={[ "w-full flex items-stretch min-h-[3.25rem] box-border border-b first:border-t border-zinc-200 even:bg-zinc-100/50 hover:bg-zinc-200/50",
-               getItemStyle(item) ]} role="listitem" oncontextmenu={e => openContextMenu(e)}>
+               getItemStyle(item) ]} role="option" tabindex={index} aria-selected="false" oncontextmenu={e => openContextMenu(e)}>
   <div class="grow p-2 pr-0 flex flex-col justify-center overflow-hidden">
     <div class="flex items-center">
       {#if showNamespace}<div class="flex-none max-w-[5.5rem] md:max-w-[12rem] mr-1 font-medium truncate">{item.namespace}</div>{/if}

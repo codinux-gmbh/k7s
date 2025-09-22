@@ -13,9 +13,9 @@
     {#if resourcesState.contexts.length > 1}<div class="ml-2">Context: {resourcesState.context ?? resourcesState.defaultContext}</div>{/if}
   </div>
 
-  <div class="grow w-full h-full bg-white shadow-md overflow-y-auto">
-    {#each resourcesState.selectedResourceItems.items as item}
-      <ResourceItemsListMobileListItem {item} resource={resourcesState.selectedResource} {showNamespace} />
+  <div role="listbox" class="grow w-full h-full bg-white shadow-md overflow-y-auto">
+    {#each resourcesState.selectedResourceItems.items as item, index}
+      <ResourceItemsListMobileListItem {item} resource={resourcesState.selectedResource} {showNamespace} {index} />
     {/each}
   </div>
 </div>
