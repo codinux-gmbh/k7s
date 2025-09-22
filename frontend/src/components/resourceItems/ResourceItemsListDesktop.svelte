@@ -4,15 +4,9 @@
   import {KubernetesResource} from "../../ts/model/KubernetesResource"
   import ResourceItemsListDesktopListItem from "./ResourceItemsListDesktopListItem.svelte"
 
-  let { resourcesState, showNamespace }: { resourcesState: ResourcesState, showNamespace: boolean } = $props()
-
-  let resource: KubernetesResource = $state(resourcesState.selectedResource)
+  let { resource, resourcesState, showNamespace }: { resource: KubernetesResource, resourcesState: ResourcesState, showNamespace: boolean } = $props()
 
   const itemsFormatter = DI.itemsFormatter
-
-  $effect(() => {
-    resource = resourcesState.selectedResource
-  })
 
 
   function getColumnNames(): string[] {
@@ -25,25 +19,41 @@
 </script>
 
 
-<div class="w-full h-full grid grid-rows-[auto_1fr]">
-  <div class="thead sticky top-0 z-2">
-    <div class="grid items-center h-12 pl-2 font-bold bg-zinc-200 text-zinc-500 border-b border-zinc-500" style={getGridColumns()}>
-      {#if showNamespace}
-        <div>Namespace</div>
-      {/if}
-      <div class="min-w-[17.25rem]">Name</div>
-
-      {#each getColumnNames() as headerName}
-        <div class="ml-1">{ headerName }</div>
-      {/each}
-
-      <div></div>
+<div class="w-full h-full flex flex-col">
+  <div class="shrink-0 flex w-full h-10 mb-2 p-2 bg-white shadow-sm">
+    <div class="flex-1 h-full">
+      <div><span class="inline-block w-15">Context:</span>{ resourcesState.context ?? resourcesState.defaultContext }</div>
     </div>
+
+    <div class="flex-2 h-full flex flex-col items-center">
+<!--      <div class="h-4 mb-1"></div>-->
+<!--      <div class="h-4 mb-1"></div>-->
+      <div class="text-primary">{ resource.displayName } ({#if resource.isNamespaced && resourcesState.namespace}{resourcesState.namespace}{:else}all{/if}) [{resourcesState.selectedResourceItems.items.length}]</div>
+    </div>
+
+    <div class="flex-1"></div>
   </div>
 
-  <div class="tbody overflow-y-auto">
-    {#each resourcesState.selectedResourceItems.items as item}
-      <ResourceItemsListDesktopListItem {item} {resource} {showNamespace} />
-    {/each}
+  <div class="grow w-full h-full grid grid-rows-[auto_1fr] bg-white shadow-md">
+    <div class="thead sticky top-0 z-2">
+      <div class="grid items-center h-12 pl-2 font-bold bg-zinc-200 text-zinc-500 border-b border-zinc-500" style={getGridColumns()}>
+        {#if showNamespace}
+          <div>Namespace</div>
+        {/if}
+        <div class="min-w-[17.25rem]">Name</div>
+
+        {#each getColumnNames() as headerName}
+          <div class="ml-1">{ headerName }</div>
+        {/each}
+
+        <div></div>
+      </div>
+    </div>
+
+    <div class="tbody overflow-y-auto">
+      {#each resourcesState.selectedResourceItems.items as item}
+        <ResourceItemsListDesktopListItem {item} {resource} {showNamespace} />
+      {/each}
+    </div>
   </div>
 </div>

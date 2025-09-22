@@ -3,10 +3,18 @@
   import ResourceItemsListDesktop from "./ResourceItemsListDesktop.svelte"
   import ResourceItemsListMobile from "./ResourceItemsListMobile.svelte"
   import {Constants} from "../../ts/service/Constants"
+  import {KubernetesResource} from "../../ts/model/KubernetesResource"
 
   let { resourcesState }: { resourcesState: ResourcesState } = $props()
 
+  let resource: KubernetesResource = $state(resourcesState.selectedResource)
+
   let showNamespace: boolean = $state(false)
+
+
+  $effect(() => {
+    resource = resourcesState.selectedResource
+  })
 
   $effect(() => {
     showNamespace = resourcesState.selectedResource.isNamespaced || resourcesState.namespace != undefined
@@ -15,14 +23,14 @@
 </script>
 
 
-<div class="h-full bg-white text-sm shadow-md">
+<div class="h-full text-sm">
 
   {#if Constants.isDesktop}
-    <ResourceItemsListDesktop {resourcesState} {showNamespace} />
+    <ResourceItemsListDesktop {resource} {resourcesState} {showNamespace} />
   {/if}
 
   {#if Constants.isMobile}
-    <ResourceItemsListMobile {resourcesState} {showNamespace} />
+    <ResourceItemsListMobile {resource} {resourcesState} {showNamespace} />
   {/if}
 
 </div>
