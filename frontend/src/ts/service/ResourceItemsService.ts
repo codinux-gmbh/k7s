@@ -46,6 +46,15 @@ export class ResourceItemsService {
     })
   }
 
+  selectedNamespaceChanged(namespace: string | undefined) {
+    this.client.getResourceItems(this.resourcesState.toResourceParameterForNamespace(namespace))
+      .then(items => {
+        this.resourcesState.namespace = namespace
+        this.resourcesState.selectedResourceItems = items
+        this.itemsCache.put(this.resourcesState.selectedResource, items)
+      })
+  }
+
   selectedResourceChanged(resource: KubernetesResource) {
     if (this.autoUpdateTimeoutId) {
       clearInterval(this.autoUpdateTimeoutId)
@@ -68,15 +77,6 @@ export class ResourceItemsService {
         this.resourcesState.selectedResource = resource
         this.resourcesState.selectedResourceItems = items
         this.itemsCache.put(resource, items)
-      })
-  }
-
-  selectedNamespaceChanged(namespace: string | undefined) {
-    this.client.getResourceItems(this.resourcesState.toResourceParameterForNamespace(namespace))
-      .then(items => {
-        this.resourcesState.namespace = namespace
-        this.resourcesState.selectedResourceItems = items
-        this.itemsCache.put(this.resourcesState.selectedResource, items)
       })
   }
 
