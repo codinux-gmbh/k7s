@@ -20,8 +20,10 @@ function handleDocumentKeydown(event: KeyboardEvent) {
 }
 
 function handleOnContextMenu(event: MouseEvent) {
-  for (const callback of registered.values()) {
-    callback(event)
+  for (const [node, callback] of registered) {
+    if (!node.contains(event.target as Node)) {
+      callback(event)
+    }
   }
 }
 
