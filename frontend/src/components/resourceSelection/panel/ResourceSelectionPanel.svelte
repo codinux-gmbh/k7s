@@ -72,7 +72,7 @@
 
 <div class="fixed bottom-[3.5rem] right-1 lg:right-[1px] max-md:left-1 md:max-w-[764px] bg-zinc-300 text-white rounded-2xl shadow-md z-[998]">
 
-  <div class="flex justify-evenly flex-wrap p-[0.125rem]">
+  <div class="flex justify-evenly flex-wrap px-[0.125rem] py-[0.25rem]">
     <!-- Custom Resource Definitions and Standard Resources -->
     <ResourcePanelPlaceholder />
     <ResourcePanelOptionsItem label="CRD" options={customResourceDefinitionsOptions()} selectedOption={selectedResourceJson}
