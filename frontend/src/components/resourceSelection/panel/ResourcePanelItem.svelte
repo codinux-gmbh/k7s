@@ -22,7 +22,7 @@
 </script>
 
 
-<button class="flex grow justify-center items-center w-[25vw] max-w-[15.5rem] h-[4rem] m-[0.15rem] px-3 !bg-primary rounded-xl select-none"
+<button class="flex grow justify-center items-center w-[25vw] max-w-[15.5rem] h-[3.5rem] m-[0.15rem] px-3 !bg-primary rounded-xl select-none"
         onclick={resourceSelected}>
   { title ?? resource?.displayName ?? "" }
 </button>
