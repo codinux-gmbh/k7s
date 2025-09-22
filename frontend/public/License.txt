@@ -1,3 +1,6 @@
 Favicons build with https://realfavicongenerator.net/
 from file https://github.com/cncf/artwork/blob/main/projects/kubernetes/icon/color/kubernetes-icon-color.png
 which is licensed under Apache License v2.
+
+
+The maskable icons have been build from same file with https://maskable.app/editor .
