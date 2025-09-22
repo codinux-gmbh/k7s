@@ -24,6 +24,15 @@
   function closePanel() {
     uiState.showResourceSelectionPanel = false
   }
+
+  function clickOutsideOfPanel(event: Event) {
+    const target = event.target as Element
+    const hasToggleButtonBeenClicked = target?.id == "resourceSelectionPanelToggleButton" || target?.parentElement?.id == "resourceSelectionPanelToggleButton"
+
+    if (hasToggleButtonBeenClicked == false) { // do not handle clicks on resourceSelectionPanelToggleButton, it does already the right thing
+      closePanel()
+    }
+  }
 </script>
 
 
@@ -41,7 +50,7 @@
 
   <ResourceSelectionPanelTogglerButton {uiState} />
 
-  <div class={[ uiState.showResourceSelectionPanel ? "" : "hidden" ]} use:clickOutside={closePanel}>
+  <div class={[ uiState.showResourceSelectionPanel ? "" : "hidden" ]} use:clickOutside={clickOutsideOfPanel}>
     <ResourceSelectionPanel {uiState} {resourcesState} />
   </div>
 
