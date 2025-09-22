@@ -8,6 +8,8 @@ export class UiState {
 
   showResourceSelectionPanel: boolean = $state(false)
 
+  showCommandInputPanel: boolean = $state(false)
+
   showLogsDialog: ItemLogsDialogOptions | undefined = $state()
 
   showYamlDialog: ShowYamlDialogOptions | undefined = $state()

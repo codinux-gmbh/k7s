@@ -10,10 +10,13 @@
   import ResourceSelectionPanel from "./resourceSelection/panel/ResourceSelectionPanel.svelte"
   import { clickOutside } from "../ts/ui/clickOutside"
   import Dialogs from "./dialogs/Dialogs.svelte"
+  import CommandInputPanel from "./resourceSelection/commandInput/CommandInputPanel.svelte"
+  import {GlobalKeyHandler} from "../ts/ui/inputHandler/GlobalKeyHandler"
 
   let uiState = UiState.state
   let resourcesState = ResourcesState.state
 
+  const keyHandler = new GlobalKeyHandler(uiState)
   const service = DI.resourceItemsService
 
   onMount(() => service.selectedContextChanged(undefined))
@@ -41,6 +44,8 @@
   <div class={[ uiState.showResourceSelectionPanel ? "" : "hidden" ]} use:clickOutside={closePanel}>
     <ResourceSelectionPanel {uiState} {resourcesState} />
   </div>
+
+  <CommandInputPanel {uiState} />
 </div>
 
 
