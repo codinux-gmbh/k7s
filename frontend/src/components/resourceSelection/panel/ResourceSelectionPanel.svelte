@@ -97,10 +97,6 @@
     {/if}
 
     <!-- highlighted default resources -->
-    <ResourcePanelItem group={null} kind="PersistentVolume" title="PV" {uiState} {resourcesState} />
-    <ResourcePanelItem group={null} kind="PersistentVolumeClaim" title="PVC" {uiState} {resourcesState} />
-    <ResourcePanelItem group={null} kind="Node" {uiState} {resourcesState} />
-
     <ResourcePanelItem group="rbac.authorization.k8s.io" kind="RoleBinding" {uiState} {resourcesState} />
     <ResourcePanelItem group="rbac.authorization.k8s.io" kind="ClusterRole" {uiState} {resourcesState} />
     <ResourcePanelItem group="rbac.authorization.k8s.io" kind="Role" {uiState} {resourcesState} />
@@ -108,6 +104,10 @@
     <ResourcePanelItem group={null} kind="ServiceAccount" {uiState} {resourcesState} />
     <ResourcePanelItem group={null} kind="Secret" {uiState} {resourcesState} />
     <ResourcePanelItem group={null} kind="ConfigMap" {uiState} {resourcesState} />
+
+    <ResourcePanelItem group={null} kind="PersistentVolume" title="PV" {uiState} {resourcesState} />
+    <ResourcePanelItem group={null} kind="PersistentVolumeClaim" title="PVC" {uiState} {resourcesState} />
+    <ResourcePanelItem group={null} kind="Node" {uiState} {resourcesState} />
 
     <ResourcePanelItem group="apps" kind="DaemonSet" {uiState} {resourcesState} />
     <ResourcePanelItem group="apps" kind="StatefulSet" {uiState} {resourcesState} />
