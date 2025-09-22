@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
-    "buildQuarkusDist": "vite build --outDir ../resources/META-INF/resources/ --emptyOutDir"
+    "buildQuarkusDist": "vite build --outDir ../src/main/resources/META-INF/resources/ --emptyOutDir"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^6.1.1",
