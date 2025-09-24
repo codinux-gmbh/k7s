@@ -1,0 +1,114 @@
+Resource,Group,Version,Commands
+addons,k3s.cattle.io,v1,addon addons addons.k3s.cattle.io k3s.cattle.io/v1/addons
+alerts,notification.toolkit.fluxcd.io,v1beta3,alert alerts alerts.notification.toolkit.fluxcd.io notification.toolkit.fluxcd.io/v1beta3/alerts
+aliases,,,a alias aliases
+apiservices,apiregistration.k8s.io,v1,apiregistration.k8s.io/v1/apiservices apiservice apiservices apiservices.v1.apiregistration.k8s.io
+benchmarks,,,bench benchmark benchmarks
+bindings,,v1,binding bindings v1/bindings
+buckets,source.toolkit.fluxcd.io,v1,bucket buckets buckets.source.toolkit.fluxcd.io source.toolkit.fluxcd.io/v1/buckets
+certificaterequests,cert-manager.io,v1,cert-manager.io/v1/certificaterequests certificaterequest certificaterequests certificaterequests.cert-manager.io crs
+certificates,cert-manager.io,v1,cert cert-manager.io/v1/certificates certificate certificates certificates.cert-manager.io certs
+certificatesigningrequests,certificates.k8s.io,v1,certificates.k8s.io/v1/certificatesigningrequests certificatesigningrequest certificatesigningrequests certificatesigningrequests.v1.certificates.k8s.io csr
+challenges,acme.cert-manager.io,v1,acme.cert-manager.io/v1/challenges challenge challenges challenges.acme.cert-manager.io
+clusterissuers,cert-manager.io,v1,cert-manager.io/v1/clusterissuers ciss clusterissuer clusterissuers clusterissuers.cert-manager.io
+clusterrolebindings,,,crb
+clusterrolebindings,rbac.authorization.k8s.io,v1,clusterrolebinding clusterrolebindings clusterrolebindings.v1.rbac.authorization.k8s.io rbac.authorization.k8s.io/v1/clusterrolebindings
+clusterroles,,,cr
+clusterroles,rbac.authorization.k8s.io,v1,clusterrole clusterroles clusterroles.v1.rbac.authorization.k8s.io rbac.authorization.k8s.io/v1/clusterroles
+componentstatuses,,v1,componentstatus componentstatuses cs v1/componentstatuses
+configmaps,,v1,cm configmap configmaps v1/configmaps
+contexts,,,context contexts ctx
+controllerrevisions,apps,v1,apps/v1/controllerrevisions controllerrevision controllerrevisions controllerrevisions.v1.apps
+cronjobs,batch,v1,batch/v1/cronjobs cj cronjob cronjobs cronjobs.v1.batch
+csidrivers,storage.k8s.io,v1,csidriver csidrivers csidrivers.v1.storage.k8s.io storage.k8s.io/v1/csidrivers
+csinodes,storage.k8s.io,v1,csinode csinodes csinodes.v1.storage.k8s.io storage.k8s.io/v1/csinodes
+csistoragecapacities,storage.k8s.io,v1,csistoragecapacities csistoragecapacities.v1.storage.k8s.io csistoragecapacity storage.k8s.io/v1/csistoragecapacities
+customresourcedefinitions,apiextensions.k8s.io,v1,apiextensions.k8s.io/v1/customresourcedefinitions crd crds customresourcedefinition customresourcedefinitions customresourcedefinitions.v1.apiextensions.k8s.io
+daemonsets,apps,v1,apps/v1/daemonsets daemonset daemonsets daemonsets.v1.apps ds
+deployments,apps,v1,apps/v1/deployments deploy deployment deployments deployments.v1.apps
+deployments,,,dp
+dirs,,,d dir dirs
+endpoints,,v1,endpoints ep v1/endpoints
+endpointslices,discovery.k8s.io,v1,discovery.k8s.io/v1/endpointslices endpointslice endpointslices endpointslices.v1.discovery.k8s.io
+etcdsnapshotfiles,k3s.cattle.io,v1,etcdsnapshotfile etcdsnapshotfiles etcdsnapshotfiles.k3s.cattle.io k3s.cattle.io/v1/etcdsnapshotfiles
+events,events.k8s.io,v1,ev event events events.k8s.io/v1/events events.v1.events.k8s.io
+flowschemas,flowcontrol.apiserver.k8s.io,v1,flowcontrol.apiserver.k8s.io/v1/flowschemas flowschema flowschemas flowschemas.v1.flowcontrol.apiserver.k8s.io
+gatewayclasses,gateway.networking.k8s.io,v1,gateway.networking.k8s.io/v1/gatewayclasses gatewayclass gatewayclasses gatewayclasses.v1.gateway.networking.k8s.io gc
+gateways,gateway.networking.k8s.io,v1,gateway gateway.networking.k8s.io/v1/gateways gateways gateways.v1.gateway.networking.k8s.io gtw
+gitrepositories,source.toolkit.fluxcd.io,v1,gitrepo gitrepositories gitrepositories.source.toolkit.fluxcd.io gitrepository source.toolkit.fluxcd.io/v1/gitrepositories
+groups,,,group groups grp
+grpcroutes,gateway.networking.k8s.io,v1,gateway.networking.k8s.io/v1/grpcroutes grpcroute grpcroutes grpcroutes.v1.gateway.networking.k8s.io
+helm,,,chart charts helm hm
+helm-history,,,helm-history
+helmchartconfigs,helm.cattle.io,v1,helm.cattle.io/v1/helmchartconfigs helmchartconfig helmchartconfigs helmchartconfigs.helm.cattle.io
+helmcharts,helm.cattle.io,v1,helm.cattle.io/v1/helmcharts helmchart helmcharts helmcharts.helm.cattle.io
+helmcharts,source.toolkit.fluxcd.io,v1,hc helmcharts.source.toolkit.fluxcd.io source.toolkit.fluxcd.io/v1/helmcharts
+helmreleases,helm.toolkit.fluxcd.io,v2,helm.toolkit.fluxcd.io/v2/helmreleases helmrelease helmreleases helmreleases.helm.toolkit.fluxcd.io hr
+helmrepositories,source.toolkit.fluxcd.io,v1,helmrepo helmrepositories helmrepositories.source.toolkit.fluxcd.io helmrepository source.toolkit.fluxcd.io/v1/helmrepositories
+help,,,? h help
+horizontalpodautoscalers,autoscaling,v2,autoscaling/v2/horizontalpodautoscalers horizontalpodautoscaler horizontalpodautoscalers horizontalpodautoscalers.v2.autoscaling hpa
+httproutes,gateway.networking.k8s.io,v1,gateway.networking.k8s.io/v1/httproutes httproute httproutes httproutes.v1.gateway.networking.k8s.io
+imagepolicies,image.toolkit.fluxcd.io,v1beta2,image.toolkit.fluxcd.io/v1beta2/imagepolicies imagepolicies imagepolicies.image.toolkit.fluxcd.io imagepolicy
+imagerepositories,image.toolkit.fluxcd.io,v1beta2,image.toolkit.fluxcd.io/v1beta2/imagerepositories imagerepositories imagerepositories.image.toolkit.fluxcd.io imagerepository
+imageupdateautomations,image.toolkit.fluxcd.io,v1beta1,image.toolkit.fluxcd.io/v1beta1/imageupdateautomations imageupdateautomation imageupdateautomations imageupdateautomations.image.toolkit.fluxcd.io
+ingressclasses,networking.k8s.io,v1,ingressclass ingressclasses ingressclasses.v1.networking.k8s.io networking.k8s.io/v1/ingressclasses
+ingresses,networking.k8s.io,v1,ing ingress ingresses ingresses.v1.networking.k8s.io networking.k8s.io/v1/ingresses
+issuers,cert-manager.io,v1,cert-manager.io/v1/issuers iss issuer issuers issuers.cert-manager.io
+jobs,batch,v1,batch/v1/jobs job jobs jobs.v1.batch
+jobs,,,jo
+kustomizations,kustomize.toolkit.fluxcd.io,v1,ks kustomization kustomizations kustomizations.kustomize.toolkit.fluxcd.io kustomize.toolkit.fluxcd.io/v1/kustomizations
+leases,coordination.k8s.io,v1,coordination.k8s.io/v1/leases lease leases leases.v1.coordination.k8s.io
+limitranges,,v1,limitrange limitranges limits v1/limitranges
+localsubjectaccessreviews,authorization.k8s.io,v1,authorization.k8s.io/v1/localsubjectaccessreviews localsubjectaccessreview localsubjectaccessreviews localsubjectaccessreviews.v1.authorization.k8s.io
+mutatingwebhookconfigurations,admissionregistration.k8s.io,v1,admissionregistration.k8s.io/v1/mutatingwebhookconfigurations mutatingwebhookconfiguration mutatingwebhookconfigurations mutatingwebhookconfigurations.v1.admissionregistration.k8s.io
+namespaces,,v1,namespace namespaces ns v1/namespaces
+networkpolicies,networking.k8s.io,v1,netpol networking.k8s.io/v1/networkpolicies networkpolicies networkpolicies.v1.networking.k8s.io networkpolicy
+networkpolicies,,,np
+nodes,metrics.k8s.io,v1beta1,metrics.k8s.io/v1beta1/nodes nodes.v1beta1.metrics.k8s.io
+nodes,,v1,no node nodes v1/nodes
+ocirepositories,source.toolkit.fluxcd.io,v1,ocirepo ocirepositories ocirepositories.source.toolkit.fluxcd.io ocirepository source.toolkit.fluxcd.io/v1/ocirepositories
+orders,acme.cert-manager.io,v1,acme.cert-manager.io/v1/orders order orders orders.acme.cert-manager.io
+persistentvolumeclaims,,v1,persistentvolumeclaim persistentvolumeclaims pvc v1/persistentvolumeclaims
+persistentvolumes,,v1,persistentvolume persistentvolumes pv v1/persistentvolumes
+plans,upgrade.cattle.io,v1,plan plans plans.upgrade.cattle.io upgrade.cattle.io/v1/plans
+poddisruptionbudgets,policy,v1,pdb poddisruptionbudget poddisruptionbudgets poddisruptionbudgets.v1.policy policy/v1/poddisruptionbudgets
+podlogs,monitoring.grafana.com,v1alpha2,monitoring.grafana.com/v1alpha2/podlogs podlogs podlogs.monitoring.grafana.com
+pods,metrics.k8s.io,v1beta1,metrics.k8s.io/v1beta1/pods pods.v1beta1.metrics.k8s.io
+pods,,v1,po pod pods v1/pods
+podtemplates,,v1,podtemplate podtemplates v1/podtemplates
+portforwards,,,pf portforward portforwards
+postgresqls,acid.zalan.do,v1,acid.zalan.do/v1/postgresqls pg postgresql postgresqls postgresqls.acid.zalan.do
+priorityclasses,scheduling.k8s.io,v1,pc priorityclass priorityclasses priorityclasses.v1.scheduling.k8s.io scheduling.k8s.io/v1/priorityclasses
+prioritylevelconfigurations,flowcontrol.apiserver.k8s.io,v1,flowcontrol.apiserver.k8s.io/v1/prioritylevelconfigurations prioritylevelconfiguration prioritylevelconfigurations prioritylevelconfigurations.v1.flowcontrol.apiserver.k8s.io
+providers,notification.toolkit.fluxcd.io,v1beta3,notification.toolkit.fluxcd.io/v1beta3/providers provider providers providers.notification.toolkit.fluxcd.io
+pulses,,,hz pu pulse pulses
+quit,,,Q q q! qa quit
+receivers,notification.toolkit.fluxcd.io,v1,notification.toolkit.fluxcd.io/v1/receivers receiver receivers receivers.notification.toolkit.fluxcd.io
+referencegrants,gateway.networking.k8s.io,v1beta1,gateway.networking.k8s.io/v1beta1/referencegrants referencegrant referencegrants referencegrants.v1beta1.gateway.networking.k8s.io refgrant
+replicasets,apps,v1,apps/v1/replicasets replicaset replicasets replicasets.v1.apps rs
+replicationcontrollers,,v1,rc replicationcontroller replicationcontrollers v1/replicationcontrollers
+resourcequotas,,v1,quota resourcequota resourcequotas v1/resourcequotas
+rolebindings,rbac.authorization.k8s.io,v1,rbac.authorization.k8s.io/v1/rolebindings rolebinding rolebindings rolebindings.v1.rbac.authorization.k8s.io
+rolebindings,,,rb
+roles,rbac.authorization.k8s.io,v1,rbac.authorization.k8s.io/v1/roles role roles roles.v1.rbac.authorization.k8s.io
+roles,,,ro
+runtimeclasses,node.k8s.io,v1,node.k8s.io/v1/runtimeclasses runtimeclass runtimeclasses runtimeclasses.v1.node.k8s.io
+screendumps,,,screendump screendumps sd
+sealedsecrets,bitnami.com,v1alpha1,bitnami.com/v1alpha1/sealedsecrets sealedsecret sealedsecrets sealedsecrets.bitnami.com
+secrets,,v1,secret secrets v1/secretsΔ
+selfsubjectaccessreviews,authorization.k8s.io,v1,authorization.k8s.io/v1/selfsubjectaccessreviews selfsubjectaccessreview selfsubjectaccessreviews selfsubjectaccessreviews.v1.authorization.k8s.io
+selfsubjectreviews,authentication.k8s.io,v1,authentication.k8s.io/v1/selfsubjectreviews selfsubjectreview selfsubjectreviews selfsubjectreviews.v1.authentication.k8s.io
+selfsubjectrulesreviews,authorization.k8s.io,v1,authorization.k8s.io/v1/selfsubjectrulesreviews selfsubjectrulesreview selfsubjectrulesreviews selfsubjectrulesreviews.v1.authorization.k8s.io
+serviceaccounts,,v1,sa serviceaccount serviceaccounts v1/serviceaccounts
+services,,v1,service services svc v1/services
+statefulsets,apps,v1,apps/v1/statefulsets statefulset statefulsets statefulsets.v1.apps sts
+storageclasses,storage.k8s.io,v1,sc storage.k8s.io/v1/storageclasses storageclass storageclasses storageclasses.v1.storage.k8s.io
+subjectaccessreviews,authorization.k8s.io,v1,authorization.k8s.io/v1/subjectaccessreviews subjectaccessreview subjectaccessreviews subjectaccessreviews.v1.authorization.k8s.io
+tokenreviews,authentication.k8s.io,v1,authentication.k8s.io/v1/tokenreviews tokenreview tokenreviews tokenreviews.v1.authentication.k8s.io
+users,,,user users usr
+validatingadmissionpolicies,admissionregistration.k8s.io,v1,admissionregistration.k8s.io/v1/validatingadmissionpolicies validatingadmissionpolicies validatingadmissionpolicies.v1.admissionregistration.k8s.io validatingadmissionpolicy
+validatingadmissionpolicybindings,admissionregistration.k8s.io,v1,admissionregistration.k8s.io/v1/validatingadmissionpolicybindings validatingadmissionpolicybinding validatingadmissionpolicybindings validatingadmissionpolicybindings.v1.admissionregistration.k8s.io
+validatingwebhookconfigurations,admissionregistration.k8s.io,v1,admissionregistration.k8s.io/v1/validatingwebhookconfigurations validatingwebhookconfiguration validatingwebhookconfigurations validatingwebhookconfigurations.v1.admissionregistration.k8s.io
+volumeattachments,storage.k8s.io,v1,storage.k8s.io/v1/volumeattachments volumeattachment volumeattachments volumeattachments.v1.storage.k8s.io
+workloads,,,wk workload workloads
+xrays,,,x xray xrays

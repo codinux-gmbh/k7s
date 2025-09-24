@@ -1,0 +1,8 @@
+Resource,Commands
+clusterrolebindings,crb
+clusterroles,cr
+deployments,dp
+jobs,jo
+networkpolicies,np
+rolebindings,rb
+roles,ro
