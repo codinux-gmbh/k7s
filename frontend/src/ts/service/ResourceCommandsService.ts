@@ -56,12 +56,15 @@ export class ResourceCommandsService {
       })
 
     // custom shortcuts
-    displayResourceItemsCommands.push(...this.createCustomDisplayResourceItemsCommands(resourcesState))
+    displayResourceItemsCommands.push(...this.createCustomResourceShortcutsCommands(resourcesState))
 
     return displayResourceItemsCommands
   }
 
-  private createCustomDisplayResourceItemsCommands(resourcesState: ResourcesState): DisplayResourceItemsCommand[] {
+  /**
+   * Custom resource shortcuts of k9s that are not defined by Kubernetes API
+   */
+  private createCustomResourceShortcutsCommands(resourcesState: ResourcesState): DisplayResourceItemsCommand[] {
     const customDisplayResourceItemsCommands: DisplayResourceItemsCommand[] = []
 
     // custom shortcuts
