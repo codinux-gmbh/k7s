@@ -51,9 +51,11 @@ export class ResourceCommandsService {
 
   private createDisplayResourceItemsCommands(resourcesState: ResourcesState): DisplayResourceItemsCommand[] {
     const displayResourceItemsCommands = resourcesState.resourceTypes
-      .sort((a, b) => a.kind.localeCompare(b.kind)).flatMap(res => {
-        return [ new DisplayResourceItemsCommand(res.singularName ?? res.kind, res),
-          ...res.shortNames.sort().map(shortName => new DisplayResourceItemsCommand(shortName, res)) ]
+      .sort((a, b) => a.kind.localeCompare(b.kind))
+      .flatMap(res => {
+        const aliases = new Set([ res.singularName, res.name, ...res.shortNames.sort() ]
+          .filter(alias => !!alias)) // filter out null values
+        return Array.from(aliases).map(alias => new DisplayResourceItemsCommand(alias!!, res))
       })
 
     // custom shortcuts
