@@ -5,6 +5,7 @@ import {K7sApiClient} from "../clients/k7sApi/k7sApiClient"
 import {ResourceItemsService} from "./ResourceItemsService"
 import {ResourcesState} from "../ui/state/ResourcesState.svelte"
 import {ResourceItemsFormatter} from "../ui/formatter/ResourceItemsFormatter"
+import {ResourceCommandsService} from "./ResourceCommandsService"
 
 export class DI {
 
@@ -17,6 +18,8 @@ export class DI {
   static readonly resourceItemsService: ResourceItemsService = new ResourceItemsService(ResourcesState.state, DI.apiClient, DI.log)
 
   static readonly itemsFormatter: ResourceItemsFormatter = new ResourceItemsFormatter()
+
+  static readonly commandsService: ResourceCommandsService = new ResourceCommandsService()
 
 
   private static getBaseUrl(): string {
