@@ -121,16 +121,15 @@
   }
 </script>
 
-{#if uiState.showCommandInputPanel}
-  <div class={[ "fixed flex items-center w-[20rem] h-[3.5rem] p-2 top-2 right-1 shadow-2xl z-[999] bg-primary", uiState.showCommandInputPanel ? "" : "hidden" ]}
-       use:clickOutside={closePanel}>
-    <input bind:this={commandInput} type="search" list="availableCommands" class="w-full h-full p-2 px-1 bg-white rounded-3xl focus:outline-none"
-           onchange={commandInputChanged} onblur={commandInputLostFocus} />
+<div class={[ "fixed flex items-center w-[20rem] h-[3.5rem] p-2 top-2 right-1 shadow-2xl z-[999] bg-primary",
+            uiState.showCommandInputPanel ? "" : "hidden" ]}
+     use:clickOutside={closePanel}>
+  <input bind:this={commandInput} type="search" list="availableCommands" class="w-full h-full p-2 px-1 bg-white rounded-3xl focus:outline-none"
+         onchange={commandInputChanged} onblur={commandInputLostFocus} />
 
-    <datalist id="availableCommands">
-      {#each commands as command}
-      <option value="{command.command}"></option>
-      {/each}
-    </datalist>
-  </div>
-{/if}
+  <datalist id="availableCommands">
+    {#each commands as command}
+    <option value="{command.command}"></option>
+    {/each}
+  </datalist>
+</div>
