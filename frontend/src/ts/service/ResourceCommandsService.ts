@@ -55,17 +55,26 @@ export class ResourceCommandsService {
       })
 
     // custom shortcuts
+    displayResourceItemsCommands.push(...this.createCustomDisplayResourceItemsCommands(resourcesState))
+
+    return displayResourceItemsCommands
+  }
+
+  private createCustomDisplayResourceItemsCommands(resourcesState: ResourcesState): DisplayResourceItemsCommand[] {
+    const customDisplayResourceItemsCommands: DisplayResourceItemsCommand[] = []
+
+    // custom shortcuts
     const deployment = resourcesState.resourceTypes.find(res => res.isDeployment)
     if (deployment) {
-      displayResourceItemsCommands.push(new DisplayResourceItemsCommand("dp", deployment))
+      customDisplayResourceItemsCommands.push(new DisplayResourceItemsCommand("dp", deployment))
     }
     const roleBinding = resourcesState.resourceTypes
       .find(res => res.group == "rbac.authorization.k8s.io" && res.kind == "RoleBinding")
     if (roleBinding) {
-      displayResourceItemsCommands.push(new DisplayResourceItemsCommand("rb", roleBinding))
+      customDisplayResourceItemsCommands.push(new DisplayResourceItemsCommand("rb", roleBinding))
     }
 
-    return displayResourceItemsCommands
+    return customDisplayResourceItemsCommands
   }
 
 }
