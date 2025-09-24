@@ -6,6 +6,7 @@ import {SwitchToContextCommand} from "../ui/commands/SwitchToContextCommand"
 import {DI} from "./DI"
 import {ResourceItemsService} from "./ResourceItemsService"
 import {ResourceConstants} from "./ResourceConstants"
+import {KubernetesResource} from "../model/KubernetesResource"
 
 export class ResourceCommandsService {
 
@@ -65,20 +66,20 @@ export class ResourceCommandsService {
    * Custom resource shortcuts of k9s that are not defined by Kubernetes API
    */
   private createCustomResourceShortcutsCommands(resourcesState: ResourcesState): DisplayResourceItemsCommand[] {
-    const customDisplayResourceItemsCommands: DisplayResourceItemsCommand[] = []
+    const customShortcuts: DisplayResourceItemsCommand[] = []
 
-    // custom shortcuts
-    const deployment = resourcesState.resourceTypes.find(res => res.isDeployment)
-    if (deployment) {
-      customDisplayResourceItemsCommands.push(new DisplayResourceItemsCommand("dp", deployment))
-    }
-    const roleBinding = resourcesState.resourceTypes
-      .find(res => res.group == ResourceConstants.RoleBasedAccessGroup && res.kind == "RoleBinding")
-    if (roleBinding) {
-      customDisplayResourceItemsCommands.push(new DisplayResourceItemsCommand("rb", roleBinding))
-    }
+    this.createCustomShortcut(customShortcuts, "dp", resourcesState.resourceTypes.find(res => res.isDeployment))
 
-    return customDisplayResourceItemsCommands
+    this.createCustomShortcut(customShortcuts, "rb", resourcesState.resourceTypes
+      .find(res => res.group == ResourceConstants.RoleBasedAccessGroup && res.kind == "RoleBinding"))
+
+    return customShortcuts
+  }
+
+  private createCustomShortcut(commands: Command[], shortcut: string, resource: KubernetesResource | undefined) {
+    if (resource) {
+      commands.push(new DisplayResourceItemsCommand(shortcut, resource))
+    }
   }
 
 }
