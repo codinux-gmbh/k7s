@@ -1,4 +1,5 @@
 import com.github.gradle.node.npm.task.NpxTask
+import java.io.ByteArrayOutputStream
 
 plugins {
     kotlin("jvm")
@@ -75,6 +76,8 @@ tasks.withType<Test> {
 }
 
 
+val isBunInstalled = isProgramInstalled("bun")
+
 val buildFrontendTask = tasks.register<NpxTask>("buildFrontend") {
     dependsOn("yarnSetup")
     group = "frontend"
@@ -82,10 +85,25 @@ val buildFrontendTask = tasks.register<NpxTask>("buildFrontend") {
 
     workingDir.set(File("$projectDir/frontend"))
 
-    command.set("bun")
+    command.set(if (isBunInstalled) "bun" else "npm")
     args.addAll("run", "buildQuarkusDist")
 }
 
 tasks.named("processResources") {
     dependsOn(buildFrontendTask)
+}
+
+fun isProgramInstalled(program: String, vararg args: String = arrayOf("--version")): Boolean {
+    return try {
+        val output = ByteArrayOutputStream()
+        exec {
+            commandLine = listOf(program) + args
+            standardOutput = output
+            errorOutput = output
+            isIgnoreExitValue = true
+        }.exitValue == 0
+    } catch (e: Exception) {
+        println("Running program '$program' failed: $e")
+        false
+    }
 }
