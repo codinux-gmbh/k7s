@@ -32,20 +32,7 @@ export class ResourceCommandsService {
 
 
   createCommands(resourcesState: ResourcesState): Command[] {
-    let displayResourceItemsCommands = resourcesState.resourceTypes
-      .sort((a, b) => a.kind.localeCompare(b.kind)).flatMap(res => {
-      return [ new DisplayResourceItemsCommand(res.singularName ?? res.kind, res),
-        ...res.shortNames.sort().map(shortName => new DisplayResourceItemsCommand(shortName, res)) ]
-    })
-    // custom shortcuts
-    const deployment = resourcesState.resourceTypes.find(res => res.isDeployment)
-    if (deployment) {
-      displayResourceItemsCommands.push(new DisplayResourceItemsCommand("dp", deployment))
-    }
-    const roleBinding = resourcesState.resourceTypes.find(res => res.group == "rbac.authorization.k8s.io" && res.kind == "RoleBinding")
-    if (roleBinding) {
-      displayResourceItemsCommands.push(new DisplayResourceItemsCommand("rb", roleBinding))
-    }
+    const displayResourceItemsCommands = this.createDisplayResourceItemsCommands(resourcesState)
 
     const switchToNamespaceCommands = [
       new SwitchToNamespaceCommand("ns:all", undefined),
@@ -58,6 +45,27 @@ export class ResourceCommandsService {
       ...switchToNamespaceCommands,
       ...displayResourceItemsCommands,
     ]
+  }
+
+  private createDisplayResourceItemsCommands(resourcesState: ResourcesState): DisplayResourceItemsCommand[] {
+    const displayResourceItemsCommands = resourcesState.resourceTypes
+      .sort((a, b) => a.kind.localeCompare(b.kind)).flatMap(res => {
+        return [ new DisplayResourceItemsCommand(res.singularName ?? res.kind, res),
+          ...res.shortNames.sort().map(shortName => new DisplayResourceItemsCommand(shortName, res)) ]
+      })
+
+    // custom shortcuts
+    const deployment = resourcesState.resourceTypes.find(res => res.isDeployment)
+    if (deployment) {
+      displayResourceItemsCommands.push(new DisplayResourceItemsCommand("dp", deployment))
+    }
+    const roleBinding = resourcesState.resourceTypes
+      .find(res => res.group == "rbac.authorization.k8s.io" && res.kind == "RoleBinding")
+    if (roleBinding) {
+      displayResourceItemsCommands.push(new DisplayResourceItemsCommand("rb", roleBinding))
+    }
+
+    return displayResourceItemsCommands
   }
 
 }
