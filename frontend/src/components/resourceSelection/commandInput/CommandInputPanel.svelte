@@ -102,6 +102,10 @@
     if (deployment) {
       displayResourceItemsCommands.push(new DisplayResourceItemsCommand("dp", deployment))
     }
+    const roleBinding = resourcesState.resourceTypes.find(res => res.group == "rbac.authorization.k8s.io" && res.kind == "RoleBinding")
+    if (roleBinding) {
+      displayResourceItemsCommands.push(new DisplayResourceItemsCommand("rb", roleBinding))
+    }
 
     const switchToNamespaceCommands = [
       new SwitchToNamespaceCommand("ns:all", undefined),
