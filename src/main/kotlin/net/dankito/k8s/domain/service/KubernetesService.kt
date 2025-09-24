@@ -555,7 +555,13 @@ class KubernetesService(
 
     fun getLogs(resourceKind: String, namespace: String, itemName: String, containerName: String? = null, context: String? = null, sinceTimeUtc: ZonedDateTime? = null, maxLines: Int? = null): List<String> =
         getLoggable(resourceKind, namespace, itemName, containerName, context)
-            .sinceTime((sinceTimeUtc ?: Instant.now().atOffset(ZoneOffset.UTC).minusMinutes(10)).toString())
+            .let {
+                if (sinceTimeUtc != null) {
+                    it.sinceTime(sinceTimeUtc.toString())
+                } else {
+                    it
+                }
+            }
             .let {
                 if (maxLines != null) {
                     it.tailingLines(maxLines)
