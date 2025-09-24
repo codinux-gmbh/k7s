@@ -95,12 +95,8 @@ tasks.named("processResources") {
 
 fun isProgramInstalled(program: String, vararg args: String = arrayOf("--version")): Boolean {
     return try {
-        val output = ByteArrayOutputStream()
         exec {
             commandLine = listOf(program) + args
-            standardOutput = output
-            errorOutput = output
-            isIgnoreExitValue = true
         }.exitValue == 0
     } catch (e: Exception) {
         println("Running program '$program' failed: $e")
