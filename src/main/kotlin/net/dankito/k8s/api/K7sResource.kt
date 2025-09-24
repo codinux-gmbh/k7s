@@ -41,8 +41,9 @@ class K7sResource(
         @BeanParam params: ResourceItemParameter,
         @QueryParam("containerName") containerName: String? = null,
         @QueryParam("since") since: ZonedDateTime? = null,
+        @QueryParam("maxLines") maxLines: Int? = null,
     ): List<String> =
-        service.getLogs(params, containerName, since)
+        service.getLogs(params, containerName, since, maxLines)
 
     @GET
     @Path("/{group}/{kind}/{namespace}/{itemName}")

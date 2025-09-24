@@ -549,13 +549,20 @@ class KubernetesService(
     }
 
 
-    fun getLogs(params: ResourceItemParameter, containerName: String? = null, since: ZonedDateTime? = null): List<String> =
+    fun getLogs(params: ResourceItemParameter, containerName: String? = null, since: ZonedDateTime? = null, maxLines: Int? = null): List<String> =
         // all loggable resources are namespaced
-        getLogs(params.kind, params.namespace!!, params.itemName, containerName, params.context, since)
+        getLogs(params.kind, params.namespace!!, params.itemName, containerName, params.context, since, maxLines)
 
-    fun getLogs(resourceKind: String, namespace: String, itemName: String, containerName: String? = null, context: String? = null, sinceTimeUtc: ZonedDateTime? = null): List<String> =
+    fun getLogs(resourceKind: String, namespace: String, itemName: String, containerName: String? = null, context: String? = null, sinceTimeUtc: ZonedDateTime? = null, maxLines: Int? = null): List<String> =
         getLoggable(resourceKind, namespace, itemName, containerName, context)
             .sinceTime((sinceTimeUtc ?: Instant.now().atOffset(ZoneOffset.UTC).minusMinutes(10)).toString())
+            .let {
+                if (maxLines != null) {
+                    it.tailingLines(maxLines)
+                } else {
+                    it
+                }
+            }
             .getLog(true)
             .split('\n')
             .let { logs ->
