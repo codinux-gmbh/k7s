@@ -8,6 +8,7 @@ import {UiState} from "../ui/state/UiState.svelte"
 import {ShowYamlDialogOptions} from "../../components/dialogs/resourceItem/ShowYamlDialogOptions"
 import {ItemLogsDialogOptions} from "../../components/dialogs/resourceItem/ItemLogsDialogOptions"
 import {LogService} from "./LogService"
+import {ResourceParameter} from "../clients/k7sApi/ResourceParameter"
 
 export class ResourceItemsService {
 
@@ -50,13 +51,9 @@ export class ResourceItemsService {
     })
   }
 
-  selectedNamespaceChanged(namespace: string | undefined) {
-    this.client.getResourceItems(this.resourcesState.toResourceParameterForNamespace(namespace))
-      .then(items => {
-        this.resourcesState.namespace = namespace
-        this.resourcesState.selectedResourceItems = items
-        this.itemsCache.put(this.resourcesState.selectedResource, items)
-      })
+  selectedNamespaceChanged(namespace: string | undefined): Promise<ResourceItem[]> {
+    return this.getResourceItemsForParameter(this.resourcesState.selectedResource,
+      this.resourcesState.toResourceParameterForNamespace(namespace))
   }
 
   selectedResourceChanged(resource: KubernetesResource) {
@@ -75,15 +72,24 @@ export class ResourceItemsService {
     this.autoUpdateTimeoutId = setInterval(() => this.getResourceItems(resource), 5000)
   }
 
-  private getResourceItems(resource: KubernetesResource) {
-    this.client.getResourceItems(this.resourcesState.toResourceParameter(resource))
-      .then(items => {
-        this.resourcesState.selectedResource = resource
-        this.resourcesState.selectedResourceItems = items
-        this.itemsCache.put(resource, items)
+  private getResourceItems(resource: KubernetesResource): Promise<ResourceItem[]> {
+    return this.getResourceItemsForParameter(resource, this.resourcesState.toResourceParameter(resource))
+  }
 
-        this.callResourceItemsChangedListener(resource, items.items)
-      })
+  private async getResourceItemsForParameter(resource: KubernetesResource, parameter: ResourceParameter): Promise<ResourceItem[]> {
+    const items = await this.client.getResourceItems(parameter)
+
+    this.resourcesState.selectedResource = resource
+    this.resourcesState.selectedResourceItems = items
+    if (parameter.namespace) {
+      this.resourcesState.namespace = parameter.namespace
+    }
+
+    this.itemsCache.put(resource, items)
+
+    this.callResourceItemsChangedListener(resource, items.items)
+
+    return items.items
   }
 
 
