@@ -3,10 +3,21 @@
   import {DI} from "../../ts/service/DI"
   import {KubernetesResource} from "../../ts/model/KubernetesResource"
   import ResourceItemsListDesktopListItem from "./ResourceItemsListDesktopListItem.svelte"
+  import {ResourceItem} from "../../ts/model/ResourceItem"
+  import {onMount} from "svelte"
 
   let { resource, resourcesState, showNamespace }: { resource: KubernetesResource, resourcesState: ResourcesState, showNamespace: boolean } = $props()
 
+  let items: ResourceItem[] = $state(resourcesState.selectedResourceItems.items)
+
+  const resourceItemsService = DI.resourceItemsService
   const itemsFormatter = DI.itemsFormatter
+
+  onMount(() => {
+    resourceItemsService.addResourceItemsChangedListener((resource, newItems) => {
+      items = newItems
+    })
+  })
 
 
   function getColumnNames(): string[] {
@@ -51,7 +62,7 @@
     </div>
 
     <div class="tbody overflow-y-auto">
-      {#each resourcesState.selectedResourceItems.items as item}
+      {#each items as item}
         <ResourceItemsListDesktopListItem {item} {resource} {showNamespace} />
       {/each}
     </div>

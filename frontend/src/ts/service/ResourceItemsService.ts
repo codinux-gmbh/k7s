@@ -7,6 +7,7 @@ import {ResourceItem} from "../model/ResourceItem"
 import {UiState} from "../ui/state/UiState.svelte"
 import {ShowYamlDialogOptions} from "../../components/dialogs/resourceItem/ShowYamlDialogOptions"
 import {ItemLogsDialogOptions} from "../../components/dialogs/resourceItem/ItemLogsDialogOptions"
+import {LogService} from "./LogService"
 
 export class ResourceItemsService {
 
@@ -14,8 +15,11 @@ export class ResourceItemsService {
 
   private autoUpdateTimeoutId: number | undefined = undefined
 
+  private resourceItemsChangedListeners: ((resource: KubernetesResource, items: ResourceItem[]) => void)[] = []
+
+
   constructor(private readonly resourcesState: ResourcesState,
-              private readonly client: K7sApiClient) { }
+              private readonly client: K7sApiClient, private readonly log: LogService) { }
 
 
   selectedContextChanged(context?: string) {
@@ -77,6 +81,8 @@ export class ResourceItemsService {
         this.resourcesState.selectedResource = resource
         this.resourcesState.selectedResourceItems = items
         this.itemsCache.put(resource, items)
+
+        this.callResourceItemsChangedListener(resource, items.items)
       })
   }
 
@@ -119,6 +125,21 @@ export class ResourceItemsService {
       .then(success => {
         console.log("Successfully killed item?", success)
       })
+  }
+
+
+  addResourceItemsChangedListener(listener: (resource: KubernetesResource, items: ResourceItem[]) => void) {
+    this.resourceItemsChangedListeners.push(listener)
+  }
+
+  private callResourceItemsChangedListener(resource: KubernetesResource, items: ResourceItem[]) {
+    this.resourceItemsChangedListeners.forEach(listener => {
+      try {
+        listener(resource, items)
+      } catch (e) {
+        this.log.error("Could not call resourceItemsChangedListener", listener, e)
+      }
+    })
   }
 
 }

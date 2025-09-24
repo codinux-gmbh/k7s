@@ -14,7 +14,7 @@ export class DI {
 
   static readonly apiClient: K7sApiClient = new K7sApiClient(DI.webClient)
 
-  static readonly resourceItemsService: ResourceItemsService = new ResourceItemsService(ResourcesState.state, DI.apiClient)
+  static readonly resourceItemsService: ResourceItemsService = new ResourceItemsService(ResourcesState.state, DI.apiClient, DI.log)
 
   static readonly itemsFormatter: ResourceItemsFormatter = new ResourceItemsFormatter()
 
