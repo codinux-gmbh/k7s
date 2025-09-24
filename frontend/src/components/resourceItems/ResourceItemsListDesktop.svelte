@@ -66,7 +66,7 @@
 
     <div class="tbody overflow-y-auto" onscroll={() => uiState.isScrollingResourceItemsList = true} onscrollend={() => uiState.scrollingResourceItemsListEnded()}>
       {#each items as item}
-        <ResourceItemsListDesktopListItem {item} {resource} {showNamespace} {index} isSelected={index === selectedIndex} />
+        <ResourceItemsListDesktopListItem {item} {resource} {showNamespace} />
       {/each}
     </div>
   </div>
