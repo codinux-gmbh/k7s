@@ -31,7 +31,8 @@ export class K7sApiClient {
 
 
   async getItemLogs(item: ResourceItem, resource: KubernetesResource, context?: string): Promise<string[]> {
-    const url = this.createResourceItemUrl(item, resource, context, "/logs")
+    let url = this.createResourceItemUrl(item, resource, context, "/logs")
+    url = this.appendQueryParam(url, "maxLines", 100)
 
     return this.webClient.get(url)
   }
@@ -103,6 +104,14 @@ export class K7sApiClient {
     }
 
     return query
+  }
+
+  private appendQueryParam(url: string, paramName: string, paramValue: any): string {
+    if (url.includes("?")) {
+      return `${url}&${paramName}=${paramValue}`
+    } else {
+      return `${url}?${paramName}=${paramValue}`
+    }
   }
 
 }
