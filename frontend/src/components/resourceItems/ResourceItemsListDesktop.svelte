@@ -45,7 +45,7 @@
     <div class="flex-1"></div>
   </div>
 
-  <div class="grow w-full h-full grid grid-rows-[auto_1fr] bg-white shadow-md">
+  <div class="grow overflow-hidden w-full grid grid-rows-[auto_1fr] bg-white shadow-md">
     <div class="thead sticky top-0 z-2">
       <div class="grid items-center h-12 pl-2 font-bold bg-zinc-200 text-zinc-500 border-b border-zinc-500" style={getGridColumns()}>
         {#if showNamespace}
