@@ -63,10 +63,6 @@
   }
 
 
-  function commandInputLostFocus() {
-    closePanel()
-  }
-
   function commandInputChanged(event: Event) {
     event.preventDefault()
 
@@ -125,7 +121,7 @@
             uiState.showCommandInputPanel ? "" : "hidden" ]}
      use:clickOutside={closePanel}>
   <input bind:this={commandInput} type="search" list="availableCommands" class="w-full h-full p-2 px-1 bg-white rounded-3xl focus:outline-none"
-         onchange={commandInputChanged} onblur={commandInputLostFocus} />
+         onchange={commandInputChanged} />
 
   <datalist id="availableCommands">
     {#each commands as command}
