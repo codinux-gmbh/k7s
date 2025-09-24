@@ -52,11 +52,7 @@ export class K7sApiClient {
 
   async scaleItem(item: ResourceItem, resource: KubernetesResource, context: string | undefined, scaleTo: number): Promise<boolean> {
     let url = this.createResourceItemUrl(item, resource, context)
-    if (url.includes("?")) {
-      url += `&scaleTo=${scaleTo}`
-    } else {
-      url += `?scaleTo=${scaleTo}`
-    }
+    url = this.appendQueryParam(url, "scaleTo", scaleTo)
 
     console.log("Calling URL", url)
 
@@ -65,12 +61,8 @@ export class K7sApiClient {
 
   async deleteItem(item: ResourceItem, resource: KubernetesResource, context?: string, gracePeriodSeconds?: number): Promise<boolean> {
     let url = this.createResourceItemUrl(item, resource, context)
-    if (gracePeriodSeconds) {
-      if (url.includes("?")) {
-        url += `&gracePeriod=${gracePeriodSeconds}`
-      } else {
-        url += `?gracePeriod=${gracePeriodSeconds}`
-      }
+    if (gracePeriodSeconds || gracePeriodSeconds === 0) {
+      url = this.appendQueryParam(url, "gracePeriod", gracePeriodSeconds)
     }
 
     return this.webClient.delete(url)
