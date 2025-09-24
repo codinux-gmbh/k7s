@@ -54,27 +54,27 @@ class K7sPage(
     }
 
 
-    @GET
-    @Blocking // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
-    fun homePage(
-        @RestQuery("context") context: String? = null,
-        @RestQuery("namespace") namespace: String? = null
-    ): TemplateInstance {
-        val defaultResource = service.getPods(context, namespace)
-
-        return homePage.data(HomePageData(
-            service.getAllAvailableResourceTypes(context),
-            service.getNamespaces(context)?.items.orEmpty(),
-            service.contextsNames,
-            service.podResource,
-            defaultResource?.items.orEmpty(),
-            service.getClusterStats(context),
-            service.defaultContext.takeUnless { it == KubernetesService.NonNullDefaultContextName },
-            context?.takeUnless { it == service.defaultContext },
-            namespace,
-            defaultResource?.resourceVersion
-        ))
-    }
+//    @GET
+//    @Blocking // TODO: why doesn't KubernetesClient work with suspending / non-blocking function?
+//    fun homePage(
+//        @RestQuery("context") context: String? = null,
+//        @RestQuery("namespace") namespace: String? = null
+//    ): TemplateInstance {
+//        val defaultResource = service.getPods(context, namespace)
+//
+//        return homePage.data(HomePageData(
+//            service.getAllAvailableResourceTypes(context),
+//            service.getNamespaces(context)?.items.orEmpty(),
+//            service.contextsNames,
+//            service.podResource,
+//            defaultResource?.items.orEmpty(),
+//            service.getClusterStats(context),
+//            service.defaultContext.takeUnless { it == KubernetesService.NonNullDefaultContextName },
+//            context?.takeUnless { it == service.defaultContext },
+//            namespace,
+//            defaultResource?.resourceVersion
+//        ))
+//    }
 
     @Path("page/resources/{group}/{name}") // TODO: don't know why, but if i use only "/resources/..." Quarkus cannot resolve the method anymore and i only get 404 Not Found
     @GET
