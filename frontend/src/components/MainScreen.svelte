@@ -6,12 +6,11 @@
   import ResourceItemsList from "./resourceItems/ResourceItemsList.svelte"
   import {Constants} from "../ts/service/Constants"
   import {UiState} from "../ts/ui/state/UiState.svelte"
-  import ResourceSelectionPanelTogglerButton from "./resourceSelection/panel/ResourceSelectionPanelTogglerButton.svelte"
-  import ResourceSelectionPanel from "./resourceSelection/panel/ResourceSelectionPanel.svelte"
-  import { clickOutside } from "../ts/ui/clickOutside"
   import Dialogs from "./dialogs/Dialogs.svelte"
   import CommandInputPanel from "./resourceSelection/commandInput/CommandInputPanel.svelte"
   import {GlobalKeyHandler} from "../ts/ui/inputHandler/GlobalKeyHandler"
+  import ResourceSelectionPanelAndTogglerButton
+    from "./resourceSelection/panel/ResourceSelectionPanelAndTogglerButton.svelte"
 
   let uiState = UiState.state
   let resourcesState = ResourcesState.state
@@ -20,19 +19,6 @@
   const service = DI.resourceItemsService
 
   onMount(() => service.selectedContextChanged(undefined))
-
-  function closePanel() {
-    uiState.showResourceSelectionPanel = false
-  }
-
-  function clickOutsideOfPanel(event: Event) {
-    const target = event.target as Element
-    const hasToggleButtonBeenClicked = target?.id == "resourceSelectionPanelToggleButton" || target?.parentElement?.id == "resourceSelectionPanelToggleButton"
-
-    if (hasToggleButtonBeenClicked == false) { // do not handle clicks on resourceSelectionPanelToggleButton, it does already the right thing
-      closePanel()
-    }
-  }
 </script>
 
 
@@ -48,11 +34,7 @@
   </div>
 
 
-  <ResourceSelectionPanelTogglerButton {uiState} />
-
-  <div class={[ uiState.showResourceSelectionPanel ? "" : "hidden" ]} use:clickOutside={clickOutsideOfPanel}>
-    <ResourceSelectionPanel {uiState} {resourcesState} />
-  </div>
+  <ResourceSelectionPanelAndTogglerButton {uiState} {resourcesState} />
 
   <CommandInputPanel {uiState} {resourcesState} />
 </div>
