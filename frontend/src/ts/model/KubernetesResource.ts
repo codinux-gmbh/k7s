@@ -1,4 +1,5 @@
 import {Verb} from "./Verb"
+import {ResourceConstants} from "../service/ResourceConstants"
 
 export class KubernetesResource {
 
@@ -20,7 +21,11 @@ export class KubernetesResource {
   }
 
   get isDeployment(): boolean {
-    return this.group === "apps" && this.kind === "Deployment"
+    return this.group === ResourceConstants.AppsGroup && this.kind === "Deployment"
+  }
+
+  get isStatefulSet(): boolean {
+    return this.group === ResourceConstants.AppsGroup && this.kind === "StatefulSet"
   }
 
   get isLoggable(): boolean {
@@ -28,7 +33,7 @@ export class KubernetesResource {
   }
 
   get isScalable(): boolean {
-    return this.kind === "Deployment" || this.kind === "StatefulSet"
+    return this.isDeployment || this.isStatefulSet
   }
 
   get isDeletable(): boolean {

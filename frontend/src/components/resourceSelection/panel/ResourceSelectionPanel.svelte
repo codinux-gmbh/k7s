@@ -7,6 +7,7 @@
   import {DI} from "../../../ts/service/DI"
   import {Option} from "../../common/form/Option"
   import {KubernetesResource} from "../../../ts/model/KubernetesResource"
+  import {ResourceConstants} from "../../../ts/service/ResourceConstants"
 
   let { uiState, resourcesState }: { uiState: UiState, resourcesState: ResourcesState } = $props()
 
@@ -97,9 +98,9 @@
     {/if}
 
     <!-- highlighted default resources -->
-    <ResourcePanelItem group="rbac.authorization.k8s.io" kind="RoleBinding" {uiState} {resourcesState} />
-    <ResourcePanelItem group="rbac.authorization.k8s.io" kind="ClusterRole" {uiState} {resourcesState} />
-    <ResourcePanelItem group="rbac.authorization.k8s.io" kind="Role" {uiState} {resourcesState} />
+    <ResourcePanelItem group={ResourceConstants.RoleBasedAccessGroup} kind="RoleBinding" {uiState} {resourcesState} />
+    <ResourcePanelItem group={ResourceConstants.RoleBasedAccessGroup} kind="ClusterRole" {uiState} {resourcesState} />
+    <ResourcePanelItem group={ResourceConstants.RoleBasedAccessGroup} kind="Role" {uiState} {resourcesState} />
 
     <ResourcePanelItem group={null} kind="ServiceAccount" {uiState} {resourcesState} />
     <ResourcePanelItem group={null} kind="Secret" {uiState} {resourcesState} />
@@ -109,11 +110,11 @@
     <ResourcePanelItem group={null} kind="PersistentVolumeClaim" title="PVC" {uiState} {resourcesState} />
     <ResourcePanelItem group={null} kind="Node" {uiState} {resourcesState} />
 
-    <ResourcePanelItem group="apps" kind="DaemonSet" {uiState} {resourcesState} />
-    <ResourcePanelItem group="apps" kind="StatefulSet" {uiState} {resourcesState} />
-    <ResourcePanelItem group="apps" kind="Deployment" {uiState} {resourcesState} />
+    <ResourcePanelItem group={ResourceConstants.AppsGroup} kind="DaemonSet" {uiState} {resourcesState} />
+    <ResourcePanelItem group={ResourceConstants.AppsGroup} kind="StatefulSet" {uiState} {resourcesState} />
+    <ResourcePanelItem group={ResourceConstants.AppsGroup} kind="Deployment" {uiState} {resourcesState} />
 
-    <ResourcePanelItem group="networking.k8s.io" kind="Ingress" {uiState} {resourcesState} />
+    <ResourcePanelItem group={ResourceConstants.NetworkingGroup} kind="Ingress" {uiState} {resourcesState} />
     <ResourcePanelItem group={null} kind="Service" {uiState} {resourcesState} />
     <ResourcePanelItem group={null} kind="Pod" {uiState} {resourcesState} />
   </div>

@@ -5,6 +5,7 @@ import {SwitchToNamespaceCommand} from "../ui/commands/SwitchToNamespaceCommand"
 import {SwitchToContextCommand} from "../ui/commands/SwitchToContextCommand"
 import {DI} from "./DI"
 import {ResourceItemsService} from "./ResourceItemsService"
+import {ResourceConstants} from "./ResourceConstants"
 
 export class ResourceCommandsService {
 
@@ -69,7 +70,7 @@ export class ResourceCommandsService {
       customDisplayResourceItemsCommands.push(new DisplayResourceItemsCommand("dp", deployment))
     }
     const roleBinding = resourcesState.resourceTypes
-      .find(res => res.group == "rbac.authorization.k8s.io" && res.kind == "RoleBinding")
+      .find(res => res.group == ResourceConstants.RoleBasedAccessGroup && res.kind == "RoleBinding")
     if (roleBinding) {
       customDisplayResourceItemsCommands.push(new DisplayResourceItemsCommand("rb", roleBinding))
     }
