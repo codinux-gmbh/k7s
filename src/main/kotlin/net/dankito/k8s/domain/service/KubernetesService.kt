@@ -101,7 +101,7 @@ class KubernetesService(
         val contextToSearch = context ?: defaultContext
 
         return clientForContext.getOrPut(contextToSearch) {
-            if (contextToSearch == null || contextToSearch == NonNullDefaultContextName) { // e.g. in Kubernetes clusters where there is no context available
+            if (contextToSearch == null || contextToSearch == NonNullDefaultContextName) { // e.g. in Kubernetes clusters there is no context available
                 KubernetesClientBuilder().build()
             } else {
                 KubernetesClientBuilder().withConfig(kubeConfigs.contextConfigs[contextToSearch]).build()
