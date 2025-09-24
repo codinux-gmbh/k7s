@@ -75,7 +75,7 @@ tasks.withType<Test> {
 }
 
 
-val builFrontendTask = tasks.register<NpxTask>("buildFrontend") {
+val buildFrontendTask = tasks.register<NpxTask>("buildFrontend") {
     dependsOn("yarnSetup")
     group = "frontend"
     description = "Transpiles Svelte components to standard JavaScript and CSS files and copies them to src/resources/META-INF/resources"
@@ -86,6 +86,6 @@ val builFrontendTask = tasks.register<NpxTask>("buildFrontend") {
     args.addAll("run", "buildQuarkusDist")
 }
 
-tasks.named("quarkusBuild") {
-    dependsOn(builFrontendTask)
+tasks.named("processResources") {
+    dependsOn(buildFrontendTask)
 }
