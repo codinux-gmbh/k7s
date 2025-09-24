@@ -47,8 +47,9 @@
     <div class="flex-1"></div>
   </div>
 
-  <div class="grow overflow-hidden w-full grid grid-rows-[auto_1fr] bg-white shadow-md">
-    <div class="thead sticky top-0 z-2">
+  <div role="listbox" class="grow overflow-hidden w-full grid grid-rows-[auto_1fr] bg-white shadow-md"
+       tabindex="0" aria-label="Items of the selected Kubernetes resource like Pods, Deployments, Ingresses, Nodes, ...">
+    <div class="thead sticky top-0 z-2" role="columnheader">
       <div class="grid items-center h-12 pl-2 font-bold bg-zinc-200 text-zinc-500 border-b border-zinc-500" style={getGridColumns()}>
         {#if showNamespace}
           <div>Namespace</div>
