@@ -455,6 +455,12 @@ class KubernetesService(
         return item?.get()?.let { Serialization.asYaml(it) }
     }
 
+    fun getResourceItemJson(params: ResourceItemParameter): String? {
+        val item = getResourceItemOrThrow(params)
+
+        return item?.get()?.let { Serialization.asJson(it) }
+    }
+
     fun getResourceItemYaml(resourceName: String, namespace: String?, itemName: String, context: String? = null): String? {
         val resource = getResourceByName(resourceName, context)
         if (resource != null) {
