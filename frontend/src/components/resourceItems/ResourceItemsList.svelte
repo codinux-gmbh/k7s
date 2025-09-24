@@ -4,8 +4,9 @@
   import ResourceItemsListMobile from "./ResourceItemsListMobile.svelte"
   import {Constants} from "../../ts/service/Constants"
   import {KubernetesResource} from "../../ts/model/KubernetesResource"
+  import {UiState} from "../../ts/ui/state/UiState.svelte"
 
-  let { resourcesState }: { resourcesState: ResourcesState } = $props()
+  let { uiState, resourcesState }: { uiState: UiState, resourcesState: ResourcesState } = $props()
 
   let resource: KubernetesResource = $state(resourcesState.selectedResource)
 
@@ -26,11 +27,11 @@
 <div class="h-full text-sm">
 
   {#if Constants.isDesktop}
-    <ResourceItemsListDesktop {resource} {resourcesState} {showNamespace} />
+    <ResourceItemsListDesktop {uiState} {resource} {resourcesState} {showNamespace} />
   {/if}
 
   {#if Constants.isMobile}
-    <ResourceItemsListMobile {resource} {resourcesState} {showNamespace} />
+    <ResourceItemsListMobile {uiState} {resource} {resourcesState} {showNamespace} />
   {/if}
 
 </div>

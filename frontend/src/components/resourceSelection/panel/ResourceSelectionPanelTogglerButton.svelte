@@ -9,8 +9,8 @@
   }
 </script>
 
-<button id="resourceSelectionPanelToggleButton" onclick={buttonClicked}
-        class="fixed w-12 h-12 bottom-1 right-1 lg:right-[1px] p-[0.2rem] !bg-primary rounded-lg shadow-md select-none z-[999]">
+<button id="resourceSelectionPanelToggleButton" onclick={buttonClicked} class={[ uiState.isScrollingResourceItemsList ? "hidden" : "",
+    "fixed w-12 h-12 bottom-1 right-1 lg:right-[1px] p-[0.2rem] !bg-primary rounded-lg shadow-md select-none z-[999]" ]}>
   <!-- Disable context menu so that no context menu to view / download image gets displayed -->
   <img alt="Toggle resources panel" src={KubernetesImage} oncontextmenu={() => false}>
 </button>

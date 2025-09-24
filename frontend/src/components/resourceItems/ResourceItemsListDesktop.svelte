@@ -5,8 +5,10 @@
   import ResourceItemsListDesktopListItem from "./ResourceItemsListDesktopListItem.svelte"
   import {ResourceItem} from "../../ts/model/ResourceItem"
   import {onMount} from "svelte"
+  import {UiState} from "../../ts/ui/state/UiState.svelte"
 
-  let { resource, resourcesState, showNamespace }: { resource: KubernetesResource, resourcesState: ResourcesState, showNamespace: boolean } = $props()
+  let { resource, resourcesState, uiState, showNamespace }:
+    { resource: KubernetesResource, resourcesState: ResourcesState, uiState: UiState, showNamespace: boolean } = $props()
 
   let items: ResourceItem[] = $state(resourcesState.selectedResourceItems.items)
 
@@ -61,9 +63,9 @@
       </div>
     </div>
 
-    <div class="tbody overflow-y-auto">
+    <div class="tbody overflow-y-auto" onscroll={() => uiState.isScrollingResourceItemsList = true} onscrollend={() => uiState.scrollingResourceItemsListEnded()}>
       {#each items as item}
-        <ResourceItemsListDesktopListItem {item} {resource} {showNamespace} />
+        <ResourceItemsListDesktopListItem {item} {resource} {showNamespace} {index} isSelected={index === selectedIndex} />
       {/each}
     </div>
   </div>

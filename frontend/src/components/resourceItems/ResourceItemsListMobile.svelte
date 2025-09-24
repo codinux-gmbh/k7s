@@ -2,8 +2,10 @@
   import {ResourcesState} from "../../ts/ui/state/ResourcesState.svelte"
   import ResourceItemsListMobileListItem from "./ResourceItemsListMobileListItem.svelte"
   import {KubernetesResource} from "../../ts/model/KubernetesResource"
+  import {UiState} from "../../ts/ui/state/UiState.svelte"
 
-  let { resource, resourcesState, showNamespace }: { resource: KubernetesResource, resourcesState: ResourcesState, showNamespace: boolean } = $props()
+  let { uiState, resource, resourcesState, showNamespace }:
+    { uiState: UiState, resource: KubernetesResource, resourcesState: ResourcesState, showNamespace: boolean } = $props()
 </script>
 
 
@@ -13,7 +15,8 @@
     {#if resourcesState.contexts.length > 1}<div class="ml-2">Context: {resourcesState.context ?? resourcesState.defaultContext}</div>{/if}
   </div>
 
-  <div role="listbox" class="grow w-full h-full bg-white shadow-md overflow-y-auto">
+  <div role="listbox" class="grow w-full h-full bg-white shadow-md overflow-y-auto"
+       onscroll={() => uiState.isScrollingResourceItemsList = true} onscrollend={() => uiState.scrollingResourceItemsListEnded()}>
     {#each resourcesState.selectedResourceItems.items as item, index}
       <ResourceItemsListMobileListItem {item} resource={resourcesState.selectedResource} {showNamespace} {index} />
     {/each}

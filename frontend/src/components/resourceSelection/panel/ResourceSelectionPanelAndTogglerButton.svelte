@@ -24,6 +24,7 @@
 
 <ResourceSelectionPanelTogglerButton {uiState} />
 
-<div class={[ uiState.showResourceSelectionPanel ? "" : "hidden" ]} use:clickOutside={clickOutsideOfPanel}>
+<div class={[ uiState.showResourceSelectionPanel && uiState.isScrollingResourceItemsList === false ? "" : "hidden" ]}
+     use:clickOutside={clickOutsideOfPanel}>
   <ResourceSelectionPanel {uiState} {resourcesState} />
 </div>

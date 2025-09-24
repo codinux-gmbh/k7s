@@ -30,7 +30,7 @@
   {/if}
 
   <div class="flex-1 w-full max-w-full h-full max-h-full">
-    <ResourceItemsList {resourcesState} />
+    <ResourceItemsList {uiState} {resourcesState} />
   </div>
 
 

@@ -6,6 +6,8 @@ export class UiState {
   static state = new UiState()
 
 
+  isScrollingResourceItemsList: boolean = $state(false)
+
   showResourceSelectionPanel: boolean = $state(false)
 
   showCommandInputPanel: boolean = $state(false)
@@ -13,5 +15,11 @@ export class UiState {
   showLogsDialog: ItemLogsDialogOptions | undefined = $state()
 
   showYamlDialog: ShowYamlDialogOptions | undefined = $state()
+
+
+  scrollingResourceItemsListEnded() {
+    // sometimes after scrollend event there's another false(!) scroll event -> so debounce
+    setTimeout(() => this.isScrollingResourceItemsList = false, 100)
+  }
 
 }
