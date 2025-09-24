@@ -70,8 +70,22 @@ export class ResourceCommandsService {
 
     this.createCustomShortcut(customShortcuts, "dp", resourcesState.resourceTypes.find(res => res.isDeployment))
 
+    this.createCustomShortcut(customShortcuts, "jo", resourcesState.resourceTypes
+      .find(res => res.group == ResourceConstants.BatchGroup && res.kind == "Job"))
+
+    this.createCustomShortcut(customShortcuts, "ro", resourcesState.resourceTypes
+      .find(res => res.group == ResourceConstants.RoleBasedAccessGroup && res.kind == "Role"))
     this.createCustomShortcut(customShortcuts, "rb", resourcesState.resourceTypes
       .find(res => res.group == ResourceConstants.RoleBasedAccessGroup && res.kind == "RoleBinding"))
+
+    // TODO: there might is already "cr" as shortName for CertificateRequest
+    this.createCustomShortcut(customShortcuts, "cr", resourcesState.resourceTypes
+      .find(res => res.group == ResourceConstants.RoleBasedAccessGroup && res.kind == "ClusterRole"))
+    this.createCustomShortcut(customShortcuts, "crb", resourcesState.resourceTypes
+      .find(res => res.group == ResourceConstants.RoleBasedAccessGroup && res.kind == "ClusterRoleBinding"))
+
+    this.createCustomShortcut(customShortcuts, "np", resourcesState.resourceTypes
+      .find(res => res.group == ResourceConstants.NetworkingGroup && res.kind == "NetworkPolicy"))
 
     return customShortcuts
   }
