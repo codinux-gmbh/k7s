@@ -3,10 +3,7 @@
   import { clickOutside } from "../../../ts/ui/clickOutside"
   import {ResourcesState} from "../../../ts/ui/state/ResourcesState.svelte"
   import type {Command} from "../../../ts/ui/commands/Command"
-  import {DisplayResourceItemsCommand} from "../../../ts/ui/commands/DisplayResourceItemsCommand"
   import {KubernetesResource} from "../../../ts/model/KubernetesResource"
-  import {SwitchToContextCommand} from "../../../ts/ui/commands/SwitchToContextCommand"
-  import {SwitchToNamespaceCommand} from "../../../ts/ui/commands/SwitchToNamespaceCommand"
   import {DI} from "../../../ts/service/DI"
 
   let { uiState, resourcesState }: { uiState: UiState, resourcesState: ResourcesState } = $props()
@@ -15,7 +12,6 @@
   let previousContext: string | undefined = resourcesState.context
   let previousResources: KubernetesResource[] = resourcesState.resourceTypes
 
-  const resourceItemsService = DI.resourceItemsService
   const commandsService = DI.commandsService
 
   let commands: Command[] = $state(createCommands(resourcesState))
@@ -72,21 +68,10 @@
       return
     }
 
-    const commandToExecute = commands.find(command => command.command == commandInput.value)
-    if (commandToExecute) {
-      if (commandToExecute instanceof SwitchToContextCommand) {
-        resourceItemsService.selectedContextChanged(commandToExecute.context)
-      } else if (commandToExecute instanceof SwitchToNamespaceCommand) {
-        resourceItemsService.selectedNamespaceChanged(commandToExecute.namespace)
-      } else if (commandToExecute instanceof DisplayResourceItemsCommand) {
-        resourceItemsService.selectedResourceChanged(commandToExecute.resource)
-      }
-    } else {
-      DI.log.warn(`No command found for command input ${commandInput.value}`)
-      return // do not close panel then
+    const commandFound = commandsService.executeCommand(commands, commandInput.value)
+    if (commandFound) { // otherwise don't close panel
+      closePanel()
     }
-
-    closePanel()
   }
 
   function createCommands(resourcesState: ResourcesState): Command[] {

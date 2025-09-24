@@ -19,7 +19,7 @@ export class DI {
 
   static readonly itemsFormatter: ResourceItemsFormatter = new ResourceItemsFormatter()
 
-  static readonly commandsService: ResourceCommandsService = new ResourceCommandsService()
+  static readonly commandsService: ResourceCommandsService = new ResourceCommandsService(DI.resourceItemsService)
 
 
   private static getBaseUrl(): string {

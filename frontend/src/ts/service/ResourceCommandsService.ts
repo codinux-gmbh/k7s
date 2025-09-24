@@ -3,8 +3,33 @@ import type {Command} from "../ui/commands/Command"
 import {DisplayResourceItemsCommand} from "../ui/commands/DisplayResourceItemsCommand"
 import {SwitchToNamespaceCommand} from "../ui/commands/SwitchToNamespaceCommand"
 import {SwitchToContextCommand} from "../ui/commands/SwitchToContextCommand"
+import {DI} from "./DI"
+import {ResourceItemsService} from "./ResourceItemsService"
 
 export class ResourceCommandsService {
+
+  constructor(private readonly resourceItemsService: ResourceItemsService) { }
+
+
+  executeCommand(commands: Command[], enteredCommand: string): boolean {
+    const commandToExecute = commands.find(command => command.command == enteredCommand)
+
+    if (commandToExecute) {
+      if (commandToExecute instanceof SwitchToContextCommand) {
+        this.resourceItemsService.selectedContextChanged(commandToExecute.context)
+      } else if (commandToExecute instanceof SwitchToNamespaceCommand) {
+        this.resourceItemsService.selectedNamespaceChanged(commandToExecute.namespace)
+      } else if (commandToExecute instanceof DisplayResourceItemsCommand) {
+        this.resourceItemsService.selectedResourceChanged(commandToExecute.resource)
+      }
+
+      return true
+    } else {
+      DI.log.warn(`No command found for command input ${enteredCommand}`)
+      return false // do not close panel then
+    }
+  }
+
 
   createCommands(resourcesState: ResourcesState): Command[] {
     let displayResourceItemsCommands = resourcesState.resourceTypes
