@@ -47,7 +47,7 @@
 </script>
 
 
-<div class="w-full h-full relative inline-block">
+<div class="w-full relative inline-block">
   <button bind:this={triggerButton} class="dots-button w-full h-full flex items-center justify-center text-3xl text-zinc-500"
           onclick={handleContextMenuTriggerClick}>
     &#xFE19;
