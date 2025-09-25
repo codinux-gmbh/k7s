@@ -79,8 +79,18 @@ tasks.withType<Test> {
 
 val isBunInstalled = isProgramInstalled("bun")
 
+// com.github.node-gradle.node plugin's NpmInstallTask did not work as it only supports package.json files in root source directory (honestly?)
+val npmInstallFrontend = tasks.register<Exec>("npmInstallFrontend") {
+    group = "frontend"
+    description = "Run bun/npm install to install frontend dependencies if required. Ensures e.g. that vite is available for buildFrontend task"
+
+    workingDir = File("$projectDir/frontend")
+
+    commandLine(if (isBunInstalled) "bun" else "npm", "install")
+}
+
 val buildFrontendTask = tasks.register<NpxTask>("buildFrontend") {
-    dependsOn("yarnSetup")
+    dependsOn(npmInstallFrontend)
     group = "frontend"
     description = "Transpiles Svelte components to standard JavaScript and CSS files and copies them to src/resources/META-INF/resources"
 
