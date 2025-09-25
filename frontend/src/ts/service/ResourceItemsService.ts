@@ -24,6 +24,8 @@ export class ResourceItemsService {
 
 
   selectedContextChanged(context?: string) {
+    this.stopAutoUpdate()
+
     this.client.getAllAvailableResourceTypes(context)
       .then(response => {
         const resources = response.resources
@@ -52,14 +54,14 @@ export class ResourceItemsService {
   }
 
   selectedNamespaceChanged(namespace: string | undefined): Promise<ResourceItem[]> {
+    this.stopAutoUpdate()
+
     return this.getResourceItemsForParameter(this.resourcesState.selectedResource,
       this.resourcesState.toResourceParameterForNamespace(namespace))
   }
 
   selectedResourceChanged(resource: KubernetesResource) {
-    if (this.autoUpdateTimeoutId) {
-      clearInterval(this.autoUpdateTimeoutId)
-    }
+    this.stopAutoUpdate()
 
     const previousItems = this.itemsCache.get(resource)
     if (previousItems) { // so there's no delay in showing selected resource's items, show previously fetched items if available
@@ -90,6 +92,12 @@ export class ResourceItemsService {
     this.callResourceItemsChangedListener(resource, items.items)
 
     return items.items
+  }
+
+  private stopAutoUpdate() {
+    if (this.autoUpdateTimeoutId) {
+      clearInterval(this.autoUpdateTimeoutId)
+    }
   }
 
 
