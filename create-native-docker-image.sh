@@ -1,5 +1,5 @@
 
-./gradlew build -Dquarkus.package.type=native -x test &&
+./gradlew build -Dquarkus.native.enabled=true -Dquarkus.package.jar.enabled=false -Dquarkus.native.container-build=true -x test &&
 
 if [ ! -f build/apps/kubectl ]; then
   mkdir -p "build/apps"
