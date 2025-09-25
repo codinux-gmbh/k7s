@@ -1,4 +1,16 @@
 
+## K8s API endpoints:
+
+### Kubernetes API server:
+
+```shell
+kubectl proxy -p 8080
+```
+
+Then open `http://localhost:8080` in browser.
+
+For OpenAPI spec open `http://localhost:8080/openapi/v2`.
+
 ## Names
 
 Depending on the requirements RFC 1123, RFC 1123 Label Names or RFC 1035 apply:
