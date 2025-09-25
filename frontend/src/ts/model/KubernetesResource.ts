@@ -53,8 +53,9 @@ export class KubernetesResource {
   }
 
 
+  // Kubernetes API says DaemonSet is loggable, but Fabric8 Kubernetes Client hasn't implemented it as Loggable
   static LoggableResourceKinds = [
-    "Pod", "Deployment", "StatefulSet", "DaemonSet", "ReplicaSet", "Job"
+    "Pod", "Deployment", "StatefulSet", "ReplicaSet", "Job"
   ]
 
   static ResourcesWithStats = [

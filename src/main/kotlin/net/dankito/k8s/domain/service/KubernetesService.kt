@@ -604,11 +604,11 @@ class KubernetesService(
 
     //private fun <E, L : KubernetesResourceList<E>, T> getLoggableForResource(resourceKind: String): MixedOperation<out E, out L, out T> where T : Resource<E>, T : Loggable = when (resourceKind) {
     private fun getLoggableForResource(resourceKind: String, context: String? = null): Namespaceable<*> = when (resourceKind) {
-        // TODO: only the first value is the resource kind, the second is the . Remove the latter one
+        // TODO: only the first value is the resource kind, the second is the resource name. Remove the latter one
+        // Kubernetes API says DaemonSet is loggable, but Fabric8 Kubernetes Client hasn't implemented it as Loggable
         "Pod", "pods" -> getClient(context).pods()
         "Deployment", "deployments" -> getClient(context).apps().deployments()
         "StatefulSet", "statefulsets" -> getClient(context).apps().statefulSets()
-        "DaemonSet", "daemonsets" -> getClient(context).apps().daemonSets()
         "ReplicaSet", "replicasets" -> getClient(context).apps().replicaSets()
         "Job", "jobs" -> getClient(context).batch().v1().jobs()
         else -> throw IllegalArgumentException("Trying to get Loggable for resource '$resourceKind' which is not loggable")
