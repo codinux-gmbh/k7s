@@ -586,10 +586,17 @@ class KubernetesService(
             .watchLog()?.output
 
     // oh boy is that ugly code!
-    private fun getLoggable(resourceKind: String, namespace: String, itemName: String, containerName: String?, context: String? = null): TimeTailPrettyLoggable =
+    private fun getLoggable(resourceKind: String, namespace: String, itemName: String, containerName: String?, context: String? = null, addTimestamps: Boolean = false): TimeTailPrettyLoggable =
         ((getLoggableForResource(resourceKind, context).inNamespace(namespace) as Nameable<*>).withName(itemName) as TimeTailPrettyLoggable).let {
             if (containerName != null && it is PodResource) {
                 it.inContainer(containerName) as TimeTailPrettyLoggable
+            } else {
+                it
+            }
+        }
+        .let {
+            if (addTimestamps && it is TimestampBytesLimitTerminateTimeTailPrettyLoggable) {
+                it.usingTimestamps()
             } else {
                 it
             }
