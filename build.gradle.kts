@@ -1,5 +1,6 @@
 import com.github.gradle.node.npm.task.NpxTask
 import org.gradle.kotlin.dsl.support.serviceOf
+import java.io.ByteArrayOutputStream
 
 plugins {
     kotlin("jvm")
@@ -96,8 +97,11 @@ tasks.named("processResources") {
 fun isProgramInstalled(program: String, vararg args: String = arrayOf("--version")): Boolean {
     return try {
         val execOperations = project.serviceOf<ExecOperations>()
+        val silencedOutputStream = ByteArrayOutputStream()
         execOperations.exec {
             commandLine = listOf(program) + args
+            standardOutput = silencedOutputStream
+            errorOutput = silencedOutputStream
         }.exitValue == 0
     } catch (e: Exception) {
         println("Running program '$program' failed: $e")
