@@ -83,7 +83,7 @@ export class ResourceItemsService {
 
     this.resourcesState.selectedResource = resource
     this.resourcesState.selectedResourceItems = items
-    if (parameter.namespace) {
+    if (parameter.namespace != this.resourcesState.namespace) {
       this.resourcesState.namespace = parameter.namespace
     }
 
