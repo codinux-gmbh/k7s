@@ -18,7 +18,7 @@
   })
 
   $effect(() => {
-    showNamespace = resourcesState.selectedResource.isNamespaced || resourcesState.namespace != undefined
+    showNamespace = resourcesState.selectedResource.isNamespaced && resourcesState.namespace == undefined
   })
 
 </script>
